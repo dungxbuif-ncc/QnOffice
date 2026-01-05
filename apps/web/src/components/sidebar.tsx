@@ -1,5 +1,6 @@
 'use client';
 
+import { PATHS } from '@/constants/paths';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -7,32 +8,32 @@ import { usePathname } from 'next/navigation';
 const navigation = [
   {
     name: 'Dashboard',
-    href: '/dashboard',
+    href: PATHS.DASHBOARD.BASE,
     icon: '📊',
   },
   {
     name: 'Branches',
-    href: '/dashboard/branches',
+    href: PATHS.DASHBOARD.BRANCHES,
     icon: '🏢',
   },
   {
     name: 'Staff Management',
-    href: '/dashboard/staff',
+    href: PATHS.DASHBOARD.STAFF,
     icon: '👥',
   },
   {
     name: 'Schedules',
-    href: '/dashboard/schedules',
+    href: PATHS.DASHBOARD.SCHEDULES.BASE,
     icon: '📅',
   },
   {
     name: 'Reports',
-    href: '/dashboard/reports',
+    href: PATHS.DASHBOARD.REPORTS,
     icon: '📄',
   },
   {
     name: 'Settings',
-    href: '/dashboard/settings',
+    href: PATHS.DASHBOARD.SETTINGS,
     icon: '⚙️',
   },
 ];

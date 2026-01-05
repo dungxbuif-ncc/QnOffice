@@ -21,7 +21,6 @@ export default async function bootstrapConfig(app: INestApplication) {
   const configService = app.select(SharedModule).get(AppConfigService);
 
   app.use(cookieParser());
-  app.setGlobalPrefix('api');
   app.enableCors({
     origin: configService.frontendUrl,
     credentials: true,

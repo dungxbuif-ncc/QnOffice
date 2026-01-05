@@ -13,60 +13,58 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 
-// Navigation data matching your existing navigation structure
 const navigationData = [
   {
     title: 'Dashboard',
-    href: '/dashboard',
+    href: PATHS.DASHBOARD.BASE,
     icon: '📊',
   },
   {
     title: 'Branches',
-    href: '/dashboard/branches',
+    href: PATHS.DASHBOARD.BRANCHES,
     icon: '🏢',
   },
   {
     title: 'Staff Management',
-    href: '/dashboard/staff',
+    href: PATHS.DASHBOARD.STAFF,
     icon: '👥',
   },
   {
     title: 'Schedules',
-    href: '/dashboard/schedules',
+    href: PATHS.DASHBOARD.SCHEDULES.BASE,
     icon: '📅',
     items: [
       {
         title: 'Cleaning Schedule',
-        href: '/dashboard/schedules/cleaning',
+        href: PATHS.DASHBOARD.SCHEDULES.CLEANING,
       },
       {
         title: 'Open Talk Schedule',
-        href: '/dashboard/schedules/open-talk',
+        href: PATHS.DASHBOARD.SCHEDULES.OPEN_TALK,
       },
       {
         title: 'Holiday Schedule',
-        href: '/dashboard/schedules/holiday',
+        href: PATHS.DASHBOARD.SCHEDULES.HOLIDAY,
       },
     ],
   },
   {
     title: 'Reports',
-    href: '/dashboard/reports',
+    href: PATHS.DASHBOARD.REPORTS,
     icon: '📄',
   },
   {
     title: 'Settings',
-    href: '/dashboard/settings',
+    href: PATHS.DASHBOARD.SETTINGS,
     icon: '⚙️',
   },
 ];
 
+import { PATHS } from '@/constants/paths';
+import { User } from '@/lib/services/auth-service';
+
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user?: {
-    username: string;
-    email?: string;
-    avatar?: string;
-  };
+  user?: User | null;
   onLogout?: () => void;
 }
 
@@ -80,15 +78,7 @@ export function AppSidebar({ user, onLogout, ...props }: AppSidebarProps) {
         <NavMain items={navigationData} />
       </SidebarContent>
       <SidebarFooter>
-        {user && onLogout && (
-          <NavUser
-            user={{
-              name: 'Dungx Buif',
-              email: 'dung.buihuu@ncc.asia',
-              avatar: 'https://avatars.githubusercontent.com/u/5072455?v=4',
-            }}
-          />
-        )}
+        {user && onLogout && <NavUser user={user} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

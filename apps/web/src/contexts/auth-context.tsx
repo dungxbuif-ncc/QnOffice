@@ -1,7 +1,8 @@
 'use client';
 
-import { authApi, User } from '@/lib/auth-api-simple';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { PATHS } from '@/constants';
+import { authService, User } from '@/lib/services/auth-service';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -16,102 +17,79 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+interface AuthProviderProps {
+  children: React.ReactNode;
+  initialState?: {
+    user: User | null;
+    isAuthenticated: boolean;
+  };
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({
   children,
+  initialState,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    initialState?.isAuthenticated || false,
+  );
+  const [user, setUser] = useState<User | null>(initialState?.user || null);
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
-
-  const isPublicPage = pathname === '/login' || pathname?.startsWith('/auth');
-
-  const {
-    data: profileData,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => {
-      try {
-        const response = await authApi.getProfile();
-        return response;
-      } catch (err) {
-        throw err;
-      }
-    },
-    enabled: pathname !== '/auth/callback',
-    retry: false,
-    retryOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const user = profileData?.data || null;
-  const actualIsLoading = pathname === '/auth/callback' ? false : isLoading;
 
   useEffect(() => {
     if (user) {
       console.log('[AuthContext] User authenticated');
       setIsAuthenticated(true);
       // If user is authenticated and on login page, redirect to dashboard
-      if (pathname === '/login') {
+      if (pathname === PATHS.AUTH.LOGIN) {
         console.log(
           '[AuthContext] Redirecting authenticated user to /dashboard',
         );
-        router.push('/dashboard');
+        router.push(PATHS.DASHBOARD.BASE);
       }
-    } else if (!isLoading) {
-      // Only update state after loading is complete
-      // No user - either error or not logged in
+    } else {
+      console.log('[AuthContext] No user found');
       setIsAuthenticated(false);
-      // Only redirect to login if we're on a protected page
-      if (error && !isPublicPage) {
-        console.log('[AuthContext] Auth error on protected page');
-        if (pathname !== '/login' && !pathname?.startsWith('/auth')) {
-          console.log('[AuthContext] Redirecting to /login');
-          router.push('/login');
-        }
-      }
     }
-  }, [user, error, isPublicPage, pathname, router, isLoading]);
+  }, [user, pathname, router]);
 
-  const login = () => {
-    window.location.href = authApi.getLoginUrl();
+  const refetch = async () => {
+    try {
+      const authState = await authService.me();
+      setUser(authState.user);
+      setIsAuthenticated(authState.isAuthenticated);
+    } catch (error) {
+      console.error('Refetch auth failed:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const login = async () => {
+    await authService.redirectToOAuth();
   };
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      await authService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      setUser(null);
       setIsAuthenticated(false);
       queryClient.clear();
-      window.location.href = '/login';
     }
   };
 
   const value = {
     user,
-    isLoading: actualIsLoading,
+    isLoading: false, // No loading since we get data server-side
     isAuthenticated,
     login,
     logout,
     refetch,
   };
-
-  if (actualIsLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-gray-900"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

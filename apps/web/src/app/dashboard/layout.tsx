@@ -16,6 +16,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { PATHS } from '@/constants/paths';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -30,7 +31,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push(PATHS.AUTH.LOGIN);
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -57,7 +58,7 @@ export default function DashboardLayout({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">
+                  <BreadcrumbLink href={PATHS.DASHBOARD.BASE}>
                     QN Office Management
                   </BreadcrumbLink>
                 </BreadcrumbItem>
