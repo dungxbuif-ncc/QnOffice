@@ -1,28 +1,14 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { AbstractEntity } from '@src/common/database/abstract.entity';
+import { Column, Entity } from 'typeorm';
 
 @Entity('branches')
-export class Branch {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class BranchEntity extends AbstractEntity {
   @Column()
   name: string;
 
+  @Column({ unique: true })
+  code: string;
+
   @Column({ nullable: true })
   address: string;
-
-  // @OneToMany(() => UserEntity, (user) => user.branch)
-  // users: UserEntity[];
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }

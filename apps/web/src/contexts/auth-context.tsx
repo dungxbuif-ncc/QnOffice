@@ -41,27 +41,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw err;
       }
     },
-    enabled: pathname !== '/auth/callback', // Only disable on callback page to prevent issues during OAuth flow
+    enabled: pathname !== '/auth/callback',
     retry: false,
     retryOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const user = profileData?.data?.user || null;
-  console.log({ profileData, user, isLoading });
-  // When on callback page, query is disabled so isLoading is false
+  const user = profileData?.data || null;
   const actualIsLoading = pathname === '/auth/callback' ? false : isLoading;
 
-  // Update authentication state based on profile fetch result
   useEffect(() => {
-    console.log('[AuthContext] Effect:', {
-      user,
-      hasError: !!error,
-      isPublicPage,
-      pathname,
-      isLoading,
-    });
     if (user) {
       console.log('[AuthContext] User authenticated');
       setIsAuthenticated(true);
@@ -112,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     refetch,
   };
 
-  // Show loading skeleton while checking authentication (except on callback page)
   if (actualIsLoading) {
     return (
       <div className="flex h-screen items-center justify-center">

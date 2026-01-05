@@ -1,3 +1,6 @@
+import { UserRole } from '@src/common/constants/user.constants';
+
 export type AccessTokenPayload = {
-  username: string;
+  mezonId: string;
+  role: UserRole;
 };

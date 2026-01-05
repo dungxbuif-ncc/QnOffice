@@ -1,9 +1,9 @@
 {
-  "name": "QnUtilities",
+  "name": "qn-office",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@ncc:dungxbuif-ncc/QnUtilities.git",
-  "author": "jackbui <dung.bui@speedydd.com>",
+  "repository": "git@ncc:dungxbuif-ncc/QnOffice.git",
+  "author": "dungxbuif <dung.buihuu@ncc.asia>",
   "license": "MIT",
   "scripts": {
     "dev:web": "nx dev web",
@@ -19,7 +19,10 @@
     "test": "nx run-many --target=test --all"
   },
   "devDependencies": {
+    "@eslint/js": "^9.8.0",
     "@nx/devkit": "22.3.3",
+    "@nx/eslint": "22.3.3",
+    "@nx/eslint-plugin": "22.3.3",
     "@nx/js": "22.3.3",
     "@nx/next": "^22.3.3",
     "@nx/playwright": "22.3.3",
@@ -29,16 +32,28 @@
     "@swc/cli": "~0.6.0",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
+    "@types/node": "20.19.9",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^10.0.0",
+    "jsonc-eslint-parser": "^2.1.0",
     "nx": "22.3.3",
     "prettier": "~3.6.2",
     "tslib": "^2.3.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.40.0"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.11",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-separator": "^1.1.8",
     "@tailwindcss/typography": "^0.5.19",
     "autoprefixer": "^10.4.23",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "lucide-react": "^0.562.0",
     "next": "~16.0.1",
     "postcss": "^8.5.6",
     "react": "^19.0.0",

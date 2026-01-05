@@ -1,5 +1,6 @@
+import { BranchEntity } from '@src/modules/branch/branch.entity';
+import StaffEntity from '@src/modules/staff/staff.entity';
 import UserEntity from '@src/modules/user/user.entity';
-import { Branch } from '../../modules/branch/branch.entity';
 import { Campaign } from '../../modules/campaign/campaign.entity';
 import { Channel } from '../../modules/channel/channel.entity';
 import { CleaningSchedule } from '../../modules/cleaning-schedule/cleaning-schedule.entity';
@@ -10,7 +11,8 @@ import { Penalty } from '../../modules/penalty/penalty.entity';
 
 const entities = [
   UserEntity,
-  Branch,
+  BranchEntity,
+  StaffEntity,
   Channel,
   Holiday,
   CleaningSchedule,

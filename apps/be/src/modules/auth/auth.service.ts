@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
+import { AccessTokenPayload } from '@src/common/types';
 import UserEntity from '@src/modules/user/user.entity';
 import { UserService } from '../user/user.service';
 
@@ -67,8 +68,7 @@ export class AuthService {
   ): Promise<{ user: UserEntity; tokens: AuthTokens }> {
     const user = await this.userService.upsertByMezonId(mezonId, meta);
 
-    const payload = {
-      sub: user.mezonId,
+    const payload: AccessTokenPayload = {
       mezonId: user.mezonId,
       role: user.role,
     };

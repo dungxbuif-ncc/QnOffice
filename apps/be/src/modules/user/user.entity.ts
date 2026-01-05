@@ -1,18 +1,9 @@
-import { Column, CreateDateColumn, Entity, UpdateDateColumn } from 'typeorm';
-
-export enum UserRole {
-  STAFF = 0,
-  HR = 1,
-  GDVP = 2,
-}
-
-export enum UserStatus {
-  ACTIVE = 0,
-  INACTIVE = 1,
-}
+import { UserRole } from '@src/common/constants/user.constants';
+import { AbstractAuditEntity } from '@src/common/database/abstract.entity';
+import { Column, Entity } from 'typeorm';
 
 @Entity('users')
-export default class UserEntity {
+export default class UserEntity extends AbstractAuditEntity {
   @Column({ primary: true, unique: true })
   mezonId: string;
 
@@ -31,17 +22,4 @@ export default class UserEntity {
     default: UserRole.STAFF,
   })
   role: UserRole;
-
-  @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.ACTIVE,
-  })
-  status: UserStatus;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }

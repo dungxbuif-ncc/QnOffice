@@ -1,18 +1,15 @@
 import api from './api-simple';
 
 export interface User {
-  id: number;
-  mezonUserId: string;
-  name: string;
-  email: string;
+  mezonId: string;
   role: number;
-  status: number;
 }
 
 export const authApi = {
-  getProfile: async (): Promise<{ user: User }> => {
+  getProfile: async (): Promise<{
+    data: User;
+  }> => {
     const response = await api.get('/auth/profile');
-    console.log('getProfile response:', response);
     return response.data;
   },
 
