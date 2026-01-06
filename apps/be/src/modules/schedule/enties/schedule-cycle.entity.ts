@@ -1,5 +1,6 @@
 import { AbstractEntity } from '@src/common/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 export enum CycleStatus {
   ACTIVE = 'ACTIVE',
@@ -15,12 +16,6 @@ export default class ScheduleCycleEntity extends AbstractEntity {
   @Column()
   type: string;
 
-  @Column()
-  startDate: Date;
-
-  @Column()
-  endDate: Date;
-
   @Column({
     type: 'enum',
     enum: CycleStatus,
@@ -30,4 +25,7 @@ export default class ScheduleCycleEntity extends AbstractEntity {
 
   @Column({ nullable: true })
   description?: string;
+
+  @OneToMany(() => ScheduleEventEntity, (event) => event.cycle)
+  events: ScheduleEventEntity[];
 }

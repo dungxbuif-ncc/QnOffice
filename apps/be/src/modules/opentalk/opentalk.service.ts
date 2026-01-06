@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import ScheduleCycleEntity, {
   CycleStatus,
-} from '../schedule/schedule-cycle.entity';
-import ScheduleEventParticipantEntity from '../schedule/schedule-event-participant.entity';
-import ScheduleEventEntity from '../schedule/schedule-event.entity';
+} from '../schedule/enties/schedule-cycle.entity';
+import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
+import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
 import { CreateOpentalkCycleDto } from './dtos/create-opentalk-cycle.dto';
 import { CreateOpentalkEventDto } from './dtos/create-opentalk-event.dto';
 import CreateSwapRequestDto from './dtos/create-swap-request.dto';
@@ -49,8 +49,57 @@ export class OpentalkService {
     }
     return this.cycleRepository.find({
       where,
-      order: { startDate: 'DESC' },
+      relations: [
+        'events',
+        'events.eventParticipants',
+        'events.eventParticipants.staff',
+        'events.eventParticipants.staff.user',
+      ],
+      order: {
+        createdAt: 'DESC',
+        events: {
+          eventDate: 'ASC',
+        },
+      },
     });
+  }
+
+  async getCyclesWithEvents(status?: string): Promise<ScheduleCycleEntity[]> {
+    const queryBuilder = this.cycleRepository
+      .createQueryBuilder('cycle')
+      .leftJoinAndSelect('cycle.events', 'events', 'events.type = :eventType', {
+        eventType: 'OPENTALK',
+      })
+      .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
+      .leftJoinAndSelect('eventParticipants.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('cycle.type = :type', { type: 'OPENTALK' })
+      .orderBy('cycle.createdAt', 'DESC')
+      .addOrderBy('events.eventDate', 'ASC');
+
+    if (status) {
+      queryBuilder.andWhere('cycle.status = :status', { status });
+    }
+
+    const cycles = await queryBuilder.getMany();
+    //sort the cycle' ASC by last event date
+    cycles.forEach((cycle) => {
+      cycle.events.sort((a, b) =>
+        a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
+      );
+    });
+    cycles.sort((a, b) => {
+      const aLastEventDate =
+        a.events.length > 0 ? a.events[a.events.length - 1].eventDate : '';
+      const bLastEventDate =
+        b.events.length > 0 ? b.events[b.events.length - 1].eventDate : '';
+      return aLastEventDate > bLastEventDate
+        ? 1
+        : bLastEventDate > aLastEventDate
+          ? -1
+          : 0;
+    });
+    return cycles;
   }
 
   async getCycleById(id: number): Promise<ScheduleCycleEntity | null> {
@@ -355,7 +404,7 @@ export class OpentalkService {
       const eventsByDate: { [key: string]: ScheduleEventEntity[] } = {};
 
       events.forEach((event) => {
-        const dateKey = event.eventDate.toISOString().split('T')[0];
+        const dateKey = event.eventDate;
         if (!eventsByDate[dateKey]) {
           eventsByDate[dateKey] = [];
         }

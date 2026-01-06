@@ -12,6 +12,7 @@ export interface OpentalkCycle {
   updatedAt: string;
   createdBy?: any;
   updatedBy?: any;
+  events?: OpentalkEvent[]; // For joined data from getCyclesWithEvents
 }
 
 export interface OpentalkEvent {

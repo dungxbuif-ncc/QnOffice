@@ -1,5 +1,5 @@
 import { AbstractEntity } from '@src/common/database/abstract.entity';
-import ScheduleEventParticipantEntity from '@src/modules/schedule/schedule-event-participant.entity';
+import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import ScheduleCycleEntity from './schedule-cycle.entity';
@@ -22,8 +22,10 @@ export default class ScheduleEventEntity extends AbstractEntity {
   @Column()
   cycleId: number;
 
-  @Column()
-  eventDate: Date;
+  @Column({
+    type: 'date',
+  })
+  eventDate: string;
 
   @Column({
     type: 'enum',

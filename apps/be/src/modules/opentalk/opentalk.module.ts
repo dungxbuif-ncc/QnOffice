@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import ScheduleCycleEntity from '../schedule/schedule-cycle.entity';
-import ScheduleEventParticipantEntity from '../schedule/schedule-event-participant.entity';
-import ScheduleEventEntity from '../schedule/schedule-event.entity';
+import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
+import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
+import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
 import StaffEntity from '../staff/staff.entity';
 import { OpentalkController } from './opentalk.controller';
 import { OpentalkService } from './opentalk.service';

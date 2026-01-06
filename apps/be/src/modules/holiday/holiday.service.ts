@@ -111,7 +111,11 @@ export class HolidayService {
 
     if (existingHolidays.length > 0) {
       const existingDates = existingHolidays
-        .map((h) => h.date.toISOString().split('T')[0])
+        .map((h) =>
+          typeof h.date === 'string'
+            ? h.date
+            : h.date?.toISOString().split('T')[0],
+        )
         .join(', ');
       throw new BadRequestException(
         `Holidays already exist on the following dates: ${existingDates}`,

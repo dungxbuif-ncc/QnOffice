@@ -26,6 +26,6 @@
     "strictPropertyInitialization": false,
     "strict": false
   },
-  "include": ["src/**/*", "test/*.ts"],
+  "include": ["src/**/*", "test/*.ts", "spec/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

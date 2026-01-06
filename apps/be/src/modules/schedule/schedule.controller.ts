@@ -20,8 +20,8 @@ import {
 import { CreateCycleDto } from './dtos/create-cycle.dto';
 import { CreateEventDto } from './dtos/create-event.dto';
 import { ScheduleQueryDto } from './dtos/schedule-query.dto';
-import ScheduleCycleEntity from './schedule-cycle.entity';
-import ScheduleEventEntity from './schedule-event.entity';
+import ScheduleCycleEntity from './enties/schedule-cycle.entity';
+import ScheduleEventEntity from './enties/schedule-event.entity';
 import { ScheduleService } from './schedule.service';
 
 @ApiTags('Schedule Management')

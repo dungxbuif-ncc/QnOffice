@@ -1,5 +1,5 @@
 import { AbstractEntity } from '@src/common/database/abstract.entity';
-import ScheduleEventEntity from '@src/modules/schedule/schedule-event.entity';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 

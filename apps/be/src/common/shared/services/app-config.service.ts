@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type TypeOrmModuleOptions } from '@nestjs/typeorm';
 import entities from '@src/common/database/entities';
+import { UserSubscriber } from '@src/common/database/entity-subscribers/user-subscriber';
 import { SnakeNamingStrategy } from '@src/common/database/snake-naming.strategy';
 import joinUrlPaths from '@src/common/utils/joinUrlPaths';
 import { isNil } from 'lodash';
@@ -81,6 +82,7 @@ export class AppConfigService {
       password: this.getString('DB_PASSWORD'),
       database: this.getString('DB_DATABASE'),
       namingStrategy: new SnakeNamingStrategy(),
+      subscribers: [UserSubscriber],
       synchronize: true,
       entities,
     };

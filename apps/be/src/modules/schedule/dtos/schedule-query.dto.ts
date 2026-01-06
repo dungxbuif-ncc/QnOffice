@@ -7,7 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 
-import { EventStatus } from '../schedule-event.entity';
+import { EventStatus } from '../enties/schedule-event.entity';
 
 export class ScheduleQueryDto {
   @ApiProperty({ required: false, description: 'Schedule type' })

@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDate,
@@ -9,7 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { EventStatus } from '../../schedule/schedule-event.entity';
+import { EventStatus } from '../../schedule/enties/schedule-event.entity';
 
 export class CreateOpentalkEventDto {
   @ApiProperty({ description: 'Title of the opentalk event' })
@@ -26,10 +25,8 @@ export class CreateOpentalkEventDto {
   @IsNumber()
   cycleId: number;
 
-  @ApiProperty({ description: 'Date of the event' })
-  @Type(() => Date)
   @IsDate()
-  eventDate: Date;
+  eventDate: string;
 
   @ApiProperty({ enum: EventStatus, description: 'Status of the event' })
   @IsOptional()

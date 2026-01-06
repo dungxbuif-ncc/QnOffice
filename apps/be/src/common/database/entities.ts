@@ -5,9 +5,9 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import SwapRequestEntity from '@src/modules/opentalk/swap-request.entity';
 import { PenaltyType } from '@src/modules/penalty-type/penalty-type.entity';
 import { Penalty } from '@src/modules/penalty/penalty.entity';
-import ScheduleCycleEntity from '@src/modules/schedule/schedule-cycle.entity';
-import ScheduleEventParticipantEntity from '@src/modules/schedule/schedule-event-participant.entity';
-import ScheduleEventEntity from '@src/modules/schedule/schedule-event.entity';
+import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
+import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import UserEntity from '@src/modules/user/user.entity';
 

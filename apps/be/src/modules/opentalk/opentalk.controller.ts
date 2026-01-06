@@ -23,8 +23,8 @@ import CreateSwapRequestDto from '@src/modules/opentalk/dtos/create-swap-request
 import { OpentalkQueryDto } from '@src/modules/opentalk/dtos/opentalk-query.dto';
 import ReviewSwapRequestDto from '@src/modules/opentalk/dtos/review-swap-request.dto';
 import { SwapOpentalkDto } from '@src/modules/opentalk/dtos/swap-opentalk.dto';
-import ScheduleCycleEntity from '@src/modules/schedule/schedule-cycle.entity';
-import ScheduleEventEntity from '@src/modules/schedule/schedule-event.entity';
+import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import { OpentalkService } from './opentalk.service';
 import SwapRequestEntity from './swap-request.entity';
 
@@ -46,7 +46,9 @@ export class OpentalkController {
   }
 
   @Get('cycles')
-  @ApiOperation({ summary: 'Get all opentalk cycles' })
+  @ApiOperation({
+    summary: 'Get all opentalk cycles with events and participants',
+  })
   @ApiQuery({
     name: 'status',
     required: false,
@@ -55,7 +57,7 @@ export class OpentalkController {
   async getCycles(
     @Query('status') status?: string,
   ): Promise<ScheduleCycleEntity[]> {
-    return this.opentalkService.getCycles(status);
+    return this.opentalkService.getCyclesWithEvents(status);
   }
 
   @Get('cycles/:id')

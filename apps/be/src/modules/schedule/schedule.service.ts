@@ -4,9 +4,13 @@ import { Repository } from 'typeorm';
 import { CreateCycleDto } from './dtos/create-cycle.dto';
 import { CreateEventDto } from './dtos/create-event.dto';
 import { ScheduleQueryDto } from './dtos/schedule-query.dto';
-import ScheduleCycleEntity, { CycleStatus } from './schedule-cycle.entity';
-import ScheduleEventParticipantEntity from './schedule-event-participant.entity';
-import ScheduleEventEntity, { EventStatus } from './schedule-event.entity';
+import ScheduleCycleEntity, {
+  CycleStatus,
+} from './enties/schedule-cycle.entity';
+import ScheduleEventParticipantEntity from './enties/schedule-event-participant.entity';
+import ScheduleEventEntity, {
+  EventStatus,
+} from './enties/schedule-event.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -27,8 +31,6 @@ export class ScheduleService {
       name: createCycleDto.name,
       type: createCycleDto.type,
       description: createCycleDto.description,
-      startDate: new Date(createCycleDto.startDate),
-      endDate: new Date(createCycleDto.endDate),
       status: CycleStatus.DRAFT,
     });
 
@@ -55,7 +57,7 @@ export class ScheduleService {
   ): Promise<ScheduleEventEntity> {
     const event = this.eventRepository.create({
       ...createEventDto,
-      eventDate: new Date(createEventDto.eventDate),
+      eventDate: createEventDto.eventDate,
       status: EventStatus.PENDING,
     });
 

@@ -1,5 +1,5 @@
 import { AbstractEntity } from '@src/common/database/abstract.entity';
-import ScheduleCycleEntity from '@src/modules/schedule/schedule-cycle.entity';
+import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 export enum AssignmentStatus {

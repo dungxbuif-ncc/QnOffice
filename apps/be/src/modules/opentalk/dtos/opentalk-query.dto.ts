@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { EventStatus } from '../../schedule/schedule-event.entity';
+import { EventStatus } from '../../schedule/enties/schedule-event.entity';
 
 export class OpentalkQueryDto {
   @ApiProperty({ required: false, description: 'Schedule type filter' })

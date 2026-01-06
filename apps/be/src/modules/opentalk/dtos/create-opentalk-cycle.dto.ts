@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { CycleStatus } from '../../schedule/schedule-cycle.entity';
+import { CycleStatus } from '../../schedule/enties/schedule-cycle.entity';
 
 export class CreateOpentalkCycleDto {
   @ApiProperty({ description: 'Name of the opentalk cycle' })
