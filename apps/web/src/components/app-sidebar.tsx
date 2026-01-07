@@ -64,6 +64,22 @@ const navigationData = [
       },
     ],
   },
+  {
+    title: 'Penalties',
+    icon: '⚠️',
+    items: [
+      {
+        title: 'All Penalties',
+        href: PATHS.DASHBOARD.PENALTIES,
+        icon: '⚠️',
+      },
+      {
+        title: 'Penalty Types',
+        href: PATHS.DASHBOARD.MANAGE_PENALTIES,
+        icon: '🛡️',
+      },
+    ],
+  },
 ];
 
 import { User } from '@/shared/lib/services/auth-service';

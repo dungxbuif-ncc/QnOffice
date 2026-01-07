@@ -38,10 +38,3 @@ export interface StaffCreateData {
 }
 
 export type StaffUpdateData = Partial<StaffCreateData>;
-
-export interface GetStaffParams {
-  page?: number;
-  take?: number;
-  order?: 'ASC' | 'DESC';
-  q?: string;
-}

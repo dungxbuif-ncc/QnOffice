@@ -128,4 +128,15 @@ export class AppConfigService {
       path: '/',
     };
   }
+
+  get s3Config() {
+    return {
+      region: this.getString('AWS_REGION'),
+      accessKeyId: this.getString('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.getString('AWS_SECRET_ACCESS_KEY'),
+      bucket: this.getString('AWS_S3_BUCKET'),
+      endpoint: this.get('AWS_S3_ENDPOINT'),
+      publicUrl: this.get('AWS_S3_PUBLIC_URL'),
+    };
+  }
 }

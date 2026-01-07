@@ -30,6 +30,10 @@ export const PERMISSIONS = {
   APPROVE_OPENTALK_SWAP_REQUESTS: { roles: [UserRole.GDVP] },
   EDIT_OPENTALK_TOPIC: { roles: [UserRole.HR, UserRole.GDVP] },
   EDIT_OWN_OPENTALK_TOPIC: { roles: ALL_ROLES },
+  VIEW_PENALTIES: { roles: ALL_ROLES },
+  MANAGE_PENALTIES: { roles: [UserRole.HR, UserRole.GDVP] },
+  CREATE_PENALTIES: { roles: [UserRole.HR] },
+  MANAGE_PENALTY_TYPES: { roles: [UserRole.HR] },
 } as const;
 
 export function hasPermission(

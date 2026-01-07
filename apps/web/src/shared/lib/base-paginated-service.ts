@@ -167,6 +167,6 @@ export function getServerPaginationParams(
     defaultPageSize?: number;
     defaultOrder?: 'ASC' | 'DESC';
   } = {},
-): PaginationParams {
+): SearchParams {
   return parseSearchParams(searchParams, defaults);
 }

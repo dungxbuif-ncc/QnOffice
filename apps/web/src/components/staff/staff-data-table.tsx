@@ -19,7 +19,7 @@ import {
 } from '@/shared/lib/auth';
 import { PaginationState } from '@/shared/types/pagination';
 import { Staff } from '@/shared/types/staff';
-import { StaffStatus } from '@qnoffice/shared';
+import { SearchOrder, StaffStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
@@ -54,7 +54,7 @@ export function StaffDataTable({
   const pagination = usePagination({
     defaultPage: 1,
     defaultPageSize: 10,
-    defaultOrder: 'DESC',
+    defaultOrder: SearchOrder.DESC,
   });
 
   const handleUpdateMezonId = (staff: Staff) => {

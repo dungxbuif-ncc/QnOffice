@@ -11,7 +11,10 @@ import { CalendarModule } from './modules/calendar/calendar.module';
 import { CleaningModule } from './modules/cleaning/cleaning.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OpentalkModule } from './modules/opentalk/opentalk.module';
+import { PenaltyTypeModule } from './modules/penalty-type/penalty-type.module';
+import { PenaltyModule } from './modules/penalty/penalty.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -30,6 +33,9 @@ import { UserModule } from './modules/user/user.module';
     CleaningModule,
     CalendarModule,
     ScheduleModule,
+    PenaltyModule,
+    PenaltyTypeModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

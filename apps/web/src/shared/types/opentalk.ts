@@ -1,4 +1,4 @@
-import { SwapRequestStatus } from '@qnoffice/shared';
+import { SearchOrder, SwapRequestStatus } from '@qnoffice/shared';
 
 export interface OpentalkSchedule {
   id: number;
@@ -122,7 +122,7 @@ export interface ReviewSwapRequestData {
 export interface GetOpentalkSchedulesParams {
   page?: number;
   take?: number;
-  order?: 'ASC' | 'DESC';
+  order?: SearchOrder;
   staffId?: number;
   slideStatus?: SlideStatus;
   scheduleStatus?: ScheduleStatus;

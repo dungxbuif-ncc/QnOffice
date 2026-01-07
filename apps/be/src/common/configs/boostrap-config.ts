@@ -41,14 +41,20 @@ export default async function bootstrapConfig(app: INestApplication) {
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       skipMissingProperties: true,
       exceptionFactory: (validationErrors = []) => {
         const errors = validationErrors.map((error) => ({
-          property: error.property,
-          constraints: error.constraints,
+          field: error.property,
+          errors: Object.values(error.constraints || {}),
         }));
-        return new BadRequestException(errors);
+        return new BadRequestException({
+          statusCode: 400,
+          data: null,
+          errors,
+          timestamp: new Date().toISOString(),
+          path: '',
+        });
       },
     }),
   );

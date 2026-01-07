@@ -7,7 +7,6 @@ import {
 } from '@/shared/lib/base-paginated-service';
 import { branchServerService } from '@/shared/lib/server/branch-server-service';
 import { staffServerService } from '@/shared/lib/server/staff-server-service';
-import { GetStaffParams } from '@/shared/types/staff';
 
 interface StaffPageProps {
   searchParams?: SearchParams;
@@ -16,14 +15,14 @@ interface StaffPageProps {
 export default async function StaffPage({ searchParams }: StaffPageProps) {
   const resolvedSearchParams = await searchParams;
 
-  const params: GetStaffParams = getServerPaginationParams(
+  const params: SearchParams = getServerPaginationParams(
     resolvedSearchParams || {},
     { defaultPage: 1, defaultPageSize: 10, defaultOrder: 'DESC' },
   );
 
   const [staffResponse, branchesResponse] = await Promise.all([
     staffServerService.getAll(params),
-    branchServerService.getAll({ page: 1, take: 100 }), // Get all branches for dropdown
+    branchServerService.getAll({ page: 1, take: 100 }),
   ]);
 
   const staff = staffResponse?.result || [];

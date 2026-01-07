@@ -26,6 +26,8 @@ export const PATHS = {
     },
     HOLIDAYS: '/dashboard/holidays',
     OPENTALK: '/dashboard/opentalk',
+    PENALTIES: '/dashboard/penalties',
+    MANAGE_PENALTIES: '/dashboard/manage-penalties',
     SETTINGS: '/dashboard/settings',
   },
 

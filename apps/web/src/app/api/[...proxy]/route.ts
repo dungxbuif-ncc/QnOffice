@@ -109,9 +109,12 @@ async function handleApiRequest(request: NextRequest) {
       statusText: response.statusText,
     });
 
-    // Copy response headers
+    // Copy response headers, excluding compression headers
     response.headers.forEach((value, key) => {
-      nextResponse.headers.set(key, value);
+      const lowerKey = key.toLowerCase();
+      if (lowerKey !== 'content-encoding' && lowerKey !== 'transfer-encoding') {
+        nextResponse.headers.set(key, value);
+      }
     });
 
     return nextResponse;

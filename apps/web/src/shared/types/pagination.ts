@@ -1,8 +1,4 @@
-import {
-  PaginationParams,
-  SearchParams,
-  UsePaginationOptions,
-} from '@qnoffice/shared';
+import { SearchParams, UsePaginationOptions } from '@qnoffice/shared';
 
 // Re-export pagination types from shared library
 export type {
@@ -21,7 +17,7 @@ export type {
 export const parseSearchParams = (
   searchParams: SearchParams,
   defaults: UsePaginationOptions = {},
-): PaginationParams => {
+): SearchParams => {
   return {
     page: searchParams?.page
       ? parseInt(searchParams.page)

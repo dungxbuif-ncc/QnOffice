@@ -7,19 +7,12 @@ import { NotificationEventEntity } from './entities/notification-event.entity';
 import { NotificationOutboxEntity } from './entities/notification-outbox.entity';
 import { NotificationSubscriptionEntity } from './entities/notification-subscription.entity';
 import { NotificationEntity } from './entities/notification.entity';
-
-// Services
-import { CircuitBreakerService } from './services/circuit-breaker.service';
-import { NotificationSchedulerService } from './services/notification-scheduler.service';
-import { NotificationService } from './services/notification.service';
-
-// Processors
 import { HolidayEventProcessor } from './processors/holiday-event.processor';
 import { OpentalkEventProcessor } from './processors/opentalk-event.processor';
 import { ScheduleEventProcessor } from './processors/schedule-event.processor';
-
-// Controller
-import { NotificationController } from './notification.controller';
+import { CircuitBreakerService } from './services/circuit-breaker.service';
+import { NotificationSchedulerService } from './services/notification-scheduler.service';
+import { NotificationService } from './services/notification.service';
 
 @Module({
   imports: [
@@ -31,7 +24,6 @@ import { NotificationController } from './notification.controller';
     ]),
     ScheduleModule.forRoot(),
   ],
-  controllers: [NotificationController],
   providers: [
     NotificationService,
     CircuitBreakerService,

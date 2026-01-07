@@ -1,21 +1,11 @@
 import { PenaltyStatus } from '@qnoffice/shared';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { AbstractEntity } from '@src/common/database/abstract.entity';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Campaign } from '../campaign/campaign.entity';
 import { PenaltyType } from '../penalty-type/penalty-type.entity';
 
 @Entity('penalties')
-export class Penalty {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Penalty extends AbstractEntity {
   @Column()
   user_id: number;
 
@@ -53,13 +43,4 @@ export class Penalty {
 
   @Column({ nullable: true })
   campaign_id: number;
-
-  @Column()
-  created_by: number; // HR user ID
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }

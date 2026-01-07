@@ -20,9 +20,9 @@ export type PaginationParams = Omit<IPaginateOptionsDto, 'skip'>;
 export type PaginationResponse<T> = IPaginationDto<T>;
 
 export interface SearchParams {
-  page?: string;
-  take?: string;
-  order?: string;
+  page?: number;
+  take?: number;
+  order?: SearchOrder;
   q?: string;
 }
 

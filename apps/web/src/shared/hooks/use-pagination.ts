@@ -2,9 +2,10 @@
 
 import {
   PaginationParams,
+  SearchOrder,
   UsePaginationOptions,
   UsePaginationReturn,
-} from '@/shared/types/pagination';
+} from '@qnoffice/shared';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -20,7 +21,7 @@ export function usePagination(
   const {
     defaultPage = 1,
     defaultPageSize = 10,
-    defaultOrder = 'DESC',
+    defaultOrder = SearchOrder.DESC,
   } = options;
 
   const router = useRouter();
