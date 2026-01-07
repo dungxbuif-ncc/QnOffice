@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -62,5 +63,12 @@ export class HolidayController {
     @Body() body: UpdateHolidayDto,
   ): Promise<HolidayEntity> {
     return this.holidayService.updateHoliday(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles([UserRole.HR, UserRole.GDVP])
+  async deleteHoliday(@Param('id') id: number): Promise<void> {
+    return this.holidayService.deleteHoliday(id);
   }
 }
