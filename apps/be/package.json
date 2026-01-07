@@ -20,7 +20,7 @@
       "seed": "ts-node -r tsconfig-paths/register ./src/seed.ts",
       "schema:drop": "yarn run typeorm schema:drop",
       "lint": "eslint . --ext .ts",
-      "lint:fix": "eslint --fix . --ext .ts",
+      "lint:fix": "eslint --fix . --ext .ts"
    },
    "dependencies": {
       "@date-fns/tz": "^1.4.1",
