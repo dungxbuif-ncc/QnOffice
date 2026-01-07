@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  NotificationEventType,
+  NotificationPriority,
+} from '@src/modules/notification/enums/notification-event.enum';
+import { NotificationService } from '@src/modules/notification/services/notification.service';
 import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
 import { In, Repository } from 'typeorm';
 import ScheduleCycleEntity, {
@@ -26,6 +31,7 @@ export class OpentalkService {
     private readonly participantRepository: Repository<ScheduleEventParticipantEntity>,
     @InjectRepository(SwapRequestEntity)
     private readonly swapRequestRepository: Repository<SwapRequestEntity>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createCycle(
@@ -141,7 +147,25 @@ export class OpentalkService {
       ...createEventDto,
       type: ScheduleType.OPENTALK,
     });
-    return this.eventRepository.save(event);
+    const savedEvent = await this.eventRepository.save(event);
+
+    // Emit notification event
+    await this.notificationService.emitEvent({
+      eventType: NotificationEventType.OPENTALK_EVENT_CREATED,
+      payload: {
+        eventId: savedEvent.id,
+        title: savedEvent.title,
+        date: savedEvent.eventDate,
+        cycleId: savedEvent.cycleId,
+      },
+      priority: NotificationPriority.MEDIUM,
+      metadata: {
+        aggregateId: savedEvent.id.toString(),
+        aggregateType: 'opentalk',
+      },
+    });
+
+    return savedEvent;
   }
 
   async getEvents(query: OpentalkQueryDto): Promise<ScheduleEventEntity[]> {
@@ -222,14 +246,53 @@ export class OpentalkService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    // Emit notification event
+    await this.notificationService.emitEvent({
+      eventType: NotificationEventType.OPENTALK_EVENT_UPDATED,
+      payload: {
+        eventId: event.id,
+        title: event.title,
+        date: event.eventDate,
+        cycleId: event.cycleId,
+        changes: updateData,
+      },
+      priority: NotificationPriority.MEDIUM,
+      metadata: {
+        aggregateId: event.id.toString(),
+        aggregateType: 'opentalk',
+      },
+    });
+
     return event;
   }
 
   async deleteEvent(id: number): Promise<void> {
+    const event = await this.getEventById(id);
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
     const result = await this.eventRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException('Event not found');
     }
+
+    // Emit notification event
+    await this.notificationService.emitEvent({
+      eventType: NotificationEventType.OPENTALK_EVENT_DELETED,
+      payload: {
+        eventId: event.id,
+        title: event.title,
+        date: event.eventDate,
+        cycleId: event.cycleId,
+      },
+      priority: NotificationPriority.HIGH,
+      metadata: {
+        aggregateId: event.id.toString(),
+        aggregateType: 'opentalk',
+      },
+    });
   }
 
   // Opentalk Specific Operations
@@ -308,6 +371,24 @@ export class OpentalkService {
         ),
       );
     }
+
+    // Emit notification event
+    await this.notificationService.emitEvent({
+      eventType: NotificationEventType.OPENTALK_PARTICIPANTS_SWAPPED,
+      payload: {
+        event1Id: event1.id,
+        event2Id: event2.id,
+        event1Title: event1.title,
+        event2Title: event2.title,
+        participantsFrom1to2: swapDto.participantsFrom1to2,
+        participantsFrom2to1: swapDto.participantsFrom2to1,
+      },
+      priority: NotificationPriority.HIGH,
+      metadata: {
+        aggregateId: `${event1.id}-${event2.id}`,
+        aggregateType: 'opentalk',
+      },
+    });
 
     return {
       success: true,

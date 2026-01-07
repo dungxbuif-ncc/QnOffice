@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotificationModule } from '../notification/notification.module';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
@@ -17,6 +18,7 @@ import SwapRequestEntity from './swap-request.entity';
       StaffEntity,
       SwapRequestEntity,
     ]),
+    NotificationModule,
   ],
   controllers: [OpentalkController],
   providers: [OpentalkService],

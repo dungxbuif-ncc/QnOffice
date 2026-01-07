@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { CleaningModule } from './modules/cleaning/cleaning.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { OpentalkModule } from './modules/opentalk/opentalk.module';
 import { UserModule } from './modules/user/user.module';
 
@@ -16,6 +17,7 @@ import { UserModule } from './modules/user/user.module';
     SharedModule,
     DatabaseModule,
     EventEmitterModule.forRoot(),
+    NotificationModule,
     UserModule,
     BranchModule,
     AuthModule,
