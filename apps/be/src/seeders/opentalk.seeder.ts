@@ -95,9 +95,9 @@ export class OpentalkSeeder {
       currentCycle: createdCycles[0],
       staff,
     });
-    await this.createNextCycle({
-      staff,
-    });
+    // await this.createNextCycle({
+    //   staff,
+    // });
   }
 
   private async syncCurrentCycle({ currentCycle, staff }) {

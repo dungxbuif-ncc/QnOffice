@@ -9,7 +9,14 @@ export interface User {
   lastName?: string;
   email?: string;
   avatar?: string;
-  role?: UserRole;
+  staff?: {
+    id: number;
+    email: string;
+    status: number;
+    role: UserRole;
+    branchId: number;
+    branch?: any;
+  };
 }
 
 export interface AuthResponse {

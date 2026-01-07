@@ -36,7 +36,7 @@ export class AuthController {
           id: user.mezonId,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: staff?.role || null,
         },
         staff,
         tokens,

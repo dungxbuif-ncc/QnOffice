@@ -1,0 +1,106 @@
+'use client';
+
+import { FullCalendar } from '@/components/ui/full-calendar';
+import { useState } from 'react';
+import { EventModal } from './event-modal';
+
+interface CalendarWrapperProps {
+  events: Array<{
+    id: string;
+    title: string;
+    date: Date;
+    type: 'cleaning' | 'opentalk' | 'holiday';
+    participants?: string[];
+    notes?: string;
+    status?: string;
+  }>;
+  holidays?: Array<{
+    id: number;
+    date: string;
+    name: string;
+  }>;
+  currentMonth: Date;
+  currentMonthString: string;
+  showControls?: boolean;
+}
+
+export function CalendarWrapper({
+  events,
+  holidays,
+  currentMonth,
+  currentMonthString,
+  showControls = true,
+}: CalendarWrapperProps) {
+  const [selectedEvent, setSelectedEvent] = useState<{
+    id: string;
+    title: string;
+    date: Date;
+    type: 'cleaning' | 'opentalk' | 'holiday';
+    participants?: string[];
+    notes?: string;
+    status?: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Convert events to match FullCalendar's interface
+  const calendarEvents = events.map((event) => ({
+    id: event.id,
+    title: event.title,
+    date: event.date,
+    type: event.type,
+    color:
+      event.type === 'cleaning'
+        ? '#bfdbfe'
+        : event.type === 'opentalk'
+          ? '#ddd6fe'
+          : '#fef3c7', // Holiday color
+  }));
+
+  const handleEventClick = (event: {
+    id: string | number;
+    title: string;
+    date: Date;
+    type: 'cleaning' | 'opentalk' | 'holiday';
+    color?: string;
+  }) => {
+    // Find the original event data with more details
+    const originalEvent = events.find((e) => e.id === event.id.toString());
+
+    if (originalEvent) {
+      setSelectedEvent({
+        id: originalEvent.id,
+        title: originalEvent.title,
+        date: originalEvent.date,
+        type: originalEvent.type,
+        participants: originalEvent.participants,
+        notes: originalEvent.notes,
+        status: originalEvent.status,
+      });
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDateClick = (date: Date) => {
+    console.log('Date clicked:', date);
+  };
+
+  return (
+    <>
+      <FullCalendar
+        events={calendarEvents}
+        holidays={holidays}
+        currentMonth={currentMonth}
+        currentMonthString={currentMonthString}
+        showControls={showControls}
+        onEventClick={handleEventClick}
+        onDateClick={handleDateClick}
+      />
+
+      <EventModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        event={selectedEvent}
+      />
+    </>
+  );
+}

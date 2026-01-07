@@ -269,9 +269,9 @@ export class CleaningSeeder {
     });
 
     // Generate February events in a new cycle
-    await this.createFebruaryEvents({
-      staff,
-    });
+    // await this.createFebruaryEvents({
+    //   staff,
+    // });
   }
 
   private findStaffByEmail(

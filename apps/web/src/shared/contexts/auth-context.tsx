@@ -105,5 +105,5 @@ export const useAuth = () => {
 
 export function useUserRole(): UserRole | null {
   const { user } = useAuth();
-  return user?.role ?? null;
+  return user?.staff?.role ?? null;
 }

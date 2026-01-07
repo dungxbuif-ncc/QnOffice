@@ -20,7 +20,6 @@ export interface User {
   name?: string;
   email?: string;
   avatar?: string;
-  role: UserRole | null;
   createdAt: Date;
   updatedAt: Date;
 }

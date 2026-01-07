@@ -12,7 +12,6 @@ export interface SessionData {
     firstName?: string;
     lastName?: string;
     email?: string;
-    role?: UserRole;
     staff?: {
       id: number;
       email: string;

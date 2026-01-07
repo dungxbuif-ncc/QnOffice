@@ -76,11 +76,8 @@ export async function GET(request: NextRequest) {
       session.user = {
         id: user.id,
         username: user.name || user.username || user.email,
-        firstName: user.name?.split(' ')[0],
-        lastName: user.name?.split(' ').slice(1).join(' '),
         email: user.email,
-        role: user.role,
-        staff: staffData, // Include staff data from exchange response
+        staff: staffData,
       };
       console.log({ sessionUser: JSON.stringify(session.user) });
       await session.save();

@@ -122,15 +122,15 @@ export function SwapRequestManagement({
   }
 
   const canCreateRequests = hasPermission(
-    user.role,
+    user?.staff?.role,
     PERMISSIONS.CREATE_OPENTALK_SWAP_REQUEST,
   );
   const canManageRequests = hasPermission(
-    user.role,
+    user?.staff?.role,
     PERMISSIONS.MANAGE_OPENTALK_SWAP_REQUESTS,
   );
   const canApproveRequests = hasPermission(
-    user.role,
+    user?.staff?.role,
     PERMISSIONS.APPROVE_OPENTALK_SWAP_REQUESTS,
   );
 

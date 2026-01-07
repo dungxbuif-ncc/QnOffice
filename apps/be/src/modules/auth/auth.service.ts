@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { AccessTokenPayload } from '@src/common/types';
+import StaffEntity from '@src/modules/staff/staff.entity';
 import { StaffService } from '@src/modules/staff/staff.service';
 import UserEntity from '@src/modules/user/user.entity';
 import { UserService } from '../user/user.service';
@@ -82,7 +83,7 @@ export class AuthService {
 
     const payload: AccessTokenPayload = {
       mezonId: user.mezonId,
-      role: user.role,
+      role: staff?.role || null,
     };
 
     const jwtConfig = this.appConfigService.jwtConfig;
@@ -116,10 +117,12 @@ export class AuthService {
         throw new BadRequestException('User not found');
       }
 
+      const staff = await this.staffService.findByUserId(user.mezonId);
+
       const newPayload = {
         sub: user.mezonId,
         mezonId: user.mezonId,
-        role: user.role,
+        role: staff?.role || null,
       };
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
@@ -178,7 +181,7 @@ export class AuthService {
   async handleOAuthExchange(
     code: string,
     state: string,
-  ): Promise<{ user: UserEntity; tokens: AuthTokens; staff?: any }> {
+  ): Promise<{ user: UserEntity; tokens: AuthTokens; staff?: StaffEntity }> {
     const tokenData = await this.exchangeCode(code, state);
     const userInfo = await this.userInfo(tokenData.access_token);
     return this.signIn(userInfo.user_id, {

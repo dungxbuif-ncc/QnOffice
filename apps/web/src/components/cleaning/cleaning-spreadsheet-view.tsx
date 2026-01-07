@@ -155,7 +155,6 @@ export function CleaningSpreadsheetView({
       <Tabs defaultValue="schedule" className="space-y-4">
         <TabsList>
           <TabsTrigger value="schedule">Schedule View</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule" className="space-y-4">
@@ -248,22 +247,6 @@ export function CleaningSpreadsheetView({
               })
             )}
           </div>
-        </TabsContent>
-
-        <TabsContent value="calendar" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar View</CardTitle>
-              <CardDescription>
-                Monthly view of cleaning schedules
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Calendar view coming soon...
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

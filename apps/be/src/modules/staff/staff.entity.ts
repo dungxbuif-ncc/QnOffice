@@ -25,9 +25,8 @@ export default class StaffEntity extends AbstractEntity {
 
   @Column({
     type: 'int',
-    nullable: true,
   })
-  role: UserRole | null;
+  role: UserRole;
 
   @Column({ unique: false })
   branchId: number;

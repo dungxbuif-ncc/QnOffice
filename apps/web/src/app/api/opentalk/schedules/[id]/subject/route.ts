@@ -1,4 +1,6 @@
-import { getUserSession } from '@/shared/lib/auth/get-user-session';
+import { SessionData, sessionOptions } from '@/shared/lib/session';
+import { getIronSession } from 'iron-session';
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
@@ -6,8 +8,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getUserSession();
-    if (!session) {
+    const cookieStore = await cookies();
+    const session = await getIronSession<SessionData>(
+      cookieStore,
+      sessionOptions,
+    );
+    if (!session.accessToken) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,7 +26,7 @@ export async function PUT(
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify(body),
       },
