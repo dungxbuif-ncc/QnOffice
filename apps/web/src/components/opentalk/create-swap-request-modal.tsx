@@ -111,11 +111,12 @@ export function CreateSwapRequestModal({
                 available in cycle)
               </Label>
               <Select
-                value={formData.targetStaffId?.toString() || ''}
+                value={formData.targetStaffId?.toString() || 'none'}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    targetStaffId: value ? parseInt(value) : undefined,
+                    targetStaffId:
+                      value === 'none' ? undefined : parseInt(value),
                   })
                 }
               >
@@ -123,7 +124,7 @@ export function CreateSwapRequestModal({
                   <SelectValue placeholder="Select staff member in same cycle (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     None (Auto-assign from cycle)
                   </SelectItem>
                   {staffList.map((staff) => (

@@ -82,11 +82,10 @@ export function SwapRequestManagement({
     try {
       setIsLoading(true);
 
-      console.log('Loading requests for staff:', userStaff);
+      console.log('Loading all swap requests for staff:', userStaff);
 
-      // Load swap requests using staff ID
-      const params = mode === 'user' ? { requesterId: userStaff.id } : {};
-      const requests = await opentalkClientService.getSwapRequests(params);
+      // Load all swap requests for everyone (no filtering by requester)
+      const requests = await opentalkClientService.getSwapRequests({});
       setSwapRequests(requests);
 
       // Load user's current schedules if in user mode
@@ -233,7 +232,7 @@ export function SwapRequestManagement({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">
-          {mode === 'hr' ? 'HR Approval Queue' : 'My Swap Requests'}
+          {mode === 'hr' ? 'HR Approval Queue' : 'All Swap Requests'}
         </h2>
         {mode === 'user' && canCreateRequests && (
           <>

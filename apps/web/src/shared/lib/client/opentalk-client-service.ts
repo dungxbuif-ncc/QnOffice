@@ -227,8 +227,28 @@ export class OpentalkClientService {
 
   async getUserStaff(userId: string): Promise<any | null> {
     try {
-      // Get staff record by user ID (mezonId)
-      return await this.request(`/staffs/by-user/${userId}`);
+      // Call staff endpoint directly, not through opentalk base path
+      const url = `/api/staffs/by-user/${userId}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null; // User doesn't have a staff record
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      // Handle API response wrapper
+      if (result.statusCode === 200 && result.data !== undefined) {
+        return result.data;
+      }
+      return result;
     } catch (error) {
       console.error('Error getting user staff record:', error);
       return null;

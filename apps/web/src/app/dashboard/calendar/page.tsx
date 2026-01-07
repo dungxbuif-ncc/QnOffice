@@ -1,4 +1,4 @@
-import { CalendarWrapper } from '@/components/calendar/calendar-wrapper';
+import { CalendarWrapper } from '@/components/screens/calendar/calendar-wrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CalendarEvent,
