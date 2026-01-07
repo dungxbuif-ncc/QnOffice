@@ -1,13 +1,8 @@
+import { SwapRequestStatus } from '@qnoffice/shared';
 import { AbstractEntity } from '@src/common/database/abstract.entity';
 import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-
-export enum SwapRequestStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
 
 @Entity('swap_requests')
 export default class SwapRequestEntity extends AbstractEntity {

@@ -1,16 +1,9 @@
+import { EventStatus, ScheduleType } from '@qnoffice/shared';
 import { AbstractEntity } from '@src/common/database/abstract.entity';
 import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import ScheduleCycleEntity from './schedule-cycle.entity';
-
-export enum EventStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-}
 
 @Entity('schedule_events')
 export default class ScheduleEventEntity extends AbstractEntity {

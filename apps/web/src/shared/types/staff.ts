@@ -1,10 +1,4 @@
-import { UserRole } from '@qnoffice/shared';
-
-export enum StaffStatus {
-  ACTIVE = 0,
-  ON_LEAVE = 1,
-  LEAVED = 2,
-}
+import { StaffStatus, UserRole } from '@qnoffice/shared';
 
 export interface Branch {
   id: number;

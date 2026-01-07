@@ -18,7 +18,8 @@ import {
   ProtectedComponent,
 } from '@/shared/lib/auth';
 import { PaginationState } from '@/shared/types/pagination';
-import { Staff, StaffStatus } from '@/shared/types/staff';
+import { Staff } from '@/shared/types/staff';
+import { StaffStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';

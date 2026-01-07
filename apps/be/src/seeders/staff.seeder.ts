@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole } from '@src/common/enums/user-role.enum';
+import { UserRole } from '@qnoffice/shared';
 import { BranchEntity } from '@src/modules/branch/branch.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { In, Repository } from 'typeorm';

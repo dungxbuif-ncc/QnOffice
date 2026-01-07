@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AppEventEnum } from '@src/common/constants';
 import { isEmpty } from 'lodash';
 import { In, Repository } from 'typeorm';
 import UserEntity from './user.entity';
@@ -100,21 +98,5 @@ export class UserService {
     }
 
     return this.create({ ...meta, mezonId });
-  }
-
-  @OnEvent(AppEventEnum.CREATE_USER)
-  async handleUserCreatedEvent(payload: { id: string } & Partial<UserEntity>) {
-    const existingUser = await this.userRepository.findOneBy({
-      mezonId: payload.id,
-    });
-    if (existingUser) {
-      Object.assign(existingUser, payload);
-      existingUser.mezonId = payload.id;
-      await this.userRepository.save(existingUser);
-      return;
-    }
-    const newUserData: Partial<UserEntity> = { ...payload };
-    delete newUserData.mezonId;
-    await this.create(newUserData);
   }
 }

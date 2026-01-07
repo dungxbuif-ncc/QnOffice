@@ -1,5 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
+import { ScheduleType } from '@qnoffice/shared';
 import {
   IsArray,
   IsDateString,
@@ -10,28 +9,22 @@ import {
 } from 'class-validator';
 
 export class CreateEventDto {
-  @ApiProperty()
   @IsString()
   title: string;
 
-  @ApiProperty({ enum: ScheduleType })
   @IsEnum(ScheduleType)
   type: ScheduleType;
 
-  @ApiProperty()
   @IsNumber()
   cycleId: number;
 
-  @ApiProperty()
   @IsDateString()
   eventDate: string;
 
-  @ApiProperty({ type: [Number] })
   @IsArray()
   @IsNumber({}, { each: true })
   participantIds: number[];
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   notes?: string;

@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventStatus, ScheduleType } from '@qnoffice/shared';
+import { toDateString } from '@src/common/utils/date.utils';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
-import ScheduleEventEntity, {
-  EventStatus,
-} from '@src/modules/schedule/enties/schedule-event.entity';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import {
   CycleData,
   SchedulerConfig,
-  ScheduleType,
   SchedulingAlgorithm,
   Staff,
 } from '@src/modules/schedule/schedule.algorith';
@@ -229,9 +228,11 @@ export class OpentalkSeeder {
     // Configure for OpenTalk (Saturdays only, 1 person per slot)
     const config: SchedulerConfig = {
       type: ScheduleType.OPENTALK,
-      startDate: new Date('2026-02-01'), // Start of February
+      startDate: '2026-02-01', // Start of February
       slotSize: 1,
-      holidays: holidays.map((h) => new Date(h.date)),
+      holidays: holidays.map((h) =>
+        typeof h.date === 'string' ? h.date : toDateString(h.date),
+      ),
     };
 
     // Generate schedule using algorithm
@@ -269,7 +270,7 @@ export class OpentalkSeeder {
         title: eventTitle,
         type: 'OPENTALK' as any,
         notes: `Weekly team discussion and knowledge sharing - Presenter: ${presenterInfo}`,
-        eventDate: scheduleEvent.date.toISOString().split('T')[0],
+        eventDate: scheduleEvent.date,
         status: EventStatus.PENDING,
         cycleId: februaryCycle.id,
       });
@@ -285,7 +286,7 @@ export class OpentalkSeeder {
       }
 
       console.log(
-        `Created event: ${eventTitle} on ${scheduleEvent.date.toDateString()} for ${presenterInfo}`,
+        `Created event: ${eventTitle} on ${scheduleEvent.date} for ${presenterInfo}`,
       );
     }
 
@@ -306,7 +307,7 @@ export class OpentalkSeeder {
       order: { eventDate: 'ASC' },
     });
     const algorithmEvents = events.map((event) => ({
-      date: new Date(event.eventDate),
+      date: event.eventDate,
       staffIds: event.eventParticipants.map((p) => p.staffId),
     }));
 

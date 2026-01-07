@@ -15,6 +15,7 @@ import { usePagination } from '@/shared/hooks/use-pagination';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
 import { Holiday } from '@/shared/types/holiday';
 import { PaginationState } from '@/shared/types/pagination';
+import { SearchOrder } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Calendar, MoreHorizontal } from 'lucide-react';
@@ -36,7 +37,7 @@ export function HolidayDataTable({
   const pagination = usePagination({
     defaultPage: 1,
     defaultPageSize: 10,
-    defaultOrder: 'DESC',
+    defaultOrder: SearchOrder.DESC,
   });
 
   const isPastDate = (dateString: string) => {

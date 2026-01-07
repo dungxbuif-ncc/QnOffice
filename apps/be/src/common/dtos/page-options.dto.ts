@@ -1,11 +1,10 @@
-import Order from '@src/common/constants/order.enum';
+import { IPaginateOptionsDto, QueryOrder } from '@qnoffice/shared';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-
-export class AppPaginateOptionsDto {
+export class AppPaginateOptionsDto implements IPaginateOptionsDto {
   @IsOptional()
-  @IsEnum(Order)
-  readonly order: Order = Order.DESC;
+  @IsEnum(QueryOrder)
+  readonly order: QueryOrder = QueryOrder.DESC;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value))

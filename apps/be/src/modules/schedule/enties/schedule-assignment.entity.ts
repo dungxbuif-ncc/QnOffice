@@ -1,14 +1,7 @@
+import { AssignmentStatus } from '@qnoffice/shared';
 import { AbstractEntity } from '@src/common/database/abstract.entity';
 import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-
-export enum AssignmentStatus {
-  SCHEDULED = 'scheduled',
-  COMPLETED = 'completed',
-  SWAPPED = 'swapped',
-  CANCELLED = 'cancelled',
-  SKIPPED = 'skipped', // Skipped due to holiday or other reason
-}
 
 /**
  * Generic Schedule Assignment - unified table for all schedule types

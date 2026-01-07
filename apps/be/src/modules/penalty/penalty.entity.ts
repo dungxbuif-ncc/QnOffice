@@ -1,3 +1,4 @@
+import { PenaltyStatus } from '@qnoffice/shared';
 import {
   Column,
   CreateDateColumn,
@@ -9,11 +10,6 @@ import {
 } from 'typeorm';
 import { Campaign } from '../campaign/campaign.entity';
 import { PenaltyType } from '../penalty-type/penalty-type.entity';
-
-export enum PenaltyStatus {
-  UNPAID = 0,
-  PAID = 1,
-}
 
 @Entity('penalties')
 export class Penalty {

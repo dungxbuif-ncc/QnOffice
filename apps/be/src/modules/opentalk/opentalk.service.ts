@@ -1,15 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CycleStatus, ScheduleType } from '@qnoffice/shared';
 import {
   NotificationEventType,
   NotificationPriority,
 } from '@src/modules/notification/enums/notification-event.enum';
 import { NotificationService } from '@src/modules/notification/services/notification.service';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
 import { In, Repository } from 'typeorm';
-import ScheduleCycleEntity, {
-  CycleStatus,
-} from '../schedule/enties/schedule-cycle.entity';
+import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
 import { CreateOpentalkCycleDto } from './dtos/create-opentalk-cycle.dto';

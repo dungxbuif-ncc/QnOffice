@@ -5,6 +5,7 @@ import ScheduleEventParticipantEntity from './enties/schedule-event-participant.
 import ScheduleEventEntity from './enties/schedule-event.entity';
 import { ScheduleController } from './schedule.controller';
 import { ScheduleService } from './schedule.service';
+import { ScheduleEventCronService } from './services/schedule-event-cron.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { ScheduleService } from './schedule.service';
     ]),
   ],
   controllers: [ScheduleController],
-  providers: [ScheduleService],
+  providers: [ScheduleService, ScheduleEventCronService],
   exports: [ScheduleService],
 })
 export class ScheduleModule {}

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CycleStatus } from '@qnoffice/shared';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -7,7 +8,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { CycleStatus } from '../../schedule/enties/schedule-cycle.entity';
 
 export class CreateOpentalkCycleDto {
   @ApiProperty({ description: 'Name of the opentalk cycle' })

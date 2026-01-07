@@ -6,16 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { NotificationOutboxEntity } from '../entities/notification-outbox.entity';
 import { NotificationSubscriptionEntity } from '../entities/notification-subscription.entity';
-import {
-  NotificationEntity,
-  NotificationStatus,
-} from '../entities/notification.entity';
+import { NotificationEntity } from '../entities/notification.entity';
 
 import {
   NotificationEventStatus,
   NotificationEventType,
   NotificationPriority,
-} from '../enums/notification-event.enum';
+  NotificationStatus,
+} from '@qnoffice/shared';
 
 import { CreateNotificationEventDto } from '../dtos/create-notification-event.dto';
 import { CreateSubscriptionDto } from '../dtos/create-subscription.dto';

@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { StaffStatus } from '@qnoffice/shared';
 import { AppPaginateOptionsDto } from '@src/common/dtos/page-options.dto';
 import { AppPaginationDto } from '@src/common/dtos/paginate.dto';
 import CreateStaffDto from '@src/modules/staff/dtos/create-staff.dto';
-import StaffEntity, { StaffStatus } from '@src/modules/staff/staff.entity';
+import StaffEntity from '@src/modules/staff/staff.entity';
 import { UserService } from '@src/modules/user/user.service';
 import { Repository } from 'typeorm';
 

@@ -1,12 +1,7 @@
+import { CycleStatus } from '@qnoffice/shared';
 import { AbstractEntity } from '@src/common/database/abstract.entity';
 import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
-
-export enum CycleStatus {
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  DRAFT = 'DRAFT',
-}
 
 @Entity('schedule_cycles')
 export default class ScheduleCycleEntity extends AbstractEntity {

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { ScheduleType } from '@qnoffice/shared';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { OpentalkQueryDto } from '@src/modules/opentalk/dtos/opentalk-query.dto';
 import { OpentalkService } from '@src/modules/opentalk/opentalk.service';
 import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
 
 export interface CalendarEvent {
   id: number;

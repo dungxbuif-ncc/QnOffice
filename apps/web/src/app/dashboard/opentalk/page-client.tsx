@@ -16,12 +16,8 @@ interface OpentalkPageClientProps {
 export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
   const { user } = useAuth();
 
-  const canManageRequests = hasPermission(
-    user?.role,
-    PERMISSIONS.MANAGE_OPENTALK_SWAP_REQUESTS,
-  );
   const canApproveRequests = hasPermission(
-    user?.role,
+    user?.staff?.role,
     PERMISSIONS.APPROVE_OPENTALK_SWAP_REQUESTS,
   );
 
@@ -31,7 +27,6 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
     }
   }, [error]);
 
-  // Extract all events from cycles
   const events = cycles.flatMap((cycle) => cycle.events || []);
 
   return (

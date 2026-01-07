@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EventStatus } from '@qnoffice/shared';
 import { Type } from 'class-transformer';
 import {
   IsDateString,
@@ -7,7 +8,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { EventStatus } from '../../schedule/enties/schedule-event.entity';
 
 export class OpentalkQueryDto {
   @ApiProperty({ required: false, description: 'Schedule type filter' })

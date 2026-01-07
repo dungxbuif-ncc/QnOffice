@@ -1,3 +1,4 @@
+import { NotificationChannel, NotificationStatus } from '@qnoffice/shared';
 import {
   Column,
   CreateDateColumn,
@@ -6,15 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NotificationChannel } from '../enums/notification-event.enum';
-
-export enum NotificationStatus {
-  PENDING = 'PENDING',
-  SENT = 'SENT',
-  DELIVERED = 'DELIVERED',
-  FAILED = 'FAILED',
-  READ = 'READ',
-}
 
 @Entity('notifications')
 @Index(['userId', 'read'])

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
+import { EventStatus, ScheduleType } from '@qnoffice/shared';
 import {
   IsArray,
   IsDate,
@@ -9,7 +9,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { EventStatus } from '../../schedule/enties/schedule-event.entity';
 
 export class CreateOpentalkEventDto {
   @ApiProperty({ description: 'Title of the opentalk event' })

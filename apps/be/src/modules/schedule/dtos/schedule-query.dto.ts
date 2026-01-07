@@ -7,7 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 
-import { EventStatus } from '../enties/schedule-event.entity';
+import { EventStatus } from '@qnoffice/shared';
 
 export class ScheduleQueryDto {
   @ApiProperty({ required: false, description: 'Schedule type' })

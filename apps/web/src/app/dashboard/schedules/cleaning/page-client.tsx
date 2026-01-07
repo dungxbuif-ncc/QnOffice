@@ -32,7 +32,7 @@ export function CleaningPageClient({ cycles, error }: CleaningPageClientProps) {
         </div>
       </div>
 
-      <CleaningSpreadsheetView events={events} cycles={cycles} user={user} />
+      <CleaningSpreadsheetView events={events} cycles={cycles} />
     </div>
   );
 }

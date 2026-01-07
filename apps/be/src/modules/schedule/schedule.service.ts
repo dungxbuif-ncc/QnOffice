@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CycleStatus, EventStatus } from '@qnoffice/shared';
+import { toDateString } from '@src/common/utils/date.utils';
 import { Repository } from 'typeorm';
 import { CreateCycleDto } from './dtos/create-cycle.dto';
 import { CreateEventDto } from './dtos/create-event.dto';
 import { ScheduleQueryDto } from './dtos/schedule-query.dto';
-import ScheduleCycleEntity, {
-  CycleStatus,
-} from './enties/schedule-cycle.entity';
+import ScheduleCycleEntity from './enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from './enties/schedule-event-participant.entity';
-import ScheduleEventEntity, {
-  EventStatus,
-} from './enties/schedule-event.entity';
+import ScheduleEventEntity from './enties/schedule-event.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -113,7 +111,11 @@ export class ScheduleService {
   ): Promise<ScheduleEventEntity> {
     const { participantIds, ...entityData } = updateData;
     if (entityData.eventDate) {
-      entityData.eventDate = new Date(entityData.eventDate) as any;
+      // Ensure date is stored as datestring (YYYY-MM-DD) without time
+      entityData.eventDate =
+        typeof entityData.eventDate === 'string'
+          ? entityData.eventDate
+          : (toDateString(new Date(entityData.eventDate)) as any);
     }
 
     await this.eventRepository.update(id, entityData);

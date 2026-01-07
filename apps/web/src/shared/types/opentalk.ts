@@ -1,3 +1,5 @@
+import { SwapRequestStatus } from '@qnoffice/shared';
+
 export interface OpentalkSchedule {
   id: number;
   date: string;
@@ -86,12 +88,6 @@ export interface OpentalkSwapRequest {
       email: string;
     };
   } | null;
-}
-
-export enum SwapRequestStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
 }
 
 export interface CreateOpentalkScheduleData {

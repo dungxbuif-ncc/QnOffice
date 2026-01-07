@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
+import { fromDateString, toDateString } from '@src/common/utils/date.utils';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
-import ScheduleCycleEntity, {
-  CycleStatus,
-} from '@src/modules/schedule/enties/schedule-cycle.entity';
+import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
-import ScheduleEventEntity, {
-  EventStatus,
-} from '@src/modules/schedule/enties/schedule-event.entity';
+import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
 import {
   CycleData,
   SchedulerConfig,
-  ScheduleType,
   SchedulingAlgorithm,
   Staff,
 } from '@src/modules/schedule/schedule.algorith';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { Between, Repository } from 'typeorm';
-
 const cycles = [
   {
     name: 'Cleaning December 2025 - January 2026',
@@ -375,9 +371,11 @@ export class CleaningSeeder {
     // Configure for Cleaning (Monday-Friday, 2 people per slot)
     const config: SchedulerConfig = {
       type: ScheduleType.CLEANING,
-      startDate: new Date('2026-02-01'),
+      startDate: '2026-02-01',
       slotSize: 2,
-      holidays: holidays.map((h) => new Date(h.date)),
+      holidays: holidays.map((h) =>
+        typeof h.date === 'string' ? h.date : toDateString(h.date),
+      ),
     };
 
     // Generate schedule using algorithm
@@ -399,12 +397,13 @@ export class CleaningSeeder {
 
     // Create events from generated schedule in the new cycle
     for (const event of schedule) {
+      const eventDate = fromDateString(event.date);
       const notes =
-        event.date.getDay() === 5 // Friday
+        eventDate.getDay() === 5 // Friday
           ? 'Daily office cleaning + microwave and refrigerator cleaning (Friday special)'
           : 'Daily office cleaning';
 
-      const isSpecial = event.date.getDay() === 5;
+      const isSpecial = eventDate.getDay() === 5;
       const staffUsernames = event.staffIds.map((id) => {
         const staffMember = staff.find((s) => s.id === id);
         return staffMember?.email || staffMember?.user?.email || 'Unknown';
@@ -418,7 +417,7 @@ export class CleaningSeeder {
         title,
         type: ScheduleType.CLEANING,
         notes,
-        eventDate: event.date.toISOString().split('T')[0],
+        eventDate: event.date,
         status: EventStatus.PENDING,
         cycleId: savedCycle.id,
       });
@@ -457,7 +456,7 @@ export class CleaningSeeder {
     return {
       id: previousCycle.id,
       events: previousCycle.events.map((event) => ({
-        date: new Date(event.eventDate),
+        date: event.eventDate, // Already a string
         staffIds: event.eventParticipants.map(
           (participant) => participant.staffId,
         ),

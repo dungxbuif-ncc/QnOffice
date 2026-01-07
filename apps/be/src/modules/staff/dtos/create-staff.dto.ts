@@ -1,4 +1,4 @@
-import { UserRole } from '@src/common/enums/user-role.enum';
+import { UserRole } from '@qnoffice/shared';
 import { IsEmail, IsEnum, IsNumber } from 'class-validator';
 
 export default class CreateStaffDto {

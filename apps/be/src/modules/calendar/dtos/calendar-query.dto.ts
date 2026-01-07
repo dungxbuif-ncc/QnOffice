@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
+import { ScheduleType } from '@qnoffice/shared';
 import { IsDateString, IsEnum, IsOptional } from 'class-validator';
 
 export class CalendarQueryDto {

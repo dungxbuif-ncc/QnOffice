@@ -1,16 +1,21 @@
 {
   "name": "@qnoffice/shared",
   "version": "0.0.1",
-  "private": true,
-  "main": "./src/index.js",
-  "types": "./src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
-    }
+  "description": "Shared types and enums for QnOffice",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
   },
-  "dependencies": {
-    "tslib": "^2.3.0"
+  "keywords": [
+    "shared",
+    "types",
+    "enums"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3"
   }
 }

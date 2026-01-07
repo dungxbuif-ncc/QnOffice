@@ -1,4 +1,4 @@
-import { UserRole } from '@src/common/enums/user-role.enum';
+import { UserRole } from '@qnoffice/shared';
 
 export type AccessTokenPayload = {
   mezonId: string;

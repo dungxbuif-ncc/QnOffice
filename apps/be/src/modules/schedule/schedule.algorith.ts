@@ -1,11 +1,8 @@
-import { addDays, getDay, isSameDay, isWeekend } from 'date-fns';
+import { ScheduleType } from '@qnoffice/shared';
+import { fromDateString, toDateString } from '@src/common/utils/date.utils';
+import { addDays, getDay, isWeekend } from 'date-fns';
 
 // --- Interfaces ---
-
-export enum ScheduleType {
-  CLEANING = 'CLEANING', // Mon-Fri
-  OPENTALK = 'OPENTALK', // Saturday only
-}
 
 export interface Staff {
   id: number;
@@ -13,7 +10,7 @@ export interface Staff {
 }
 
 export interface ScheduleEvent {
-  date: Date;
+  date: string; // Date string in YYYY-MM-DD format (UTC+7)
   staffIds: number[]; // Who is assigned
 }
 
@@ -24,9 +21,9 @@ export interface CycleData {
 
 export interface SchedulerConfig {
   type: ScheduleType;
-  startDate: Date;
+  startDate: string; // Date string in YYYY-MM-DD format
   slotSize: number; // 2 for Cleaning, 1 for OpenTalk
-  holidays: Date[]; // Array of holiday dates
+  holidays: string[]; // Array of holiday date strings (YYYY-MM-DD)
 }
 
 // --- The Static Algorithm Class ---
@@ -86,7 +83,7 @@ export class SchedulingAlgorithm {
 
     // 2. Assign Slots
     const newSchedule: ScheduleEvent[] = [];
-    let currentDate = new Date(startDate);
+    let currentDate = fromDateString(startDate);
     let currentStaffIndex = 0;
 
     while (currentStaffIndex < sortedStaff.length) {
@@ -102,7 +99,7 @@ export class SchedulingAlgorithm {
       );
 
       newSchedule.push({
-        date: new Date(currentDate),
+        date: toDateString(currentDate),
         staffIds: slotStaff.map((s) => s.id),
       });
 
@@ -146,7 +143,7 @@ export class SchedulingAlgorithm {
     if (currentEvents.length === 0) return [];
 
     const newSchedule: ScheduleEvent[] = [];
-    let currentDate = new Date(currentEvents[0].date); // Start where we left off
+    let currentDate = fromDateString(currentEvents[0].date); // Start where we left off
     const { slotSize } = config;
     let currentStaffIndex = 0;
 
@@ -161,7 +158,7 @@ export class SchedulingAlgorithm {
       );
 
       newSchedule.push({
-        date: new Date(currentDate),
+        date: toDateString(currentDate),
         staffIds: currentSlotIds,
       });
 
@@ -182,7 +179,7 @@ export class SchedulingAlgorithm {
   private static getNextValidDate(
     fromDate: Date,
     type: ScheduleType,
-    holidays: Date[],
+    holidays: string[],
   ): Date {
     let checkDate = new Date(fromDate);
 
@@ -213,8 +210,9 @@ export class SchedulingAlgorithm {
     }
   }
 
-  private static isHoliday(date: Date, holidays: Date[]): boolean {
-    return holidays.some((h) => isSameDay(date, h));
+  private static isHoliday(date: Date, holidays: string[]): boolean {
+    const dateString = toDateString(date);
+    return holidays.includes(dateString);
   }
 
   private static shuffleArray(array: any[]) {

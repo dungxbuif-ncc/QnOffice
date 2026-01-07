@@ -26,13 +26,11 @@ import { toast } from 'sonner';
 interface CleaningSpreadsheetViewProps {
   events: any[];
   cycles: any[];
-  user: any;
 }
 
 export function CleaningSpreadsheetView({
   events,
   cycles,
-  user,
 }: CleaningSpreadsheetViewProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,7 +96,7 @@ export function CleaningSpreadsheetView({
 
   // Group events by cycle
   const eventsByCycle = useMemo(() => {
-    const groupedByCycle: { [key: string]: Event[] } = {};
+    const groupedByCycle: { [key: string]: any[] } = {};
 
     events.forEach((event) => {
       const cycleKey = `cycle-${event.cycleId}`;

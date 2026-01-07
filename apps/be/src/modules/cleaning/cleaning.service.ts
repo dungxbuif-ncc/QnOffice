@@ -1,17 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
-import { ScheduleType } from '@src/modules/schedule/schedule.algorith';
 import { In, Repository } from 'typeorm';
-import ScheduleCycleEntity, {
-  CycleStatus,
-} from '../schedule/enties/schedule-cycle.entity';
+import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
-import ScheduleEventEntity, {
-  EventStatus,
-} from '../schedule/enties/schedule-event.entity';
+import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
 
 @Injectable()
 export class CleaningService {

@@ -3,25 +3,16 @@
  * TypeScript interfaces for the generic schedule system
  */
 
+import { AssignmentStatus, SwapRequestStatus } from '@qnoffice/shared';
+
+// Type aliases for backward compatibility
+export { AssignmentStatus as ScheduleEventStatus };
+
 export enum ScheduleStrategy {
   ROUND_ROBIN = 'round_robin',
   RANDOM = 'random',
   MANUAL = 'manual',
   FIRST_AVAILABLE = 'first_available',
-}
-
-export enum ScheduleEventStatus {
-  SCHEDULED = 'scheduled',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-  SKIPPED = 'skipped',
-}
-
-export enum SwapRequestStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  CANCELLED = 'cancelled',
 }
 
 export interface ScheduleDefinition {

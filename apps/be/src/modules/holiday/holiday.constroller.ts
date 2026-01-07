@@ -10,8 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { UserRole } from '@qnoffice/shared';
 import { AppPaginationDto } from '@src/common/dtos/paginate.dto';
-import { UserRole } from '@src/common/enums/user-role.enum';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import CreateHolidayDto from '@src/modules/holiday/dtos/create-holiday.dto';
