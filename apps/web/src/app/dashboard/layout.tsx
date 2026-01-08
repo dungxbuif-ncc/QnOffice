@@ -71,7 +71,7 @@ export default function DashboardLayout({
           </div>
           <div className="flex items-center space-x-4 ml-auto pr-4">
             <span className="text-sm text-gray-700 hidden md:block">
-              Welcome, {user?.username || 'User'}
+              Welcome, {user?.name || 'User'}
             </span>
             <Button onClick={logout} variant="outline" size="sm">
               Logout

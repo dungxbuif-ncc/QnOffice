@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { ScheduleType } from '@qnoffice/shared';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateCycleDto {
   @ApiProperty()
@@ -7,8 +8,8 @@ export class CreateCycleDto {
   name: string;
 
   @ApiProperty({ description: 'Cycle type (OPENTALK or CLEANING)' })
-  @IsString()
-  type: string;
+  @IsEnum(ScheduleType)
+  type: ScheduleType;
 
   @ApiProperty()
   @IsDateString()

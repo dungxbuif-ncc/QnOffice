@@ -1,9 +1,10 @@
 import { CleaningPageClient } from '@/app/dashboard/schedules/cleaning/page-client';
-import { cleaningServerService } from '@/shared/lib/server/cleaning-server-service';
+import { cleaningServerService } from '@/shared/services/server/cleaning-server-service';
+import { ScheduleCycle } from '@qnoffice/shared';
 
 export default async function CleaningPage() {
-  let cycles = [];
-  let error = null;
+  let cycles: ScheduleCycle[] = [];
+  let error: string | null = null;
 
   try {
     const cyclesData = await cleaningServerService.getCycles();

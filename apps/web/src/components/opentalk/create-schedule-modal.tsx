@@ -18,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CreateOpentalkScheduleData } from '@/shared/types/opentalk';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { CreateOpentalkScheduleDto } from '@qnoffice/shared';
 
 interface CreateScheduleModalProps {
   open: boolean;
@@ -35,7 +36,7 @@ export function CreateScheduleModal({
 }: CreateScheduleModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
-  const [formData, setFormData] = useState<CreateOpentalkScheduleData>({
+  const [formData, setFormData] = useState<CreateOpentalkScheduleDto>({
     date: '',
     staffId: 0,
   });

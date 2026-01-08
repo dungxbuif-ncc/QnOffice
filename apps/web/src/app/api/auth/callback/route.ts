@@ -1,9 +1,9 @@
-import { config } from '@/shared/lib/config';
-import { SessionData, sessionOptions } from '@/shared/lib/session';
+import { config } from '@/shared/config';
+import { sessionOptions } from '@/shared/session';
+import { ApiResponse, AuthProfile } from '@qnoffice/shared';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Get session
     const cookieStore = await cookies();
-    const session = await getIronSession<SessionData>(
+    const session = await getIronSession<AuthProfile>(
       cookieStore,
       sessionOptions,
     );
@@ -55,39 +55,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tokenData = await exchangeResponse.json();
-    console.log('[Callback] Token exchange data:', tokenData);
-    const responseData = tokenData.data || tokenData;
-    const accessToken =
-      responseData.tokens?.access_token || tokenData.access_token;
-    const refreshToken =
-      responseData.tokens?.refresh_token || tokenData.refresh_token;
-    const expiresIn = responseData.tokens?.expires_in || tokenData.expires_in;
-    const user = responseData.user || tokenData.user;
+    const tokenData =
+      (await exchangeResponse.json()) as ApiResponse<AuthProfile>;
 
-    // Store tokens in session
-    if (accessToken && user) {
-      session.accessToken = accessToken;
-      session.refreshToken = refreshToken;
-      session.expiresAt = Date.now() + (expiresIn || 3600) * 1000;
-
-      const staffData = responseData.staff || tokenData.staff;
-
-      session.user = {
-        id: user.id,
-        username: user.name || user.username || user.email,
-        email: user.email,
-        staff: staffData,
-      };
-      console.log({ sessionUser: JSON.stringify(session.user) });
+    if (tokenData.data?.tokens || tokenData.data?.user) {
+      session.user = tokenData.data.user;
+      session.tokens = tokenData.data.tokens;
       await session.save();
       return Response.redirect(new URL('/dashboard', request.url));
     } else {
-      console.error('[Callback] Missing access token or user in response:', {
-        hasAccessToken: !!accessToken,
-        hasUser: !!user,
-        tokenData,
-      });
       return Response.redirect(
         new URL('/auth/login?error=no_token', request.url),
       );

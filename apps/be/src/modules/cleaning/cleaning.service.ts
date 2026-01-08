@@ -25,7 +25,7 @@ export class CleaningService {
   ): Promise<ScheduleCycleEntity> {
     const cycleData = {
       ...createCycleDto,
-      type: 'CLEANING',
+      type: ScheduleType.CLEANING,
       status: createCycleDto.status
         ? (createCycleDto.status as CycleStatus)
         : CycleStatus.DRAFT,
@@ -35,7 +35,7 @@ export class CleaningService {
   }
 
   async getCycles(status?: string): Promise<ScheduleCycleEntity[]> {
-    const where: any = { type: 'CLEANING' };
+    const where: any = { type: ScheduleType.CLEANING };
     if (status) {
       where.status = status as CycleStatus;
     }
@@ -96,7 +96,7 @@ export class CleaningService {
 
   async getCycleById(id: number): Promise<ScheduleCycleEntity | null> {
     return this.cycleRepository.findOne({
-      where: { id, type: 'CLEANING' },
+      where: { id, type: ScheduleType.CLEANING },
     });
   }
 
@@ -360,5 +360,46 @@ export class CleaningService {
     });
 
     return conflicts;
+  }
+
+  async swapEventParticipants(
+    participant1: { eventId: number; staffId: number },
+    participant2: { eventId: number; staffId: number },
+  ): Promise<void> {
+    const p1 = await this.participantRepository.findOne({
+      where: {
+        eventId: participant1.eventId,
+        staffId: participant1.staffId,
+        event: { type: ScheduleType.CLEANING },
+      },
+      relations: ['event'],
+    });
+
+    const p2 = await this.participantRepository.findOne({
+      where: {
+        eventId: participant2.eventId,
+        staffId: participant2.staffId,
+        event: { type: ScheduleType.CLEANING },
+      },
+      relations: ['event'],
+    });
+
+    if (!p1 || !p2) {
+      throw new NotFoundException('One or both participants not found');
+    }
+    if (p1.event.id === p2.event.id) {
+      throw new NotFoundException(
+        'Cannot swap participants within the same event',
+      );
+    }
+
+    if (p1.event.cycleId !== p2.event.cycleId) {
+      throw new NotFoundException('One or both events are not cleaning events');
+    }
+
+    p1.staffId = participant2.staffId;
+    p2.staffId = participant1.staffId;
+
+    await this.participantRepository.save([p1, p2]);
   }
 }

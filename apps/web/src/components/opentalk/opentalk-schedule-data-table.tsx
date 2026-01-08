@@ -14,16 +14,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
-import {
-  OpentalkSchedule,
-  ScheduleStatus,
-  SlideStatus,
-} from '@/shared/types/opentalk';
-import { PaginationState } from '@/shared/types/pagination';
+import { PaginationState, SearchOrder } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+
+// Frontend-specific enums for opentalk schedules
+enum SlideStatus {
+  PENDING = 'PENDING',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+enum ScheduleStatus {
+  SCHEDULED = 'SCHEDULED',
+  COMPLETED = 'COMPLETED',
+  SWAPPED = 'SWAPPED',
+  CANCELLED = 'CANCELLED',
+}
+
+// Frontend-specific type for opentalk schedule display
+interface OpentalkSchedule {
+  id: number;
+  date: string;
+  staff?: {
+    email?: string;
+    user?: {
+      name?: string;
+    };
+  };
+  topic?: string;
+  slideStatus: SlideStatus;
+  scheduleStatus: ScheduleStatus;
+  slideUrl?: string;
+}
+
 import {
   ArrowRightLeft,
   Calendar,
@@ -56,8 +83,7 @@ export function OpentalkScheduleDataTable({
 
   const pagination = usePagination({
     defaultPage: 1,
-    defaultPageSize: 10,
-    defaultOrder: 'DESC',
+    defaultOrder: SearchOrder.DESC,
   });
 
   const handleSubmitSlide = (schedule: OpentalkSchedule) => {
@@ -299,9 +325,7 @@ export function OpentalkScheduleDataTable({
               )}
 
               {/* HR/GDVP actions */}
-              <ProtectedComponent
-                requiredPermissions={[PERMISSIONS.MANAGE_OPENTALK]}
-              >
+              <ProtectedComponent permission={PERMISSIONS.MANAGE_OPENTALK}>
                 {canApprove && (
                   <>
                     <DropdownMenuSeparator />
@@ -350,7 +374,7 @@ export function OpentalkScheduleDataTable({
           <SubmitSlideModal
             open={submitSlideModalOpen}
             onOpenChange={setSubmitSlideModalOpen}
-            scheduleId={selectedSchedule.id}
+            eventId={selectedSchedule.id}
             onSuccess={() => window.location.reload()}
           />
           <CreateSwapRequestModal

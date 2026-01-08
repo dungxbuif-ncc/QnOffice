@@ -332,7 +332,7 @@ export async function middleware(request: NextRequest) {
 // TODO: Implement iron-session for BFF pattern
 import { SessionOptions } from 'iron-session';
 
-export interface SessionData {
+export interface AuthProfile {
   accessToken?: string;
   refreshToken?: string;
   user?: { id: number; email: string; name: string };
@@ -617,7 +617,7 @@ export async function handler(req: NextRequest) {
 // lib/session.ts
 import { SessionOptions } from 'iron-session';
 
-export interface SessionData {
+export interface AuthProfile {
   accessToken?: string;
   refreshToken?: string;
   user?: {

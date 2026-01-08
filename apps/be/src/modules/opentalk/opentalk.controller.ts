@@ -9,6 +9,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -25,13 +27,20 @@ import ReviewSwapRequestDto from '@src/modules/opentalk/dtos/review-swap-request
 import { SwapOpentalkDto } from '@src/modules/opentalk/dtos/swap-opentalk.dto';
 import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import SubmitSlideDto from './dtos/submit-slide.dto';
+import OpentalkSlideSubmissionEntity from './entities/opentalk-slide-submission.entity';
 import { OpentalkService } from './opentalk.service';
+import { OpentalkSlideService } from './services/opentalk-slide.service';
 import SwapRequestEntity from './swap-request.entity';
 
 @ApiTags('Opentalk Management')
 @Controller('opentalk')
 export class OpentalkController {
-  constructor(private readonly opentalkService: OpentalkService) {}
+  constructor(
+    private readonly opentalkService: OpentalkService,
+    private readonly slideService: OpentalkSlideService,
+  ) {}
 
   @Post('cycles')
   @ApiOperation({ summary: 'Create a new opentalk cycle' })
@@ -142,13 +151,9 @@ export class OpentalkController {
     return this.opentalkService.deleteEvent(id);
   }
 
-  // Opentalk Specific Operations
   @Post('swap')
-  @ApiOperation({ summary: 'Swap participants between opentalk events' })
-  async swapParticipants(
-    @Body() swapDto: SwapOpentalkDto,
-  ): Promise<{ success: boolean; message: string }> {
-    return this.opentalkService.swapParticipants(swapDto);
+  async swapOpentalk(@Body() swapDto: SwapOpentalkDto): Promise<void> {
+    return this.opentalkService.swapOpentalk(swapDto);
   }
 
   @Get('spreadsheet')
@@ -224,12 +229,27 @@ export class OpentalkController {
     return this.opentalkService.reviewSwapRequest(id, reviewDto);
   }
 
-  @Get('user-schedules/:userId')
-  @ApiOperation({ summary: 'Get user schedules for opentalk' })
-  @ApiParam({ name: 'userId', description: 'User ID' })
-  async getUserSchedules(
-    @Param('userId', ParseIntPipe) userId: number,
-  ): Promise<ScheduleEventEntity[]> {
-    return this.opentalkService.getUserSchedules(userId);
+  @Post('slides/submit')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Submit slides for an opentalk event' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Slides submitted successfully',
+  })
+  async submitSlide(
+    @Body() dto: SubmitSlideDto,
+    @Req() req: any,
+  ): Promise<OpentalkSlideSubmissionEntity> {
+    const staffId = req.user.staffId;
+    return this.slideService.submitSlide(dto, staffId);
+  }
+
+  @Get('slides/:eventId')
+  @ApiOperation({ summary: 'Get slide submission for an event' })
+  @ApiParam({ name: 'eventId', description: 'Event ID' })
+  async getSlideSubmission(
+    @Param('eventId', ParseIntPipe) eventId: number,
+  ): Promise<OpentalkSlideSubmissionEntity | null> {
+    return this.slideService.getSlideSubmission(eventId);
   }
 }

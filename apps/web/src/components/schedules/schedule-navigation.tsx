@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/utils';
 import { Calendar, CalendarCheck, UserCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

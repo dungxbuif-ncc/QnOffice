@@ -8,6 +8,7 @@ async function bootstrap() {
   try {
     const seeder = app.get(DatabaseSeeder);
     await seeder.seed();
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     console.log('Seeding completed successfully');
   } catch (error) {
     console.error('Seeding failed:', error);

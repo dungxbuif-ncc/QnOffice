@@ -4,9 +4,8 @@ import { CreatePenaltyForm } from '@/components/penalties/create-penalty-form';
 import { PenaltiesDataTable } from '@/components/penalties/penalties-data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
-import { PaginationState } from '@/shared/types/pagination';
-import { Penalty } from '@/shared/types/penalty';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
+import { PaginationState, Penalty } from '@qnoffice/shared';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 

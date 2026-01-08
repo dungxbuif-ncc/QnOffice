@@ -5,8 +5,8 @@ import {
   getServerPaginationParams,
   SearchParams,
 } from '@/shared/lib/base-paginated-service';
-import { branchServerService } from '@/shared/lib/server/branch-server-service';
-import { staffServerService } from '@/shared/lib/server/staff-server-service';
+import { branchServerService } from '@/shared/services/server/branch-server-service';
+import { staffServerService } from '@/shared/services/server/staff-server-service';
 
 interface StaffPageProps {
   searchParams?: SearchParams;

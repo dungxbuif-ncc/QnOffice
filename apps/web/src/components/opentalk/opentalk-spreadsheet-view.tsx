@@ -1,5 +1,7 @@
 'use client';
 
+import { UpdateSlideDialog } from '@/components/opentalk/update-slide-dialog';
+import { ViewSlideDialog } from '@/components/opentalk/view-slide-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,18 +15,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { hasPermission, PERMISSIONS } from '@/shared/auth/permissions';
 import { useAuth } from '@/shared/contexts/auth-context';
-import { hasPermission, PERMISSIONS } from '@/shared/lib/auth/permissions';
-import { opentalkClientService } from '@/shared/lib/client/opentalk-client-service';
-import { getStatusBadgeProps } from '@/shared/lib/utils';
-import { ArrowRightLeft, Calendar, Check, User, X } from 'lucide-react';
+import { opentalkClientService } from '@/shared/services/client/opentalk-client-service';
+import { getStatusBadgeProps } from '@/shared/utils';
+import { UserAuth } from '@qnoffice/shared';
+import {
+  ArrowRightLeft,
+  Calendar,
+  Check,
+  FileText,
+  User,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface OpentalkSpreadsheetViewProps {
   events: any[];
   cycles: any[];
-  user?: any;
+  user?: UserAuth;
 }
 
 export function OpentalkSpreadsheetView({
@@ -38,8 +48,9 @@ export function OpentalkSpreadsheetView({
   const [isSwapping, setIsSwapping] = useState(false);
   const [editingTopic, setEditingTopic] = useState<number | null>(null);
   const [editedTopicValue, setEditedTopicValue] = useState<string>('');
-  const userStaff = user?.staff;
-  const hasStaffAccess = !!userStaff;
+  const [slideDialogOpen, setSlideDialogOpen] = useState(false);
+  const [selectedEventForSlide, setSelectedEventForSlide] = useState<any>(null);
+  const userStaffId = user?.staffId;
 
   const validEvents = Array.isArray(events) ? events : [];
   const validCycles = Array.isArray(cycles) ? cycles : [];
@@ -84,18 +95,6 @@ export function OpentalkSpreadsheetView({
     });
   };
 
-  // Show no access message if user doesn't have staff record
-  if (!hasStaffAccess) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        <p>You don't have staff access to this system.</p>
-        <p className="text-xs mt-1">
-          Please contact HR to set up your staff account.
-        </p>
-      </div>
-    );
-  }
-
   const canEditTopic = (event: any) => {
     if (event.status === 'COMPLETED') {
       return false;
@@ -106,9 +105,16 @@ export function OpentalkSpreadsheetView({
     }
 
     const userIsOrganizer = event.eventParticipants?.some(
-      (participant) => participant.staffId === userStaff?.id,
+      (participant: any) => participant.staffId === userStaffId,
     );
     return userIsOrganizer;
+  };
+
+  const canEditSlide = (event: any) => {
+    const userIsPresenter = event.eventParticipants?.some(
+      (participant: any) => participant.staffId === userStaffId,
+    );
+    return userIsPresenter;
   };
 
   const handleTopicEdit = (eventId: number, currentTopic: string) => {
@@ -254,6 +260,7 @@ export function OpentalkSpreadsheetView({
                       <TableHead className="w-[250px]">Topic</TableHead>
                       <TableHead className="w-[200px]">Presenter</TableHead>
                       <TableHead className="w-[100px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -370,7 +377,7 @@ export function OpentalkSpreadsheetView({
                                     event.eventParticipants.length > 0
                                   ) {
                                     const presenters = event.eventParticipants
-                                      .map((ep) => {
+                                      .map((ep: any) => {
                                         if (ep.staff?.email)
                                           return ep.staff.email;
                                         if (ep.staff?.user?.email)
@@ -394,7 +401,7 @@ export function OpentalkSpreadsheetView({
                                     event.participants.length > 0
                                   ) {
                                     const presenters = event.participants
-                                      .map((p) => {
+                                      .map((p: any) => {
                                         if (p.email) return p.email;
                                         if (p.user?.email) return p.user.email;
                                         if (p.id) return `Staff ${p.id}`;
@@ -423,6 +430,19 @@ export function OpentalkSpreadsheetView({
                           <TableCell>
                             <Badge {...getStatusBadgeProps(event.status)} />
                           </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedEventForSlide(event);
+                                setSlideDialogOpen(true);
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              {canEditSlide(event) ? 'Update' : 'View'}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
@@ -443,6 +463,29 @@ export function OpentalkSpreadsheetView({
           </Card>
         )}
       </div>
+
+      {selectedEventForSlide &&
+        selectedEventForSlide.id &&
+        canEditSlide(selectedEventForSlide) && (
+          <UpdateSlideDialog
+            open={slideDialogOpen}
+            onOpenChange={setSlideDialogOpen}
+            eventId={selectedEventForSlide.id}
+            eventTitle={selectedEventForSlide.title || 'Untitled Event'}
+            onSuccess={() => window.location.reload()}
+          />
+        )}
+
+      {selectedEventForSlide &&
+        selectedEventForSlide.id &&
+        !canEditSlide(selectedEventForSlide) && (
+          <ViewSlideDialog
+            open={slideDialogOpen}
+            onOpenChange={setSlideDialogOpen}
+            eventId={selectedEventForSlide.id}
+            eventTitle={selectedEventForSlide.title || 'Untitled Event'}
+          />
+        )}
     </div>
   );
 }

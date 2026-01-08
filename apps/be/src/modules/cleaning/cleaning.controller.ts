@@ -170,4 +170,19 @@ export class CleaningController {
   async checkConflicts(@Query('cycleId') cycleId?: number): Promise<any[]> {
     return this.cleaningService.checkConflicts(cycleId);
   }
+
+  @Post('events/swap')
+  @ApiOperation({ summary: 'Swap participants between two cleaning events' })
+  async swapEvents(
+    @Body()
+    swapData: {
+      participant1: { eventId: number; staffId: number };
+      participant2: { eventId: number; staffId: number };
+    },
+  ): Promise<void> {
+    return this.cleaningService.swapEventParticipants(
+      swapData.participant1,
+      swapData.participant2,
+    );
+  }
 }

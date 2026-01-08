@@ -1,4 +1,4 @@
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/utils';
 import { forwardRef } from 'react';
 
 const Table = forwardRef<

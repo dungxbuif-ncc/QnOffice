@@ -10,19 +10,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
-import {
-  OpentalkSwapRequest,
-  SwapRequestStatus,
-} from '@/shared/types/opentalk';
+import { SwapRequest, SwapRequestStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CheckCircle, Clock, MoreHorizontal, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SwapRequestsTableProps {
-  requests: OpentalkSwapRequest[];
+  requests: SwapRequest[];
 }
 
 export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
@@ -98,7 +95,7 @@ export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
     );
   };
 
-  const columns: ColumnDef<OpentalkSwapRequest>[] = [
+  const columns: ColumnDef<SwapRequest>[] = [
     {
       accessorKey: 'schedule.date',
       header: 'Schedule Date',
@@ -153,7 +150,7 @@ export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
       accessorKey: 'createdAt',
       header: 'Requested',
       cell: ({ row }) => {
-        const date = new Date(row.original.createdAt);
+        const date = new Date(row.original.created_at);
         return <div className="text-sm">{format(date, 'MMM dd, HH:mm')}</div>;
       },
     },
@@ -164,9 +161,7 @@ export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
         const isPending = request.status === SwapRequestStatus.PENDING;
 
         return (
-          <ProtectedComponent
-            requiredPermissions={[PERMISSIONS.MANAGE_OPENTALK]}
-          >
+          <ProtectedComponent permission={PERMISSIONS.MANAGE_OPENTALK}>
             {isPending && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -204,7 +199,7 @@ export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
   ];
 
   return (
-    <BaseDataTable<OpentalkSwapRequest>
+    <BaseDataTable<SwapRequest>
       columns={columns}
       initialData={requests}
       initialPagination={{

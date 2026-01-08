@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -18,8 +19,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getStatusBadgeProps } from '@/shared/lib/utils';
-import { Download, RefreshCw } from 'lucide-react';
+import { getStatusBadgeProps } from '@/shared/utils';
+import { ArrowRightLeft, Download, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -33,6 +34,10 @@ export function CleaningSpreadsheetView({
   cycles,
 }: CleaningSpreadsheetViewProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedParticipants, setSelectedParticipants] = useState<
+    Array<{ eventId: number; staffId: number; email: string; cycleId: number }>
+  >([]);
+  const [isSwapping, setIsSwapping] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -94,6 +99,75 @@ export function CleaningSpreadsheetView({
     }, 1000);
   };
 
+  const handleParticipantToggle = (
+    eventId: number,
+    staffId: number,
+    email: string,
+    cycleId: number,
+  ) => {
+    setSelectedParticipants((prev) => {
+      const exists = prev.find(
+        (p) => p.eventId === eventId && p.staffId === staffId,
+      );
+      if (exists) {
+        return prev.filter(
+          (p) => !(p.eventId === eventId && p.staffId === staffId),
+        );
+      }
+
+      // Prevent selecting from same event
+      if (prev.length > 0 && prev[0].eventId === eventId) {
+        toast.error('Cannot select participants from the same event');
+        return prev;
+      }
+
+      // Prevent selecting from different cycles
+      if (prev.length > 0 && prev[0].cycleId !== cycleId) {
+        toast.error('Cannot select participants from different cycles');
+        return prev;
+      }
+
+      if (prev.length >= 2) {
+        toast.error('You can only select 2 participants to swap');
+        return prev;
+      }
+      return [...prev, { eventId, staffId, email, cycleId }];
+    });
+  };
+
+  const handleSwapParticipants = async () => {
+    if (selectedParticipants.length !== 2) {
+      toast.error('Please select exactly 2 participants to swap');
+      return;
+    }
+
+    setIsSwapping(true);
+    try {
+      const [p1, p2] = selectedParticipants;
+      const response = await fetch(`/api/cleaning/events/swap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participant1: { eventId: p1.eventId, staffId: p1.staffId },
+          participant2: { eventId: p2.eventId, staffId: p2.staffId },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to swap participants');
+      }
+
+      toast.success('Participants swapped successfully');
+      setSelectedParticipants([]);
+      window.location.reload();
+    } catch (error) {
+      toast.error('Failed to swap participants');
+      console.error(error);
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
   // Group events by cycle
   const eventsByCycle = useMemo(() => {
     const groupedByCycle: { [key: string]: any[] } = {};
@@ -124,6 +198,40 @@ export function CleaningSpreadsheetView({
 
   return (
     <div className="space-y-6">
+      {/* Swap Controls */}
+      {selectedParticipants.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <ArrowRightLeft className="h-5 w-5 text-blue-600" />
+                <span className="font-medium text-blue-900">
+                  {selectedParticipants.length === 1
+                    ? `1 participant selected (${selectedParticipants[0].email}). Select one more to swap.`
+                    : `2 participants selected (${selectedParticipants[0].email} ↔ ${selectedParticipants[1].email}). Ready to swap.`}
+                </span>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedParticipants([])}
+                >
+                  Clear Selection
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={selectedParticipants.length !== 2 || isSwapping}
+                  onClick={handleSwapParticipants}
+                >
+                  {isSwapping ? 'Swapping...' : 'Swap Participants'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center">
@@ -205,10 +313,37 @@ export function CleaningSpreadsheetView({
                                     {event.eventParticipants?.length > 0 ? (
                                       event.eventParticipants.map(
                                         (participant: any, idx: number) => (
-                                          <div key={idx} className="text-sm">
-                                            {participant.staff?.user?.email ||
-                                              participant.staff?.email ||
-                                              'Unknown'}
+                                          <div
+                                            key={idx}
+                                            className="flex items-center space-x-2"
+                                          >
+                                            {event.status !== 'COMPLETED' && (
+                                              <Checkbox
+                                                checked={selectedParticipants.some(
+                                                  (p) =>
+                                                    p.eventId === event.id &&
+                                                    p.staffId ===
+                                                      participant.staffId,
+                                                )}
+                                                onCheckedChange={() =>
+                                                  handleParticipantToggle(
+                                                    event.id,
+                                                    participant.staffId,
+                                                    participant.staff?.user
+                                                      ?.email ||
+                                                      participant.staff
+                                                        ?.email ||
+                                                      'Unknown',
+                                                    event.cycleId,
+                                                  )
+                                                }
+                                              />
+                                            )}
+                                            <span className="text-sm">
+                                              {participant.staff?.user?.email ||
+                                                participant.staff?.email ||
+                                                'Unknown'}
+                                            </span>
                                           </div>
                                         ),
                                       )

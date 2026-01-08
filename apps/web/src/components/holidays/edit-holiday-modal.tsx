@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Holiday, UpdateHolidayData } from '@/shared/types/holiday';
+import { Holiday, UpdateHolidayDto } from '@qnoffice/shared';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -29,7 +29,7 @@ export function EditHolidayModal({
   onSuccess,
 }: EditHolidayModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<UpdateHolidayData>({
+  const [formData, setFormData] = useState<UpdateHolidayDto>({
     date: '',
     name: '',
   });

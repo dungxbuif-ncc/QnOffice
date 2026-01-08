@@ -3,13 +3,14 @@
 import { OpentalkSpreadsheetView } from '@/components/opentalk/opentalk-spreadsheet-view';
 import { SwapRequestManagement } from '@/components/opentalk/swap-request-management';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hasPermission, PERMISSIONS } from '@/shared/auth/permissions';
 import { useAuth } from '@/shared/contexts/auth-context';
-import { hasPermission, PERMISSIONS } from '@/shared/lib/auth/permissions';
+import { ScheduleCycle } from '@qnoffice/shared';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface OpentalkPageClientProps {
-  cycles: any[];
+  cycles: ScheduleCycle[];
   error?: string | null;
 }
 
@@ -17,7 +18,7 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
   const { user } = useAuth();
 
   const canApproveRequests = hasPermission(
-    user?.staff?.role,
+    user?.role,
     PERMISSIONS.APPROVE_OPENTALK_SWAP_REQUESTS,
   );
 
@@ -53,12 +54,12 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
           <OpentalkSpreadsheetView
             events={events}
             cycles={cycles}
-            user={user}
+            user={user || undefined}
           />
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">
-          <SwapRequestManagement mode="user" user={user} />
+          <SwapRequestManagement mode="user" user={user || undefined} />
         </TabsContent>
 
         {canApproveRequests && (

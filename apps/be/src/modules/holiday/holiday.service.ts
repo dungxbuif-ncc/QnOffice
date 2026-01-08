@@ -10,11 +10,6 @@ import CreateHolidaysRangeDto from '@src/modules/holiday/dtos/create-holidays-ra
 import { HolidayQuery } from '@src/modules/holiday/dtos/holiday.query';
 import UpdateHolidayDto from '@src/modules/holiday/dtos/update-holiday.dto';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
-import {
-  NotificationEventType,
-  NotificationPriority,
-} from '@src/modules/notification/enums/notification-event.enum';
-import { NotificationService } from '@src/modules/notification/services/notification.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -22,7 +17,6 @@ export class HolidayService {
   constructor(
     @InjectRepository(HolidayEntity)
     private readonly holidayRepository: Repository<HolidayEntity>,
-    private readonly notificationService: NotificationService,
   ) {}
 
   async getAllHolidays(
@@ -63,7 +57,6 @@ export class HolidayService {
     const holidayDate = new Date(dto.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     if (holidayDate < today) {
       throw new BadRequestException('Cannot create a holiday in the past');
     }
@@ -82,22 +75,6 @@ export class HolidayService {
     });
 
     const savedHoliday = await this.holidayRepository.save(holiday);
-
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.HOLIDAY_ADDED,
-      payload: {
-        holidayId: savedHoliday.id,
-        name: savedHoliday.name,
-        date: savedHoliday.date,
-      },
-      priority: NotificationPriority.HIGH,
-      metadata: {
-        aggregateId: savedHoliday.id.toString(),
-        aggregateType: 'holiday',
-      },
-    });
-
     return savedHoliday;
   }
   async createHolidaysByRange(
@@ -172,22 +149,7 @@ export class HolidayService {
       throw new BadRequestException('Cannot delete a holiday in the past');
     }
 
-    await this.holidayRepository.delete(id);
-
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.HOLIDAY_REMOVED,
-      payload: {
-        holidayId: holiday.id,
-        name: holiday.name,
-        date: holiday.date,
-      },
-      priority: NotificationPriority.HIGH,
-      metadata: {
-        aggregateId: holiday.id.toString(),
-        aggregateType: 'holiday',
-      },
-    });
+    await this.holidayRepository.remove(holiday);
   }
 
   async;
@@ -204,8 +166,6 @@ export class HolidayService {
     if (currentDate < today) {
       throw new BadRequestException('Cannot edit a holiday in the past');
     }
-
-    const originalData = { ...holiday };
 
     if (dto.date) {
       const newDate = new Date(dto.date);
@@ -229,24 +189,6 @@ export class HolidayService {
     }
 
     const updatedHoliday = await this.holidayRepository.save(holiday);
-
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.HOLIDAY_UPDATED,
-      payload: {
-        holidayId: updatedHoliday.id,
-        name: updatedHoliday.name,
-        date: updatedHoliday.date,
-        previousName: originalData.name,
-        previousDate: originalData.date,
-      },
-      priority: NotificationPriority.HIGH,
-      metadata: {
-        aggregateId: updatedHoliday.id.toString(),
-        aggregateType: 'holiday',
-      },
-    });
-
     return updatedHoliday;
   }
 }

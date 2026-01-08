@@ -12,10 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  CreateHolidayData,
-  CreateHolidaysRangeData,
-} from '@/shared/types/holiday';
+import { CreateHolidayDto, CreateHolidaysRangeDto } from '@qnoffice/shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -32,11 +29,11 @@ export function CreateHolidayModal({
 }: CreateHolidayModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<'single' | 'range'>('single');
-  const [singleFormData, setSingleFormData] = useState<CreateHolidayData>({
+  const [singleFormData, setSingleFormData] = useState<CreateHolidayDto>({
     date: '',
     name: '',
   });
-  const [rangeFormData, setRangeFormData] = useState<CreateHolidaysRangeData>({
+  const [rangeFormData, setRangeFormData] = useState<CreateHolidaysRangeDto>({
     startDate: '',
     endDate: '',
     name: '',
@@ -90,7 +87,7 @@ export function CreateHolidayModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Add New Holiday</DialogTitle>
           <DialogDescription>

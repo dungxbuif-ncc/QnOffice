@@ -1,15 +1,12 @@
-import { config } from '@/shared/lib/config';
-import {
-  SessionData,
-  isSessionExpired,
-  sessionOptions,
-} from '@/shared/lib/session';
+import { config } from '@/shared/config';
+import { sessionOptions } from '@/shared/session';
+import { AuthProfile } from '@qnoffice/shared';
 import { getIronSession } from 'iron-session';
+import { isEmpty } from 'lodash';
 import { NextRequest, NextResponse } from 'next/server';
 
-// API endpoints that don't require authentication or should be handled locally
 const PUBLIC_ENDPOINTS = ['auth/refresh', 'auth/login'];
-const LOCAL_ENDPOINTS = ['auth/logout']; // Endpoints handled locally, not forwarded
+const LOCAL_ENDPOINTS = ['auth/logout'];
 
 export async function GET(request: NextRequest) {
   return handleApiRequest(request);
@@ -34,58 +31,51 @@ export async function PATCH(request: NextRequest) {
 async function handleApiRequest(request: NextRequest) {
   const url = new URL(request.url);
   const pathSegments = url.pathname.split('/').filter(Boolean);
-  const apiPath = pathSegments.slice(1).join('/'); // Remove 'api' from path
+  const apiPath = pathSegments.slice(1).join('/');
 
   try {
-    // Check if this endpoint should be handled locally (not forwarded)
     const isLocalEndpoint = LOCAL_ENDPOINTS.some((endpoint) =>
       apiPath.includes(endpoint),
     );
 
     if (isLocalEndpoint) {
-      // Return 404 to let Next.js handle the request with dedicated route
       return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }
 
-    // Get session
-    const session = await getIronSession<SessionData>(
+    const session = await getIronSession<AuthProfile>(
       request,
       NextResponse.next(),
       sessionOptions,
     );
 
-    // Check if endpoint requires authentication
     const isPublicEndpoint = PUBLIC_ENDPOINTS.some((endpoint) =>
       apiPath.includes(endpoint),
     );
 
     if (!isPublicEndpoint) {
-      // Check if user is authenticated
-      if (!session.accessToken || isSessionExpired(session)) {
+      if (isEmpty(session)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
 
-    // Forward request to backend
     const backendUrl = `${config.backendBaseUrl}${apiPath ? '/' + apiPath : ''}${url.search}`;
     console.log('[Proxy] Forwarding request:', {
       original: url.pathname,
       apiPath,
       backendUrl,
       method: request.method,
+      tokens: session?.tokens?.accessToken,
     });
     const headers = new Headers();
 
-    // Copy original headers
     request.headers.forEach((value, key) => {
       if (key !== 'host' && key !== 'content-length') {
         headers.set(key, value);
       }
     });
 
-    // Add Authorization header if user is authenticated
-    if (session.accessToken) {
-      headers.set('Authorization', `Bearer ${session.accessToken}`);
+    if (session?.tokens?.accessToken) {
+      headers.set('Authorization', `Bearer ${session.tokens.accessToken}`);
     }
 
     // Forward request body if present

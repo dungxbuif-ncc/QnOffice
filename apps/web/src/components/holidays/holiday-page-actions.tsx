@@ -2,7 +2,7 @@
 
 import { CreateHolidayModal } from '@/components/holidays/create-holiday-modal';
 import { Button } from '@/components/ui/button';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 

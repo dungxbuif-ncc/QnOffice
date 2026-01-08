@@ -1,9 +1,6 @@
 import { PATHS } from '@/shared/constants';
-import {
-  SessionData,
-  clearSession,
-  sessionOptions,
-} from '@/shared/lib/session';
+import { sessionOptions } from '@/shared/session';
+import { AuthProfile } from '@qnoffice/shared';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -11,13 +8,11 @@ import { NextResponse } from 'next/server';
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    const session = await getIronSession<SessionData>(
+    const session = await getIronSession<AuthProfile>(
       cookieStore,
       sessionOptions,
     );
-
-    clearSession(session);
-    await session.save();
+    await session.destroy();
 
     return NextResponse.redirect(PATHS.AUTH.LOGIN);
   } catch (error) {

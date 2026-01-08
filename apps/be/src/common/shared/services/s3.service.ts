@@ -24,18 +24,18 @@ export class S3Service {
     const s3Config = this.appConfigService.s3Config;
     this.bucket = s3Config.bucket;
 
-    if (s3Config.endpoint) {
-      this.publicUrl = s3Config.publicUrl || s3Config.endpoint;
-    } else if (s3Config.publicUrl) {
+    // Set public URL for file access
+    if (s3Config.publicUrl) {
       this.publicUrl = s3Config.publicUrl;
+    } else if (s3Config.endpoint) {
+      this.publicUrl = s3Config.endpoint;
     } else {
       this.publicUrl = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com`;
     }
 
     this.s3Client = new S3Client({
-      region: s3Config.region,
+      region: 'auto', // R2 always requires 'auto' region
       endpoint: s3Config.endpoint,
-      forcePathStyle: !!s3Config.endpoint,
       credentials: {
         accessKeyId: s3Config.accessKeyId,
         secretAccessKey: s3Config.secretAccessKey,
@@ -63,10 +63,9 @@ export class S3Service {
     const expiresIn = 3600; // 1 hour
     const uploadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
-      signableHeaders: new Set(['host']), // Only sign host header for R2 compatibility
     });
 
-    // Generate the final public URL
+    // Generate the final public URL for R2
     const fileUrl = `${this.publicUrl}/${this.bucket}/${key}`;
 
     console.log('Generated presigned URL:', {
@@ -75,6 +74,7 @@ export class S3Service {
       bucket: this.bucket,
       key,
       endpoint: this.appConfigService.s3Config.endpoint,
+      publicUrl: this.publicUrl,
     });
 
     return {

@@ -8,8 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { PaginationState } from '@/shared/types/pagination';
-import { PenaltyType } from '@/shared/types/penalty';
+import { PaginationState, PenaltyType } from '@qnoffice/shared';
 import { Shield } from 'lucide-react';
 
 interface ManagePenaltiesClientProps {

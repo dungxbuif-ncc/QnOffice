@@ -1,9 +1,6 @@
 import { PathUtils } from '@/shared/constants/paths';
-import {
-  SessionData,
-  isSessionExpired,
-  middlewareSessionOptions,
-} from '@/shared/lib/session';
+import { sessionOptions } from '@/shared/session';
+import { AuthProfile } from '@qnoffice/shared';
 import { getIronSession } from 'iron-session';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -24,14 +21,18 @@ export async function middleware(request: NextRequest) {
 
   try {
     const response = NextResponse.next();
-    const session = await getIronSession<SessionData>(
+    const session = await getIronSession<AuthProfile>(
       request,
       response,
-      middlewareSessionOptions,
+      sessionOptions,
     );
 
-    if (!session.accessToken || isSessionExpired(session)) {
-      console.warn('[Middleware] No valid session, redirecting to login');
+    if (!session.user || !session.tokens) {
+      console.warn('[Middleware] No valid session, redirecting to login', {
+        path: pathname,
+        hasUser: !!session.user,
+        hasTokens: !!session.tokens,
+      });
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 

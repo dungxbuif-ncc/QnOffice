@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Branch } from '@/shared/types';
+import { Branch } from '@qnoffice/shared';
 
 interface BranchActionsProps {
   branch: Branch;
@@ -21,12 +21,7 @@ interface BranchActionsProps {
   onView?: (branch: Branch) => void;
 }
 
-const BranchActions = ({
-  branch,
-  onEdit,
-  onDelete,
-  onView,
-}: BranchActionsProps) => {
+const BranchActions = ({ branch, onView }: BranchActionsProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

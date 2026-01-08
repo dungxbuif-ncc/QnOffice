@@ -1,8 +1,5 @@
-import {
-  getServerPaginationParams,
-  SearchParams,
-} from '@/shared/lib/base-paginated-service';
-import { penaltyServerService } from '@/shared/lib/server/penalty-server-service';
+import { penaltyServerService } from '@/shared/services/server/penalty-server-service';
+import { SearchOrder, SearchParams } from '@qnoffice/shared';
 import { PenaltiesPageClient } from './page-client';
 
 interface PenaltiesPageProps {
@@ -14,11 +11,15 @@ export default async function PenaltiesPage({
 }: PenaltiesPageProps) {
   const resolvedSearchParams = await searchParams;
 
-  const params = getServerPaginationParams(resolvedSearchParams || {}, {
-    defaultPage: 1,
-    defaultPageSize: 10,
-    defaultOrder: 'DESC',
-  });
+  const params = {
+    page: resolvedSearchParams?.page
+      ? parseInt(String(resolvedSearchParams.page))
+      : 1,
+    take: resolvedSearchParams?.take
+      ? parseInt(String(resolvedSearchParams.take))
+      : 10,
+    order: (resolvedSearchParams?.order as SearchOrder) || SearchOrder.DESC,
+  };
 
   const penaltiesResponse = await penaltyServerService.getAll(params);
 

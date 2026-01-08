@@ -17,7 +17,7 @@ import { Between, Repository } from 'typeorm';
 const cycles = [
   {
     name: 'Cleaning December 2025 - January 2026',
-    type: 'CLEANING',
+    type: ScheduleType.CLEANING,
     description:
       'Daily office cleaning schedule from December 2025 to January 2026',
     status: 'ACTIVE' as any,
@@ -38,7 +38,7 @@ const cleaningEvents: Array<{
   },
   {
     date: '2025-12-03',
-    participants: ['dung.phammanh', 'duy.huynhleduy'],
+    participants: ['dung.phammanh', 'duy.huynhle'],
   },
   {
     date: '2025-12-04',
@@ -265,9 +265,9 @@ export class CleaningSeeder {
     });
 
     // Generate February events in a new cycle
-    // await this.createFebruaryEvents({
-    //   staff,
-    // });
+    await this.createFebruaryEvents({
+      staff,
+    });
   }
 
   private findStaffByEmail(
@@ -321,7 +321,9 @@ export class CleaningSeeder {
       });
 
       if (existingEvent) {
-        console.log(`Event ${eventData.date} already exists, skipping...`);
+        console.log(
+          `[DEBUG] Event ${eventData.date} already exists - NO INSERT, NO EVENT FIRED`,
+        );
         continue;
       }
 
@@ -388,7 +390,7 @@ export class CleaningSeeder {
     // Create new February cycle
     const februaryCycle = this.cycleRepository.create({
       name: 'Cleaning February 2026',
-      type: 'CLEANING',
+      type: ScheduleType.CLEANING,
       description: 'Auto-generated daily cleaning schedule for February 2026',
       status: CycleStatus.DRAFT,
     });
@@ -441,7 +443,7 @@ export class CleaningSeeder {
 
   private async getPreviousCycleData(): Promise<CycleData | null> {
     const previousCycle = await this.cycleRepository.findOne({
-      where: { type: 'CLEANING', status: CycleStatus.ACTIVE },
+      where: { type: ScheduleType.CLEANING, status: CycleStatus.ACTIVE },
       relations: [
         'events',
         'events.eventParticipants',

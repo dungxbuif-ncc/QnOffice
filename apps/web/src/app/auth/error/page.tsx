@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { PATHS } from '@/shared/constants';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -21,7 +22,7 @@ export default function AuthErrorPage() {
   }, [errorMessage]);
 
   const handleRetry = () => {
-    router.push('/auth/login');
+    router.push(PATHS.AUTH.LOGIN);
   };
 
   return (

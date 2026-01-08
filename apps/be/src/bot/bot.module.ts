@@ -14,4 +14,4 @@ import { SharedModule } from '@src/common/shared/shared.module';
     DatabaseModule,
   ],
 })
-export class AppModule {}
+export class BotModule {}

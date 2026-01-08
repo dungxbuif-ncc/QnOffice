@@ -723,3 +723,7 @@ VITE_MEZON_CLIENT_ID=
 ---
 
 **Last Updated**: January 5, 2026
+
+[] Swap OT - CLEAN
+[] Request Swap Clean
+[]

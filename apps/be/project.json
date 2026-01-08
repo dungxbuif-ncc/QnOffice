@@ -12,6 +12,13 @@
             "cwd": "apps/be"
          }
       },
+      "dev:bot": {
+         "executor": "nx:run-commands",
+         "options": {
+            "command": "npm run dev:bot",
+            "cwd": "apps/be"
+         }
+      },
       "build": {
          "executor": "nx:run-commands",
          "options": {

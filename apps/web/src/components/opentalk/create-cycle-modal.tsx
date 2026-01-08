@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { scheduleClientService } from '@/shared/lib/client/schedule-client-service';
+import { scheduleClientService } from '@/shared/services/client/schedule-client-service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -38,8 +38,23 @@ const createCycleSchema = z.object({
 
 type CreateCycleFormData = z.infer<typeof createCycleSchema>;
 
-export function CreateCycleModal() {
-  const [open, setOpen] = useState(false);
+interface CreateCycleModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  type?: string;
+  onSuccess?: () => void;
+}
+
+export function CreateCycleModal({
+  open: controlledOpen,
+  onOpenChange,
+  type = 'OPENTALK',
+  onSuccess,
+}: CreateCycleModalProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
+
   const router = useRouter();
   const form = useForm<CreateCycleFormData>({
     resolver: zodResolver(createCycleSchema),
@@ -55,12 +70,13 @@ export function CreateCycleModal() {
     try {
       await scheduleClientService.createCycle({
         ...data,
-        type: 'OPENTALK',
+        type: type as any,
       });
 
-      toast.success('OpenTalk cycle created successfully!');
+      toast.success('Cycle created successfully!');
       form.reset();
       setOpen(false);
+      onSuccess?.();
       router.refresh();
     } catch (error) {
       console.error('Failed to create cycle:', error);
@@ -70,12 +86,14 @@ export function CreateCycleModal() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <CalendarPlus className="mr-2 h-4 w-4" />
-          New Cycle
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button>
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            New Cycle
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New OpenTalk Cycle</DialogTitle>

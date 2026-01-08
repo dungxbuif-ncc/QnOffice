@@ -1,10 +1,14 @@
 import { HolidayDataTable } from '@/components/holidays/holiday-data-table';
 import { HolidayPageActions } from '@/components/holidays/holiday-page-actions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getServerPaginationParams } from '@/shared/lib/base-paginated-service';
-import { holidayServerService } from '@/shared/lib/server/holiday-server-service';
-import { GetHolidaysParams } from '@/shared/types/holiday';
-import { SearchParams } from '@/shared/types/pagination';
+import {
+  getServerPaginationParams,
+  SearchParams,
+} from '@/shared/lib/base-paginated-service';
+import {
+  GetHolidaysParams,
+  holidayServerService,
+} from '@/shared/services/server/holiday-server-service';
 
 interface HolidayPageProps {
   searchParams?: SearchParams;

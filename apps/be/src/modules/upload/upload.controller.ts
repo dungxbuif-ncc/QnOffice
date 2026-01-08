@@ -55,4 +55,11 @@ export class UploadController {
   ) {
     return this.s3Service.getMultiplePresignedUrls(dto.files);
   }
+
+  @Post('presigned-urls/opentalk')
+  async getOpentalkPresignedUrls(
+    @Body() dto: GenerateMultiplePresignedUrlsDto,
+  ) {
+    return this.s3Service.getMultiplePresignedUrls(dto.files);
+  }
 }

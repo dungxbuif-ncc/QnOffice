@@ -11,27 +11,27 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SubmitSlideData } from '@/shared/types/opentalk';
+import { SubmitSlideDto } from '@qnoffice/shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface SubmitSlideModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  scheduleId: number;
+  eventId: number;
   onSuccess?: () => void;
 }
 
 export function SubmitSlideModal({
   open,
   onOpenChange,
-  scheduleId,
+  eventId,
   onSuccess,
 }: SubmitSlideModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<SubmitSlideData>({
+  const [formData, setFormData] = useState<Omit<SubmitSlideDto, 'eventId'>>({
     topic: '',
-    slideUrl: '',
+    slidesUrl: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,16 +39,17 @@ export function SubmitSlideModal({
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `/api/opentalk/schedules/${scheduleId}/submit-slide`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
+      const response = await fetch('/api/opentalk/slides/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          eventId,
+          slidesUrl: formData.slidesUrl,
+          topic: formData.topic,
+        }),
+      });
 
       if (!response.ok) {
         const error = await response.json();
@@ -56,7 +57,7 @@ export function SubmitSlideModal({
       }
 
       toast.success('Slide submitted successfully');
-      setFormData({ topic: '', slideUrl: '' });
+      setFormData({ topic: '', slidesUrl: '' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
@@ -90,13 +91,13 @@ export function SubmitSlideModal({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slideUrl">Slide URL</Label>
+              <Label htmlFor="slidesUrl">Slide URL</Label>
               <Input
-                id="slideUrl"
+                id="slidesUrl"
                 type="url"
-                value={formData.slideUrl}
+                value={formData.slidesUrl}
                 onChange={(e) =>
-                  setFormData({ ...formData, slideUrl: e.target.value })
+                  setFormData({ ...formData, slidesUrl: e.target.value })
                 }
                 placeholder="https://example.com/slides.pdf"
                 required

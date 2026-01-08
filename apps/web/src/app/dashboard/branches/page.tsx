@@ -4,10 +4,7 @@ import {
   getServerPaginationParams,
   SearchParams,
 } from '@/shared/lib/base-paginated-service';
-import {
-  branchServerService,
-  GetBranchesParams,
-} from '@/shared/lib/server/branch-server-service';
+import { branchServerService } from '@/shared/services/server/branch-server-service';
 
 interface BranchesPageProps {
   searchParams?: SearchParams;
@@ -18,10 +15,11 @@ export default async function BranchesPage({
 }: BranchesPageProps) {
   const resolvedSearchParams = await searchParams;
 
-  const params: GetBranchesParams = getServerPaginationParams(
-    resolvedSearchParams || {},
-    { defaultPage: 1, defaultPageSize: 10, defaultOrder: 'DESC' },
-  );
+  const params = getServerPaginationParams(resolvedSearchParams || {}, {
+    defaultPage: 1,
+    defaultPageSize: 10,
+    defaultOrder: 'DESC',
+  });
 
   const branchesResponse = await branchServerService.getAll(params);
   const branches = branchesResponse?.result || [];

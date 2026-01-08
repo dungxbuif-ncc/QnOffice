@@ -1,12 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthProfile, AuthTokens } from '@qnoffice/shared';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { AccessTokenPayload } from '@src/common/types';
-import StaffEntity from '@src/modules/staff/staff.entity';
 import { StaffService } from '@src/modules/staff/staff.service';
 import UserEntity from '@src/modules/user/user.entity';
 import { UserService } from '../user/user.service';
-
 export interface ExchangeCodeData {
   access_token: string;
   refresh_token: string;
@@ -19,11 +18,6 @@ export interface UserInfoData {
   display_name: string;
   email: string;
   user_id: string;
-}
-
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
 }
 
 @Injectable()
@@ -68,7 +62,7 @@ export class AuthService {
       email?: string;
       avatar?: string;
     },
-  ): Promise<{ user: UserEntity; staff?: any; tokens: AuthTokens }> {
+  ): Promise<AuthProfile> {
     const user = await this.userService.upsertByMezonId(mezonId, meta);
     let staff: any = null;
     try {
@@ -83,7 +77,7 @@ export class AuthService {
 
     const payload: AccessTokenPayload = {
       mezonId: user.mezonId,
-      role: staff?.role || null,
+      role: typeof staff?.role === 'number' ? staff.role : null,
     };
 
     const jwtConfig = this.appConfigService.jwtConfig;
@@ -96,11 +90,16 @@ export class AuthService {
     );
 
     return {
-      user,
-      staff,
+      user: {
+        mezonId: user.mezonId,
+        name: user?.name || '',
+        email: user?.email || '',
+        role: typeof staff?.role === 'number' ? staff.role : null,
+        staffId: staff?.id,
+      },
       tokens: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        accessToken,
+        refreshToken,
       },
     };
   }
@@ -122,7 +121,7 @@ export class AuthService {
       const newPayload = {
         sub: user.mezonId,
         mezonId: user.mezonId,
-        role: staff?.role || null,
+        role: typeof staff?.role === 'number' ? staff.role : null,
       };
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
@@ -134,8 +133,8 @@ export class AuthService {
       );
 
       return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       };
     } catch (error) {
       throw new BadRequestException('Invalid refresh token');
@@ -178,10 +177,7 @@ export class AuthService {
     return `${oauthConfig.baseUri}/oauth2/auth?${params.toString()}`;
   }
 
-  async handleOAuthExchange(
-    code: string,
-    state: string,
-  ): Promise<{ user: UserEntity; tokens: AuthTokens; staff?: StaffEntity }> {
+  async handleOAuthExchange(code: string, state: string): Promise<AuthProfile> {
     const tokenData = await this.exchangeCode(code, state);
     const userInfo = await this.userInfo(tokenData.access_token);
     return this.signIn(userInfo.user_id, {

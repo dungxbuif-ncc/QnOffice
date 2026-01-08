@@ -1,14 +1,8 @@
 import { AuthProvider } from '@/shared/contexts/auth-context';
-import {
-  SessionData,
-  isSessionExpired,
-  sessionOptions,
-} from '@/shared/lib/session';
 import ReactQueryProvider from '@/shared/providers/query-provider';
-import { getIronSession } from 'iron-session';
+import { getServerSession } from '@/shared/services/server/auth-server-service';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { cookies } from 'next/headers';
 import './globals.css';
 
 const geistSans = Geist({
@@ -32,11 +26,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Get session data server-side
-  const cookieStore = await cookies();
-  const session = await getIronSession<SessionData>(
-    cookieStore,
-    sessionOptions,
-  );
+  const session = await getServerSession();
 
   const initialAuthState: {
     user: any;
@@ -47,7 +37,7 @@ export default async function RootLayout({
   };
 
   // Check if user has valid session
-  if (session.accessToken && !isSessionExpired(session) && session.user) {
+  if (session.tokens?.accessToken && session.user) {
     initialAuthState.user = session.user;
     initialAuthState.isAuthenticated = true;
   }

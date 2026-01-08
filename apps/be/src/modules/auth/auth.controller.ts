@@ -24,27 +24,8 @@ export class AuthController {
   }
 
   @Post('exchange')
-  async exchange(
-    @Body() body: { code: string; state: string },
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    try {
-      const { user, tokens, staff } =
-        await this.authService.handleOAuthExchange(body.code, body.state);
-      return {
-        user: {
-          id: user.mezonId,
-          name: user.name,
-          email: user.email,
-          role: staff?.role || null,
-        },
-        staff,
-        tokens,
-      };
-    } catch (error) {
-      res.status(401);
-      return { success: false, message: error.message };
-    }
+  async exchange(@Body() body: { code: string; state: string }) {
+    return this.authService.handleOAuthExchange(body.code, body.state);
   }
 
   @Post('refresh')

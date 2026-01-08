@@ -11,8 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getPenalties } from '@/shared/lib/penalty-api';
-import { Penalty } from '@/shared/types/penalty';
-import { PenaltyStatus, SearchOrder } from '@qnoffice/shared';
+import { Penalty, PenaltyStatus, SearchOrder } from '@qnoffice/shared';
 import { format } from 'date-fns';
 import { AlertCircle, CheckCircle2, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';

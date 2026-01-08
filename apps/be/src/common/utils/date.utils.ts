@@ -2,7 +2,7 @@ import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns';
 
 // Asia/Bangkok is UTC+7
-export const TIMEZONE = 'Asia/H';
+export const TIMEZONE = 'Asia/Bangkok';
 
 /**
  * Get current date in UTC+7 timezone as YYYY-MM-DD string

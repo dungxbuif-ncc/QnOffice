@@ -12,8 +12,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { PERMISSIONS } from '@/shared/auth';
 import { PATHS } from '@/shared/constants/paths';
-import { PERMISSIONS } from '@/shared/lib/auth';
+import { UserAuth } from '@qnoffice/shared';
 
 const navigationData = [
   {
@@ -80,12 +81,16 @@ const navigationData = [
       },
     ],
   },
+  {
+    title: 'Channel Management',
+    href: PATHS.DASHBOARD.CHANNELS,
+    icon: '📢',
+    permission: PERMISSIONS.MANAGE_CHANNELS,
+  },
 ];
 
-import { User } from '@/shared/lib/services/auth-service';
-
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user?: User | null;
+  user?: UserAuth | null;
   onLogout?: () => void;
 }
 

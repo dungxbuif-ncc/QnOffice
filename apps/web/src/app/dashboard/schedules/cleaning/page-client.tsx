@@ -1,7 +1,6 @@
 'use client';
 
 import { CleaningSpreadsheetView } from '@/components/cleaning/cleaning-spreadsheet-view';
-import { useAuth } from '@/shared/contexts/auth-context';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -11,8 +10,6 @@ interface CleaningPageClientProps {
 }
 
 export function CleaningPageClient({ cycles, error }: CleaningPageClientProps) {
-  const { user } = useAuth();
-
   useEffect(() => {
     if (error) {
       toast.error(error);

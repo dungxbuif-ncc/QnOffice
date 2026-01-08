@@ -28,6 +28,7 @@ export const PATHS = {
     OPENTALK: '/dashboard/opentalk',
     PENALTIES: '/dashboard/penalties',
     MANAGE_PENALTIES: '/dashboard/manage-penalties',
+    CHANNELS: '/dashboard/channels',
     SETTINGS: '/dashboard/settings',
   },
 
@@ -66,48 +67,6 @@ export const PATHS = {
     HOLIDAYS: '/holidays',
     PENALTIES: '/penalties',
   },
-} as const;
-
-/**
- * Navigation items for sidebar/menu components
- */
-export const NAVIGATION = {
-  MAIN: [
-    {
-      title: 'Dashboard',
-      href: PATHS.DASHBOARD.BASE,
-      icon: 'dashboard',
-    },
-    {
-      title: 'Branches',
-      href: PATHS.DASHBOARD.BRANCHES,
-      icon: 'building',
-    },
-    {
-      title: 'Staff',
-      href: PATHS.DASHBOARD.STAFF,
-      icon: 'users',
-    },
-    {
-      title: 'Schedules',
-      href: PATHS.DASHBOARD.SCHEDULES.BASE,
-      icon: 'calendar',
-      children: [
-        {
-          title: 'Cleaning Schedule',
-          href: PATHS.DASHBOARD.SCHEDULES.CLEANING,
-        },
-        {
-          title: 'Open Talk Schedule',
-          href: PATHS.DASHBOARD.SCHEDULES.OPEN_TALK,
-        },
-        {
-          title: 'Holiday Schedule',
-          href: PATHS.DASHBOARD.SCHEDULES.HOLIDAY,
-        },
-      ],
-    },
-  ],
 } as const;
 
 /**
@@ -188,4 +147,3 @@ export const PathUtils = {
 } as const;
 
 export type PathKey = keyof typeof PATHS;
-export type NavigationItem = (typeof NAVIGATION.MAIN)[number];

@@ -1,8 +1,6 @@
-import {
-  getServerPaginationParams,
-  SearchParams,
-} from '@/shared/lib/base-paginated-service';
-import { penaltyTypeServerService } from '@/shared/lib/server/penalty-type-server-service';
+import { getServerPaginationParams } from '@/shared/lib/base-paginated-service';
+import { penaltyTypeServerService } from '@/shared/services/server/penalty-type-server-service';
+import { SearchParams } from '@qnoffice/shared';
 import { ManagePenaltiesClient } from './page-client';
 
 interface ManagePenaltiesPageProps {

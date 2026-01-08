@@ -1,4 +1,4 @@
-import { config } from '@/shared/lib/config';
+import { config } from '@/shared/config';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       throw new Error('Backend response missing OAuth URL');
     }
 
-    console.log('[OAuth] Redirecting to OAuth URL:', oauthUrl);
+    console.log('[OAuth] Returning OAuth URL to client:', oauthUrl);
 
-    // Server-side redirect to OAuth provider
-    return Response.redirect(oauthUrl, 302);
+    // Return URL to client for client-side redirect
+    return Response.json({ url: oauthUrl });
   } catch (error) {
     console.error('OAuth initialization error:', error);
 

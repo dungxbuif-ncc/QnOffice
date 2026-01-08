@@ -25,25 +25,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { UserAuth } from '@qnoffice/shared';
 
-import { User } from '@/shared/lib/services/auth-service';
-
-export function NavUser({ user }: { user?: User | null }) {
+export function NavUser({ user }: { user?: UserAuth | null }) {
   const { isMobile } = useSidebar();
 
   if (!user) {
     return null;
   }
 
-  const displayName =
-    user.firstName && user.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : user.username;
+  const displayName = user.name;
 
-  const avatarFallback =
-    user.firstName && user.lastName
-      ? `${user.firstName[0]}${user.lastName[0]}`
-      : user.username[0].toUpperCase();
+  const avatarFallback = displayName;
 
   return (
     <SidebarMenu>

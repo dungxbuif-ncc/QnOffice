@@ -19,9 +19,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { createPenaltyType, updatePenaltyType } from '@/shared/lib/penalty-api';
-import { CreatePenaltyTypeDto, PenaltyType } from '@/shared/types/penalty';
+import penaltyTypeService from '@/shared/services/client/penalty-type.service';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CreatePenaltyTypeDto, PenaltyType } from '@qnoffice/shared';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -29,7 +29,7 @@ import * as z from 'zod';
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  amount: z.coerce.number().min(0, 'Amount must be positive'),
+  amount: z.number().min(0, 'Amount must be positive'),
 });
 
 interface PenaltyTypeFormProps {
@@ -57,15 +57,15 @@ export function PenaltyTypeForm({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (penaltyType) {
-        await updatePenaltyType(penaltyType.id, values);
+        await penaltyTypeService.update(penaltyType.id, values);
         toast.success('Penalty type updated successfully');
       } else {
-        await createPenaltyType(values as CreatePenaltyTypeDto);
+        await penaltyTypeService.create(values as CreatePenaltyTypeDto);
         toast.success('Penalty type created successfully');
       }
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch {
       toast.error(
         penaltyType
           ? 'Failed to update penalty type'

@@ -11,15 +11,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getRoleLabel, PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
 import {
-  getRoleLabel,
-  PERMISSIONS,
-  ProtectedComponent,
-} from '@/shared/lib/auth';
-import { PaginationState } from '@/shared/types/pagination';
-import { Staff } from '@/shared/types/staff';
-import { SearchOrder, StaffStatus } from '@qnoffice/shared';
+  PaginationState,
+  SearchOrder,
+  Staff,
+  StaffStatus,
+} from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';

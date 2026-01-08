@@ -28,13 +28,13 @@ interface EventData {
 const cycles = [
   {
     name: 'OpenTalk January 2026',
-    type: 'OPENTALK',
+    type: ScheduleType.OPENTALK,
     description: 'Weekly OpenTalk sessions for January 2026',
     status: 'ACTIVE' as any,
   },
   {
     name: 'OpenTalk February 2026',
-    type: 'OPENTALK',
+    type: ScheduleType.OPENTALK,
     description: 'Weekly OpenTalk sessions for February 2026',
     status: 'DRAFT' as any,
   },
@@ -94,9 +94,9 @@ export class OpentalkSeeder {
       currentCycle: createdCycles[0],
       staff,
     });
-    // await this.createNextCycle({
-    //   staff,
-    // });
+    await this.createNextCycle({
+      staff,
+    });
   }
 
   private async syncCurrentCycle({ currentCycle, staff }) {
@@ -207,8 +207,6 @@ export class OpentalkSeeder {
         console.log(
           `Created event: ${eventData.title} for ${eventData.eventDate}`,
         );
-      } else {
-        console.log(`Event already exists: ${eventData.title}`);
       }
     }
   }

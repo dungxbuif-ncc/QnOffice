@@ -1,14 +1,11 @@
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DatabaseModule } from '@src/common/database/database.module';
+import entities from '@src/common/database/entities';
+import { AppConfigService } from '@src/common/shared/services/app-config.service';
+import { SharedModule } from '@src/common/shared/shared.module';
 
-import { BranchEntity } from '@src/modules/branch/branch.entity';
-import HolidayEntity from '@src/modules/holiday/holiday.entity';
-import { PenaltyType } from '@src/modules/penalty-type/penalty-type.entity';
-import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
-import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
-import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
-import StaffEntity from '@src/modules/staff/staff.entity';
+import { OpentalkSlideSubscriber } from '@src/modules/opentalk/subscribers/opentalk-slide.subscriber';
 import { BranchSeeder } from '@src/seeders/branch.seeder';
 import { CleaningSeeder } from '@src/seeders/cleaning.seeder';
 import { DatabaseSeeder } from '@src/seeders/database.seeder';
@@ -19,16 +16,15 @@ import { StaffSeeder } from '@src/seeders/staff.seeder';
 
 @Module({
   imports: [
-    DatabaseModule,
-    TypeOrmModule.forFeature([
-      BranchEntity,
-      StaffEntity,
-      HolidayEntity,
-      ScheduleCycleEntity,
-      ScheduleEventEntity,
-      ScheduleEventParticipantEntity,
-      PenaltyType,
-    ]),
+    SharedModule,
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: AppConfigService) =>
+        configService.postgreSeedConfig,
+      inject: [AppConfigService],
+    }),
+    TypeOrmModule.forFeature(entities),
+    EventEmitterModule.forRoot(),
   ],
   providers: [
     BranchSeeder,
@@ -38,6 +34,7 @@ import { StaffSeeder } from '@src/seeders/staff.seeder';
     CleaningSeeder,
     PenaltyTypeSeeder,
     DatabaseSeeder,
+    OpentalkSlideSubscriber,
   ],
   exports: [DatabaseSeeder],
 })

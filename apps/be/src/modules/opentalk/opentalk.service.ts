@@ -1,12 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CycleStatus, ScheduleType } from '@qnoffice/shared';
-import {
-  NotificationEventType,
-  NotificationPriority,
-} from '@src/modules/notification/enums/notification-event.enum';
-import { NotificationService } from '@src/modules/notification/services/notification.service';
-import { In, Repository } from 'typeorm';
+import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
@@ -29,7 +24,6 @@ export class OpentalkService {
     private readonly participantRepository: Repository<ScheduleEventParticipantEntity>,
     @InjectRepository(SwapRequestEntity)
     private readonly swapRequestRepository: Repository<SwapRequestEntity>,
-    private readonly notificationService: NotificationService,
   ) {}
 
   async createCycle(
@@ -37,7 +31,7 @@ export class OpentalkService {
   ): Promise<ScheduleCycleEntity> {
     const cycleData = {
       ...createCycleDto,
-      type: 'OPENTALK',
+      type: ScheduleType.OPENTALK,
       status: createCycleDto.status
         ? (createCycleDto.status as CycleStatus)
         : CycleStatus.DRAFT,
@@ -47,7 +41,9 @@ export class OpentalkService {
   }
 
   async getCycles(status?: string): Promise<ScheduleCycleEntity[]> {
-    const where: any = { type: 'OPENTALK' };
+    const where: FindOptionsWhere<ScheduleCycleEntity> = {
+      type: ScheduleType.OPENTALK,
+    };
     if (status) {
       where.status = status as CycleStatus;
     }
@@ -69,29 +65,34 @@ export class OpentalkService {
   }
 
   async getCyclesWithEvents(status?: string): Promise<ScheduleCycleEntity[]> {
-    const queryBuilder = this.cycleRepository
-      .createQueryBuilder('cycle')
-      .leftJoinAndSelect('cycle.events', 'events', 'events.type = :eventType', {
-        eventType: 'OPENTALK',
-      })
-      .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
-      .leftJoinAndSelect('eventParticipants.staff', 'staff')
-      .leftJoinAndSelect('staff.user', 'user')
-      .where('cycle.type = :type', { type: 'OPENTALK' })
-      .orderBy('cycle.createdAt', 'DESC')
-      .addOrderBy('events.eventDate', 'ASC');
-
+    const where: any = { type: ScheduleType.OPENTALK };
     if (status) {
-      queryBuilder.andWhere('cycle.status = :status', { status });
+      where.status = status as CycleStatus;
     }
 
-    const cycles = await queryBuilder.getMany();
-    //sort the cycle' ASC by last event date
-    cycles.forEach((cycle) => {
-      cycle.events.sort((a, b) =>
-        a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
-      );
+    const cycles = await this.cycleRepository.find({
+      where,
+      relations: [
+        'events',
+        'events.eventParticipants',
+        'events.eventParticipants.staff',
+        'events.eventParticipants.staff.user',
+      ],
+      order: {
+        createdAt: 'DESC',
+      },
     });
+
+    // Filter events by type and sort
+    cycles.forEach((cycle) => {
+      cycle.events = cycle.events
+        .filter((e) => e.type === ScheduleType.OPENTALK)
+        .sort((a, b) =>
+          a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
+        );
+    });
+
+    // Sort cycles by last event date
     cycles.sort((a, b) => {
       const aLastEventDate =
         a.events.length > 0 ? a.events[a.events.length - 1].eventDate : '';
@@ -108,7 +109,7 @@ export class OpentalkService {
 
   async getCycleById(id: number): Promise<ScheduleCycleEntity | null> {
     return this.cycleRepository.findOne({
-      where: { id, type: 'OPENTALK' },
+      where: { id, type: ScheduleType.OPENTALK },
     });
   }
 
@@ -146,80 +147,53 @@ export class OpentalkService {
       type: ScheduleType.OPENTALK,
     });
     const savedEvent = await this.eventRepository.save(event);
-
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.OPENTALK_EVENT_CREATED,
-      payload: {
-        eventId: savedEvent.id,
-        title: savedEvent.title,
-        date: savedEvent.eventDate,
-        cycleId: savedEvent.cycleId,
-      },
-      priority: NotificationPriority.MEDIUM,
-      metadata: {
-        aggregateId: savedEvent.id.toString(),
-        aggregateType: 'opentalk',
-      },
-    });
-
     return savedEvent;
   }
 
   async getEvents(query: OpentalkQueryDto): Promise<ScheduleEventEntity[]> {
-    // Use QueryBuilder for better relation loading with composite keys
-    const queryBuilder = this.eventRepository
-      .createQueryBuilder('event')
-      .leftJoinAndSelect('event.cycle', 'cycle')
-      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
-      .leftJoinAndSelect('eventParticipants.staff', 'staff')
-      .leftJoinAndSelect('staff.user', 'user')
-      .where('event.type = :type', { type: 'OPENTALK' });
+    const events = await this.eventRepository.find({
+      where: { type: ScheduleType.OPENTALK },
+      relations: [
+        'cycle',
+        'eventParticipants',
+        'eventParticipants.staff',
+        'eventParticipants.staff.user',
+      ],
+      order: { eventDate: 'ASC' },
+    });
+
+    // Apply filters in memory
+    let filtered = events;
 
     if (query.status) {
-      queryBuilder.andWhere('event.status = :status', { status: query.status });
+      filtered = filtered.filter((e) => e.status === query.status);
     }
     if (query.cycleId) {
-      queryBuilder.andWhere('event.cycleId = :cycleId', {
-        cycleId: query.cycleId,
-      });
+      filtered = filtered.filter((e) => e.cycleId === query.cycleId);
     }
     if (query.participantId) {
-      queryBuilder.andWhere('eventParticipants.staffId = :participantId', {
-        participantId: query.participantId,
-      });
+      filtered = filtered.filter((e) =>
+        e.eventParticipants?.some((p) => p.staffId === query.participantId),
+      );
     }
 
-    // Date range filter
-    if (query.startDate) {
-      queryBuilder.andWhere('event.eventDate >= :startDate', {
-        startDate: new Date(query.startDate),
-      });
-    }
-    if (query.endDate) {
-      queryBuilder.andWhere('event.eventDate <= :endDate', {
-        endDate: new Date(query.endDate),
-      });
-    }
-
-    const events = await queryBuilder
-      .orderBy('event.eventDate', 'ASC')
-      .getMany();
-
-    return events;
+    return filtered;
   }
 
   async getEventsByCycle(cycleId: number): Promise<ScheduleEventEntity[]> {
-    return this.eventRepository
-      .createQueryBuilder('event')
-      .leftJoinAndSelect('event.cycle', 'cycle')
-      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
-      .leftJoinAndSelect('eventParticipants.staff', 'staff')
-      .leftJoinAndSelect('staff.user', 'user')
-      .where('event.cycleId = :cycleId', { cycleId })
-      .andWhere('event.type = :type', { type: 'OPENTALK' })
-      .orderBy('event.eventDate', 'ASC')
-      .getMany();
+    return this.eventRepository.find({
+      where: {
+        cycleId,
+        type: ScheduleType.OPENTALK,
+      },
+      relations: [
+        'cycle',
+        'eventParticipants',
+        'eventParticipants.staff',
+        'eventParticipants.staff.user',
+      ],
+      order: { eventDate: 'ASC' },
+    });
   }
 
   async getEventById(id: number): Promise<ScheduleEventEntity | null> {
@@ -245,23 +219,6 @@ export class OpentalkService {
       throw new NotFoundException('Event not found');
     }
 
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.OPENTALK_EVENT_UPDATED,
-      payload: {
-        eventId: event.id,
-        title: event.title,
-        date: event.eventDate,
-        cycleId: event.cycleId,
-        changes: updateData,
-      },
-      priority: NotificationPriority.MEDIUM,
-      metadata: {
-        aggregateId: event.id.toString(),
-        aggregateType: 'opentalk',
-      },
-    });
-
     return event;
   }
 
@@ -271,145 +228,51 @@ export class OpentalkService {
       throw new NotFoundException('Event not found');
     }
 
-    const result = await this.eventRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException('Event not found');
-    }
-
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.OPENTALK_EVENT_DELETED,
-      payload: {
-        eventId: event.id,
-        title: event.title,
-        date: event.eventDate,
-        cycleId: event.cycleId,
-      },
-      priority: NotificationPriority.HIGH,
-      metadata: {
-        aggregateId: event.id.toString(),
-        aggregateType: 'opentalk',
-      },
-    });
+    await this.eventRepository.remove(event);
   }
 
-  // Opentalk Specific Operations
-  async swapParticipants(
-    swapDto: SwapOpentalkDto,
-  ): Promise<{ success: boolean; message: string }> {
+  async swapOpentalk(swapDto: SwapOpentalkDto): Promise<void> {
     const [event1, event2] = await Promise.all([
       this.getEventById(swapDto.event1Id),
       this.getEventById(swapDto.event2Id),
     ]);
-
     if (!event1 || !event2) {
       throw new NotFoundException('One or both events not found');
     }
-
-    // If both arrays are empty, swap all participants between events
-    if (
-      swapDto.participantsFrom1to2.length === 0 &&
-      swapDto.participantsFrom2to1.length === 0
-    ) {
-      // Get current participants for both events
-      const event1Participants = await this.participantRepository.find({
-        where: { eventId: event1.id },
-      });
-
-      const event2Participants = await this.participantRepository.find({
-        where: { eventId: event2.id },
-      });
-
-      // Remove all current participants
-      await this.participantRepository.delete({ eventId: event1.id });
-      await this.participantRepository.delete({ eventId: event2.id });
-
-      // Add event1 participants to event2 and vice versa
-      await Promise.all([
-        ...event1Participants.map((p) =>
-          this.participantRepository.save({
-            eventId: event2.id,
-            staffId: p.staffId,
-          }),
-        ),
-        ...event2Participants.map((p) =>
-          this.participantRepository.save({
-            eventId: event1.id,
-            staffId: p.staffId,
-          }),
-        ),
-      ]);
-    } else {
-      // Handle specific participant swapping (original logic)
-      // Remove participants from event1 that are moving to event2
-      await Promise.all(
-        swapDto.participantsFrom1to2.map((staffId) =>
-          this.participantRepository.delete({ eventId: event1.id, staffId }),
-        ),
-      );
-
-      // Remove participants from event2 that are moving to event1
-      await Promise.all(
-        swapDto.participantsFrom2to1.map((staffId) =>
-          this.participantRepository.delete({ eventId: event2.id, staffId }),
-        ),
-      );
-
-      // Add participants from event1 to event2
-      await Promise.all(
-        swapDto.participantsFrom1to2.map((staffId) =>
-          this.participantRepository.save({ eventId: event2.id, staffId }),
-        ),
-      );
-
-      // Add participants from event2 to event1
-      await Promise.all(
-        swapDto.participantsFrom2to1.map((staffId) =>
-          this.participantRepository.save({ eventId: event1.id, staffId }),
-        ),
+    if (event1.cycleId !== event2.cycleId) {
+      throw new NotFoundException(
+        'Events must belong to the same cycle to swap',
       );
     }
+    if (
+      event1.status === EventStatus.COMPLETED ||
+      event2.status === EventStatus.COMPLETED
+    ) {
+      throw new NotFoundException('Cannot swap completed events');
+    }
+    const even1Date = event1.eventDate;
+    event1.eventDate = event2.eventDate;
+    event2.eventDate = even1Date;
 
-    // Emit notification event
-    await this.notificationService.emitEvent({
-      eventType: NotificationEventType.OPENTALK_PARTICIPANTS_SWAPPED,
-      payload: {
-        event1Id: event1.id,
-        event2Id: event2.id,
-        event1Title: event1.title,
-        event2Title: event2.title,
-        participantsFrom1to2: swapDto.participantsFrom1to2,
-        participantsFrom2to1: swapDto.participantsFrom2to1,
-      },
-      priority: NotificationPriority.HIGH,
-      metadata: {
-        aggregateId: `${event1.id}-${event2.id}`,
-        aggregateType: 'opentalk',
-      },
-    });
-
-    return {
-      success: true,
-      message: 'Participants swapped successfully',
-    };
+    await this.eventRepository.save([event1, event2]);
   }
 
   async getSpreadsheetData(cycleId?: number): Promise<any> {
-    const queryBuilder = this.eventRepository
-      .createQueryBuilder('event')
-      .leftJoinAndSelect('event.cycle', 'cycle')
-      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
-      .leftJoinAndSelect('eventParticipants.staff', 'staff')
-      .leftJoinAndSelect('staff.user', 'user')
-      .where('event.type = :type', { type: 'OPENTALK' });
-
+    const where: any = { type: ScheduleType.OPENTALK };
     if (cycleId) {
-      queryBuilder.andWhere('event.cycleId = :cycleId', { cycleId });
+      where.cycleId = cycleId;
     }
 
-    const events = await queryBuilder
-      .orderBy('event.eventDate', 'ASC')
-      .getMany();
+    const events = await this.eventRepository.find({
+      where,
+      relations: [
+        'cycle',
+        'eventParticipants',
+        'eventParticipants.staff',
+        'eventParticipants.staff.user',
+      ],
+      order: { eventDate: 'ASC' },
+    });
 
     // Group by cycle
     const groupedByCycle = events.reduce((acc, event) => {
@@ -543,26 +406,19 @@ export class OpentalkService {
     requesterId?: number;
     status?: string;
   }): Promise<SwapRequestEntity[]> {
-    const queryBuilder = this.swapRequestRepository
-      .createQueryBuilder('request')
-      .leftJoinAndSelect('request.fromEvent', 'fromEvent')
-      .leftJoinAndSelect('request.toEvent', 'toEvent')
-      .leftJoinAndSelect('request.requester', 'requester')
-      .orderBy('request.createdAt', 'DESC');
-
+    const where: any = {};
     if (filters?.requesterId) {
-      queryBuilder.andWhere('request.requesterId = :requesterId', {
-        requesterId: filters.requesterId,
-      });
+      where.requesterId = filters.requesterId;
     }
-
     if (filters?.status) {
-      queryBuilder.andWhere('request.status = :status', {
-        status: filters.status,
-      });
+      where.status = filters.status;
     }
 
-    return queryBuilder.getMany();
+    return this.swapRequestRepository.find({
+      where,
+      relations: ['fromEvent', 'toEvent', 'requester'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async reviewSwapRequest(
@@ -584,19 +440,5 @@ export class OpentalkService {
     // If approved, we would implement the actual participant swap here
     // For now, just save the status
     return this.swapRequestRepository.save(swapRequest);
-  }
-
-  async getUserSchedules(userId: number): Promise<ScheduleEventEntity[]> {
-    // Find staff for this user
-    const participantEvents = await this.participantRepository
-      .createQueryBuilder('participant')
-      .leftJoinAndSelect('participant.event', 'event')
-      .leftJoinAndSelect('participant.staff', 'staff')
-      .where('staff.userId = :userId', { userId })
-      .andWhere('event.type = :type', { type: 'OPENTALK' })
-      .andWhere('event.status = :status', { status: 'ACTIVE' })
-      .getMany();
-
-    return participantEvents.map((p) => p.event);
   }
 }

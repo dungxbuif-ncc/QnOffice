@@ -11,7 +11,7 @@
       "start": "nest start",
       "dev": "nest start --debug  --watch",
       "start:bot": "nest start --entryFile bot/main",
-      "dev:bot": "nest start --debug --watch --entryFile bot/main",
+      "dev:bot": "nest start --debug=9230 --watch --entryFile bot/main",
       "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
       "migrate": "npm run typeorm -- migration:run -d ormconfig.ts",
       "migration:generate": "npm run typeorm -- migration:generate ./migrations/$npm_config_name -d ormconfig.ts",
@@ -19,6 +19,9 @@
       "migration:revert": "npm run typeorm -- migration:revert -d ormconfig.ts",
       "seed": "ts-node -r tsconfig-paths/register ./src/seed.ts",
       "schema:drop": "yarn run typeorm schema:drop",
+      "test": "jest",
+      "test:watch": "jest --watch",
+      "test:cov": "jest --coverage",
       "lint": "eslint . --ext .ts",
       "lint:fix": "eslint --fix . --ext .ts"
    },
@@ -116,12 +119,23 @@
          "json",
          "ts"
       ],
-      "rootDir": "src",
+      "roots": [
+         "<rootDir>/src",
+         "<rootDir>/__tests__"
+      ],
+      "setupFilesAfterEnv": [
+         "<rootDir>/__tests__/setup.ts"
+      ],
       "testRegex": ".spec.ts$",
       "transform": {
          "^.+\\.(t|j)s$": "ts-jest"
       },
       "coverageDirectory": "../coverage",
-      "testEnvironment": "node"
+      "testEnvironment": "node",
+      "moduleNameMapper": {
+         "^@src/(.*)$": "<rootDir>/src/$1",
+         "^@qnoffice/shared$": "<rootDir>/../../libs/src/index.ts"
+      },
+      "testTimeout": 30000
    }
 }

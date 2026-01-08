@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { scheduleServerService } from '@/shared/lib/server/schedule-server-service';
+import { scheduleServerService } from '@/shared/services/server/schedule-server-service';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,

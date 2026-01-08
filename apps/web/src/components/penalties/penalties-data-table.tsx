@@ -10,9 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { PaginationState } from '@/shared/types/pagination';
-import { Penalty } from '@/shared/types/penalty';
-import { PenaltyStatus } from '@qnoffice/shared';
+import { PaginationState, Penalty, PenaltyStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';

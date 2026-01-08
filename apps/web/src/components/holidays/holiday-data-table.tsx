@@ -11,11 +11,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
-import { Holiday } from '@/shared/types/holiday';
-import { PaginationState } from '@/shared/types/pagination';
-import { SearchOrder } from '@qnoffice/shared';
+import { Holiday, PaginationState, SearchOrder } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Calendar, MoreHorizontal } from 'lucide-react';

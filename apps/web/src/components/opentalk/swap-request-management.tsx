@@ -19,9 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { hasPermission, PERMISSIONS } from '@/shared/auth/permissions';
 import { useAuth } from '@/shared/contexts/auth-context';
-import { hasPermission, PERMISSIONS } from '@/shared/lib/auth/permissions';
-import { opentalkClientService } from '@/shared/lib/client/opentalk-client-service';
+import { opentalkClientService } from '@/shared/services/client/opentalk-client-service';
+import { UserAuth } from '@qnoffice/shared';
 import {
   ArrowRightLeft,
   Calendar,
@@ -50,7 +51,7 @@ interface SwapRequest {
 
 interface SwapRequestManagementProps {
   mode: 'user' | 'hr';
-  user?: any;
+  user?: UserAuth | null;
 }
 
 export function SwapRequestManagement({
@@ -73,27 +74,30 @@ export function SwapRequestManagement({
   const [userSchedules, setUserSchedules] = useState<any[]>([]);
 
   // Get staff data from auth context
-  const userStaff = user?.staff;
   const [hasStaffAccess, setHasStaffAccess] = useState<boolean>(false);
+  const userStaffId = user?.staffId;
 
   const loadSwapRequests = async () => {
-    if (!userStaff) return;
-
     try {
       setIsLoading(true);
 
-      console.log('Loading all swap requests for staff:', userStaff);
-
       // Load all swap requests for everyone (no filtering by requester)
-      const requests = await opentalkClientService.getSwapRequests({});
-      setSwapRequests(requests);
+      const response = await opentalkClientService.getSwapRequests({});
+      setSwapRequests(response?.data || []);
 
-      // Load user's current schedules if in user mode
-      if (mode === 'user') {
-        console.log('Loading schedules for staff ID:', userStaff.id);
-        const schedules = await opentalkClientService.getUserSchedules(user.id);
-        console.log('User schedules loaded:', schedules);
-        setUserSchedules(schedules || []);
+      // Load user's schedules in user mode
+      if (mode === 'user' && userStaffId) {
+        try {
+          const schedulesResponse =
+            await opentalkClientService.getUserSchedules(userStaffId);
+          console.log('Schedules response:', schedulesResponse);
+          const schedules =
+            schedulesResponse?.data?.data || schedulesResponse?.data || [];
+          console.log('Extracted schedules:', schedules);
+          setUserSchedules(schedules);
+        } catch (error) {
+          console.error('Failed to load user schedules:', error);
+        }
       }
     } catch (error) {
       console.error('Failed to load swap requests:', error);
@@ -105,12 +109,11 @@ export function SwapRequestManagement({
 
   useEffect(() => {
     // Set staff access based on auth context
-    setHasStaffAccess(!!userStaff);
-    if (userStaff) {
+    setHasStaffAccess(!!user?.staffId);
+    if (user?.staffId) {
       loadSwapRequests();
     }
-  }, [mode, userStaff]);
-
+  }, [mode, user?.staffId]);
   // Early return if no user
   if (!user) {
     return (
@@ -121,31 +124,20 @@ export function SwapRequestManagement({
   }
 
   const canCreateRequests = hasPermission(
-    user?.staff?.role,
+    user?.role,
     PERMISSIONS.CREATE_OPENTALK_SWAP_REQUEST,
   );
   const canManageRequests = hasPermission(
-    user?.staff?.role,
+    user?.role,
     PERMISSIONS.MANAGE_OPENTALK_SWAP_REQUESTS,
   );
   const canApproveRequests = hasPermission(
-    user?.staff?.role,
+    user?.role,
     PERMISSIONS.APPROVE_OPENTALK_SWAP_REQUESTS,
   );
 
   const isUserMode = mode === 'user';
   const isHRMode = mode === 'hr';
-
-  if (!hasStaffAccess) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        <p>You don't have staff access to this system.</p>
-        <p className="text-xs mt-1">
-          Please contact HR to set up your staff account.
-        </p>
-      </div>
-    );
-  }
 
   if (isUserMode && !canCreateRequests && !canManageRequests) {
     return (
@@ -213,7 +205,7 @@ export function SwapRequestManagement({
   const filteredRequests =
     mode === 'hr'
       ? swapRequests
-      : swapRequests.filter((req) => req.requesterId === userStaff?.id);
+      : swapRequests.filter((req) => req.requesterId === user?.staffId);
 
   if (isLoading) {
     return (
@@ -275,7 +267,7 @@ export function SwapRequestManagement({
               <div className="text-sm text-muted-foreground">
                 <p>You have no scheduled OpenTalk sessions to swap.</p>
                 <p className="text-xs mt-1">
-                  User ID: {user?.id} | Schedules: {userSchedules.length}
+                  User ID: {user?.mezonId} | Schedules: {userSchedules.length}
                 </p>
               </div>
             )}

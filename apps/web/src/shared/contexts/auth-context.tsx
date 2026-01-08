@@ -1,14 +1,14 @@
 'use client';
 
 import { PATHS } from '@/shared/constants';
-import { authService, User } from '@/shared/lib/services/auth-service';
-import { UserRole } from '@qnoffice/shared';
+import authService from '@/shared/services/client/auth.service';
+import { UserAuth, UserRole } from '@qnoffice/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserAuth | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: () => void;
@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 interface AuthProviderProps {
   children: React.ReactNode;
   initialState?: {
-    user: User | null;
+    user: UserAuth | null;
     isAuthenticated: boolean;
   };
 }
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(
     initialState?.isAuthenticated || false,
   );
-  const [user, setUser] = useState<User | null>(initialState?.user || null);
+  const [user, setUser] = useState<UserAuth | null>(initialState?.user || null);
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const router = useRouter();
@@ -42,7 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     if (user) {
       console.log('[AuthContext] User authenticated');
       setIsAuthenticated(true);
-      // If user is authenticated and on login page, redirect to dashboard
       if (pathname === PATHS.AUTH.LOGIN) {
         console.log(
           '[AuthContext] Redirecting authenticated user to /dashboard',
@@ -57,11 +56,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   const refetch = async () => {
     try {
-      const authState = await authService.me();
-      setUser(authState.user);
-      setIsAuthenticated(authState.isAuthenticated);
+      console.log('[AuthContext] Fetching user profile...');
+      const response = await authService.me();
+      console.log('[AuthContext] Profile response:', response);
+
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user);
+        setIsAuthenticated(true);
+        console.log(
+          '[AuthContext] User authenticated:',
+          response.data.data.user.email,
+        );
+      } else {
+        console.warn('[AuthContext] No user in response');
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } catch (error) {
-      console.error('Refetch auth failed:', error);
+      console.error('[AuthContext] Refetch auth failed:', error);
+      alert('[AUTH DEBUG] Failed to fetch user profile: ' + error);
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -105,5 +118,5 @@ export const useAuth = () => {
 
 export function useUserRole(): UserRole | null {
   const { user } = useAuth();
-  return user?.staff?.role ?? null;
+  return user?.role ?? null;
 }

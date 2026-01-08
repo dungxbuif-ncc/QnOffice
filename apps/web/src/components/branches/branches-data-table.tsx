@@ -2,7 +2,7 @@
 
 import { createBranchColumns } from '@/components/branches/branch-columns';
 import { DataTable } from '@/components/ui/data-table';
-import { Branch } from '@/shared/types';
+import { Branch } from '@qnoffice/shared';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 

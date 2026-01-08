@@ -12,11 +12,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BaseDataTable } from '@/components/ui/base-data-table';
 import { Button } from '@/components/ui/button';
+import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { PERMISSIONS, ProtectedComponent } from '@/shared/lib/auth';
-import { deletePenaltyType } from '@/shared/lib/penalty-api';
-import { PaginationState } from '@/shared/types/pagination';
-import { PenaltyType } from '@/shared/types/penalty';
+import penaltyTypeService from '@/shared/services/client/penalty-type.service';
+import { PaginationState, PenaltyType } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -55,10 +54,10 @@ export function PenaltyTypeManager({
     if (!deleteId) return;
 
     try {
-      await deletePenaltyType(deleteId);
+      await penaltyTypeService.remove(deleteId);
       toast.success('Penalty type deleted successfully');
       window.location.reload();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete penalty type');
     } finally {
       setDeleteId(null);

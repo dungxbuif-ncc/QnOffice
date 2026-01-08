@@ -1,10 +1,7 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table';
-import {
-  PaginationState,
-  UsePaginationReturn,
-} from '@/shared/types/pagination';
+import { PaginationState, UsePaginationReturn } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 

@@ -3,10 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CalendarEvent,
   CalendarServerService,
-} from '@/shared/lib/server/calendar-server-service';
-import { HolidayServerService } from '@/shared/lib/server/holiday-server-service';
-import { Holiday } from '@/shared/types/holiday';
-import { ScheduleType } from '@qnoffice/shared';
+} from '@/shared/services/server/calendar-server-service';
+import { HolidayServerService } from '@/shared/services/server/holiday-server-service';
+import { Holiday, ScheduleType } from '@qnoffice/shared';
 import { format } from 'date-fns';
 
 interface CalendarPageProps {

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { scheduleService } from '@/shared/lib/services/schedule-service';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/utils';
 import { ScheduleStatus, ScheduleType } from '@qnoffice/shared';
 import { ArrowUpDown, Loader2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';

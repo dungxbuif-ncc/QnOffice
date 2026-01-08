@@ -32,39 +32,28 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { createPenalty, getPenaltyTypes } from '@/shared/lib/penalty-api';
-import { cn } from '@/shared/lib/utils';
-import { CreatePenaltyDto, PenaltyType } from '@/shared/types/penalty';
-import { Staff } from '@/shared/types/staff';
+import penaltyTypeService from '@/shared/services/client/penalty-type.service';
+import penaltyService from '@/shared/services/client/penalty.service';
+import staffService from '@/shared/services/client/staff.service';
+import { cn } from '@/shared/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ApiResponse } from '@qnoffice/shared';
+import {
+  ApiResponse,
+  CreatePenaltyDto,
+  PenaltyType,
+  Staff,
+} from '@qnoffice/shared';
 import { Check, ChevronsUpDown, ImagePlus, Loader2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-const getStaff = async (params: { page: number; take: number }) => {
-  const searchParams = new URLSearchParams({
-    page: params.page.toString(),
-    take: params.take.toString(),
-  });
-  const response = await fetch(`/api/staffs?${searchParams.toString()}`);
-  if (!response.ok) throw new Error('Failed to fetch staff');
-  const apiResponse: ApiResponse<{
-    result: Staff[];
-    total: number;
-    page: number;
-    pageSize: number;
-  }> = await response.json();
-  return apiResponse.data;
-};
-
 const formSchema = z.object({
-  user_id: z.coerce.number().min(1, 'Staff member is required'),
-  penalty_type_id: z.coerce.number().min(1, 'Penalty type is required'),
+  user_id: z.number().min(1, 'Staff member is required'),
+  penalty_type_id: z.number().min(1, 'Penalty type is required'),
   date: z.string().min(1, 'Date is required'),
-  amount: z.coerce.number().optional(),
+  amount: z.number().optional(),
   reason: z.string().min(1, 'Reason is required'),
   evidence_urls: z.array(z.string()).optional(),
 });
@@ -114,12 +103,13 @@ export function CreatePenaltyForm({
     if (staffLoading) return;
     try {
       setStaffLoading(true);
-      const data = await getStaff({ page, take: 20 });
+      const response = await staffService.getStaffs({ page, take: 20 });
+      const data = response.data.data;
       setStaffList((prev) =>
         append ? [...prev, ...data.result] : data.result,
       );
       setStaffTotal(data.total);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load staff');
     } finally {
       setStaffLoading(false);
@@ -130,9 +120,10 @@ export function CreatePenaltyForm({
     if (typeLoading) return;
     try {
       setTypeLoading(true);
-      const types = await getPenaltyTypes();
+      const response = await penaltyTypeService.findAll();
+      const types = response.data.data.result;
       setPenaltyTypes(types);
-      setTypeTotal(types.length);
+      setTypeTotal(response.data.data.total);
     } catch (error) {
       toast.error('Failed to load penalty types');
     } finally {
@@ -227,7 +218,7 @@ export function CreatePenaltyForm({
         evidence_urls: uploadedUrls,
       };
 
-      await createPenalty(payload);
+      await penaltyService.create(payload);
       toast.success('Penalty created successfully');
       onSuccess();
       onClose();

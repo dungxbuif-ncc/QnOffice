@@ -19,14 +19,14 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { Permission, ProtectedComponent } from '@/shared/lib/auth';
+import { Permission, ProtectedComponent } from '@/shared/auth';
 
 export function NavMain({
   items,
 }: {
   items: {
     title: string;
-    href: string;
+    href?: string;
     icon?: string;
     isActive?: boolean;
     permission?: Permission;
@@ -92,7 +92,7 @@ export function NavMain({
                     tooltip={item.title}
                     isActive={isActive}
                   >
-                    <Link href={item.href}>
+                    <Link href={item.href || '#'}>
                       <span className="text-xl">{item.icon}</span>
                       <span>{item.title}</span>
                       <ChevronRight className="ml-auto h-4 w-4" />
