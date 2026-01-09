@@ -4,7 +4,7 @@ import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from '@src/common/database/database.module';
 import { NotificationListener } from '@src/common/listeners/notification.listener';
 import { SharedModule } from '@src/common/shared/shared.module';
-import { CronModule } from '@src/cron/cron.module';
+import { CronModule } from '@src/modules/cron/cron.module';
 import { HolidayModule } from '@src/modules/holiday/holiday.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
 import { AuthModule } from './modules/auth/auth.module';

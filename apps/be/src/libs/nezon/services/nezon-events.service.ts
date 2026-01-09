@@ -5,38 +5,37 @@ import {
   type CanActivate,
   type Type,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { ChannelMessage } from 'mezon-sdk';
-import type { Clan } from 'mezon-sdk/dist/cjs/mezon-client/structures/Clan';
-import type { TextChannel } from 'mezon-sdk/dist/cjs/mezon-client/structures/TextChannel';
-import type { User } from 'mezon-sdk/dist/cjs/mezon-client/structures/User';
-import type { Message } from 'mezon-sdk/dist/cjs/mezon-client/structures/Message';
-import { NezonClientService } from '../client/nezon-client.service';
-import { NezonExplorerService } from './nezon-explorer.service';
-import { NezonEventDefinition } from '../interfaces/event-definition.interface';
-import type { NezonCommandContext } from '../interfaces/command-context.interface';
-import { NEZON_MODULE_OPTIONS } from '../nezon-configurable';
-import type {
-  NezonModuleOptions,
-  NezonRestrictConfig,
-} from '../nezon.module-interface';
+import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { ModuleRef, Reflector } from '@nestjs/core';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
-import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { ChannelMessage, ChannelMessageContent } from 'mezon-sdk';
+import type { Clan } from 'mezon-sdk/dist/cjs/mezon-client/structures/Clan';
+import type { Message } from 'mezon-sdk/dist/cjs/mezon-client/structures/Message';
+import type { TextChannel } from 'mezon-sdk/dist/cjs/mezon-client/structures/TextChannel';
+import type { User } from 'mezon-sdk/dist/cjs/mezon-client/structures/User';
+import { NezonClientService } from '../client/nezon-client.service';
+import type { NezonCommandContext } from '../interfaces/command-context.interface';
+import { NezonEventDefinition } from '../interfaces/event-definition.interface';
 import {
   NezonParamType,
   NezonParameterMetadata,
 } from '../interfaces/parameter-metadata.interface';
 import {
+  ChannelHelper,
   DMHelper,
   ManagedMessage,
   SmartMessage,
-  type SmartMessageLike,
-  type NormalizedSmartMessage,
   cloneMentionPlaceholders,
-  ChannelHelper,
+  type NormalizedSmartMessage,
+  type SmartMessageLike,
 } from '../messaging/smart-message';
-import type { ChannelMessageContent } from 'mezon-sdk';
+import { NEZON_MODULE_OPTIONS } from '../nezon-configurable';
+import type {
+  NezonModuleOptions,
+  NezonRestrictConfig,
+} from '../nezon.module-interface';
+import { NezonExplorerService } from './nezon-explorer.service';
 
 interface BoundEventHandler {
   event: string;
@@ -82,13 +81,14 @@ export class NezonEventsService {
         try {
           const result = this.executeEvent(definition, args);
           if (result && typeof (result as Promise<any>).then === 'function') {
-            (result as Promise<any>).catch((error: any) =>
-              this.logger.error('event handler failed', error?.stack),
-            );
+            (result as Promise<any>).catch((error: any) => {
+              this.logger.error('event handler failed');
+              console.error(error);
+            });
           }
         } catch (error) {
-          const err = error as Error;
-          this.logger.error('event handler failed', err?.stack);
+          this.logger.error('event handler failed');
+          console.error(error);
         }
       };
       if (definition.once) {
@@ -267,7 +267,7 @@ export class NezonEventsService {
         case NezonParamType.ARG:
           value =
             typeof param.data === 'number'
-              ? args[param.data] ?? undefined
+              ? (args[param.data] ?? undefined)
               : undefined;
           break;
         case NezonParamType.ATTACHMENTS: {

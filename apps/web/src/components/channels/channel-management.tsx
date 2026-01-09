@@ -25,18 +25,19 @@ export function ChannelManagement() {
   const loadChannels = async () => {
     try {
       const response = await channelConfigClientService.getAllConfigs();
-      console.log('Loaded channel configs:', response);
       const configs = response.data || [];
       const newChannelIds: Record<MezonChannelType, string> = {
         CLEANING: '',
         OPENTALK: '',
         PUNISHMENT: '',
       };
+
       configs.forEach((config) => {
         newChannelIds[config.channelType] = config.channelId;
       });
+
       setChannelIds(newChannelIds);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load channel configurations');
     }
   };
@@ -57,7 +58,7 @@ export function ChannelManagement() {
 
     try {
       const promises = Object.entries(channelIds)
-        .filter(([_, id]) => id.trim())
+        .filter(([, id]) => id.trim())
         .map(([channelType, channelId]) =>
           channelConfigClientService.configureChannel({
             channelType: channelType as MezonChannelType,
@@ -69,7 +70,7 @@ export function ChannelManagement() {
       await Promise.all(promises);
       toast.success('Channel configurations saved successfully');
       loadChannels();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save channel configurations');
     } finally {
       setIsLoading(false);

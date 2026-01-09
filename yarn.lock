@@ -13360,9 +13360,9 @@ methods@^1.1.2, methods@~1.1.2:
   resolved "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz"
   integrity sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==
 
-mezon-sdk@^2.8.35:
+mezon-sdk@^2.8.33:
   version "2.8.35"
-  resolved "https://registry.npmjs.org/mezon-sdk/-/mezon-sdk-2.8.35.tgz"
+  resolved "https://registry.npmjs.org/mezon-sdk/-/mezon-sdk-2.8.35.tgz#f2a5243077d326ab265fb5d21b49df51dbc02919"
   integrity sha512-N+UjUVr6IUuj/iE+/bt+uythxZKg5tyXPCv7KmyEbYTA4WjhyB8SLm1L+iJmy0FrlOAWZRmzgXwaJy+v1KLb2w==
   dependencies:
     "@types/ws" "^8.5.12"

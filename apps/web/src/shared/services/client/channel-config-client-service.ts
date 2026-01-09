@@ -30,7 +30,7 @@ class ChannelConfigClientService {
   private readonly baseUrl = '/channel-config';
 
   async getAllConfigs() {
-    const response = await baseApi.get<ApiResponse<ChannelConfig>>(
+    const response = await baseApi.get<ApiResponse<ChannelConfig[]>>(
       this.baseUrl,
     );
     return response.data || [];

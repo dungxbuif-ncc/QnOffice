@@ -52,7 +52,7 @@
       "helmet": "^7.1.0",
       "jsonwebtoken": "^9.0.2",
       "lodash": "^4.17.21",
-      "mezon-sdk": "^2.8.35",
+      "mezon-sdk": "^2.8.33",
       "mime-types": "^2.1.35",
       "minimatch": "^10.0.3",
       "morgan": "^1.10.0",

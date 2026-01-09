@@ -29,6 +29,9 @@ export class NezonClientService {
     }
     const client = this.getClient();
     await client.login();
+    client.on('close', () => {
+      this.isLoggedIn = false;
+    });
     this.isLoggedIn = true;
   }
 
