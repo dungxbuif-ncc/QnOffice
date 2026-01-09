@@ -21,68 +21,68 @@ export class PenaltyTypeSeeder {
 
     const penaltyTypes = [
       {
-        name: 'Missing Opentalk Offline Session',
+        name: 'Vắng mặt Opentalk Offline',
         description:
-          'Tham gia ít nhất 01 buổi offline/tháng tại VP. Không tham gia: phạt 20k/lần (cộng dồn nếu tái phạm liên tiếp)',
+          'Tham gia ít nhất 01 buổi offline/tháng tại văn phòng. Không tham gia: phạt 20k/lần (cộng dồn nếu tái phạm liên tiếp)',
         amount: 20000,
       },
       {
-        name: 'Cleaning - Personal Area',
+        name: 'Dọn dẹp - Khu vực cá nhân',
         description: 'Không giữ sạch khu vực cá nhân (bàn ghế)',
         amount: 10000,
       },
       {
-        name: 'Cleaning - Common Area',
+        name: 'Dọn dẹp - Khu vực chung',
         description: 'Không giữ sạch khu vực chung (pantry, tủ lạnh...)',
         amount: 10000,
       },
       {
-        name: 'Cleaning - Sandals Not Organized',
+        name: 'Dọn dẹp - Dép không xếp gọn',
         description: 'Dép không xếp gọn lên kệ',
         amount: 10000,
       },
       {
-        name: 'Office Habits - Forgot to Lock Computer',
-        description: 'Quên lock máy khi rời chỗ',
+        name: 'Thói quen văn phòng - Quên khoá máy',
+        description: 'Quên khoá máy khi rời chỗ',
         amount: 10000,
       },
       {
-        name: 'Office Habits - Forgot to Pull Chair',
+        name: 'Thói quen văn phòng - Quên kéo ghế',
         description: 'Quên kéo ghế khi rời chỗ',
         amount: 10000,
       },
       {
-        name: 'Office Habits - Not Following Exercise Schedule',
+        name: 'Thói quen văn phòng - Không tập thể dục',
         description: 'Không tập thể dục theo quy định',
         amount: 10000,
       },
       {
-        name: 'Pantry - Last Person Not Turning Off Devices',
+        name: 'Pantry - Người cuối không tắt thiết bị',
         description: 'Người ra cuối cùng không tắt toàn bộ thiết bị điện',
         amount: 10000,
       },
       {
-        name: 'Pantry - Not Cleaning Up',
+        name: 'Pantry - Không dọn dẹp',
         description: 'Không dọn dẹp gọn gàng trước khi rời đi',
         amount: 10000,
       },
       {
-        name: 'Pantry - Not Returning Items',
+        name: 'Pantry - Không trả đồ đúng chỗ',
         description: 'Đồ dùng không đặt lại đúng chỗ',
         amount: 10000,
       },
       {
-        name: 'Pantry - Not Refilling Ice Tray',
+        name: 'Pantry - Không châm nước khay đá',
         description: 'Tủ lạnh: Lấy đá không bẻ hết khay và châm nước đầy lại',
         amount: 10000,
       },
       {
-        name: 'Not Joining Opentalk',
+        name: 'Không tham gia Opentalk',
         description: 'Không tham gia buổi Opentalk',
         amount: 20000,
       },
       {
-        name: 'Critical - AC or Door Not Locked',
+        name: 'Nghiêm trọng - Không tắt máy lạnh/khóa cửa',
         description: 'Không tắt máy lạnh hoặc không khóa cửa khi rời văn phòng',
         amount: 500000,
       },

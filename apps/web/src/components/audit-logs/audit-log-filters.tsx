@@ -91,11 +91,11 @@ export function AuditLogFilters({ contexts }: AuditLogFiltersProps) {
           <div className="space-y-2">
             <Label htmlFor="level">Log Level</Label>
             <Select
-              value={filters.level || ''}
+              value={filters.level || 'all'}
               onValueChange={(value) =>
                 setFilters({
                   ...filters,
-                  level: (value as LogLevel) || undefined,
+                  level: value === 'all' ? undefined : (value as LogLevel),
                 })
               }
             >
@@ -103,7 +103,7 @@ export function AuditLogFilters({ contexts }: AuditLogFiltersProps) {
                 <SelectValue placeholder="All levels" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All levels</SelectItem>
+                <SelectItem value="all">All levels</SelectItem>
                 <SelectItem value={LogLevel.TRACE}>TRACE</SelectItem>
                 <SelectItem value={LogLevel.DEBUG}>DEBUG</SelectItem>
                 <SelectItem value={LogLevel.LOG}>LOG</SelectItem>
@@ -117,16 +117,19 @@ export function AuditLogFilters({ contexts }: AuditLogFiltersProps) {
           <div className="space-y-2">
             <Label htmlFor="context">Context</Label>
             <Select
-              value={filters.context || ''}
+              value={filters.context || 'all'}
               onValueChange={(value) =>
-                setFilters({ ...filters, context: value || undefined })
+                setFilters({
+                  ...filters,
+                  context: value === 'all' ? undefined : value,
+                })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="All contexts" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All contexts</SelectItem>
+                <SelectItem value="all">All contexts</SelectItem>
                 {contexts.map((context) => (
                   <SelectItem key={context} value={context}>
                     {context}

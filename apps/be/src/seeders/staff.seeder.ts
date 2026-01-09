@@ -39,7 +39,7 @@ const mails = [
 const roleMapping = {
   'ngan.tonthuy@ncc.asia': UserRole.HR,
   'duy.nguyenxuan@ncc.asia': UserRole.GDVP,
-  'dung.buihuu@ncc.asia': UserRole.GDVP,
+  'dung.buihuu@ncc.asia': UserRole.STAFF,
 };
 
 @Injectable()

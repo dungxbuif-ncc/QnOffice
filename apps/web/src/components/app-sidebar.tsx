@@ -18,35 +18,35 @@ import { UserAuth } from '@qnoffice/shared';
 
 const navigationData = [
   {
-    title: 'Dashboard',
+    title: 'Bảng điều khiển',
     href: PATHS.DASHBOARD.BASE,
     icon: '📊',
   },
   {
-    title: 'Branches',
+    title: 'Chi nhánh',
     href: PATHS.DASHBOARD.BRANCHES,
     icon: '🏢',
     permission: PERMISSIONS.VIEW_BRANCHES,
   },
   {
-    title: 'Staff Management',
+    title: 'Quản lý nhân sự',
     href: PATHS.DASHBOARD.STAFF,
     icon: '👥',
     permission: PERMISSIONS.VIEW_STAFF,
   },
   {
-    title: 'Schedules',
+    title: 'Lịch trình',
     href: PATHS.DASHBOARD.SCHEDULES.BASE,
     icon: '📋',
     permission: PERMISSIONS.VIEW_SCHEDULES,
     items: [
       {
-        title: 'Calendar',
+        title: 'Lịch',
         href: PATHS.DASHBOARD.CALENDAR,
         icon: '📅',
       },
       {
-        title: 'Holidays',
+        title: 'Ngày nghỉ',
         href: PATHS.DASHBOARD.HOLIDAYS,
         icon: '🎉',
         permission: PERMISSIONS.VIEW_HOLIDAYS,
@@ -58,7 +58,7 @@ const navigationData = [
         permission: PERMISSIONS.VIEW_OPENTALK,
       },
       {
-        title: 'Cleaning',
+        title: 'Dọn dẹp',
         href: PATHS.DASHBOARD.SCHEDULES.CLEANING,
         icon: '🧹',
         permission: PERMISSIONS.VIEW_SCHEDULES,
@@ -66,29 +66,29 @@ const navigationData = [
     ],
   },
   {
-    title: 'Penalties',
+    title: 'Phạt',
     icon: '⚠️',
     items: [
       {
-        title: 'All Penalties',
+        title: 'Tất cả vi phạm',
         href: PATHS.DASHBOARD.PENALTIES,
         icon: '⚠️',
       },
       {
-        title: 'Penalty Types',
+        title: 'Loại phạt',
         href: PATHS.DASHBOARD.MANAGE_PENALTIES,
         icon: '🛡️',
       },
     ],
   },
   {
-    title: 'Channel Management',
+    title: 'Quản lý kênh',
     href: PATHS.DASHBOARD.CHANNELS,
     icon: '📢',
     permission: PERMISSIONS.MANAGE_CHANNELS,
   },
   {
-    title: 'Audit Logs',
+    title: 'Nhật ký hệ thống',
     href: PATHS.DASHBOARD.AUDIT_LOGS,
     icon: '📋',
   },

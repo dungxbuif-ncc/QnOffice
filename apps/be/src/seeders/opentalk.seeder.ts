@@ -27,15 +27,15 @@ interface EventData {
 
 const cycles = [
   {
-    name: 'OpenTalk January 2026',
+    name: 'OpenTalk tháng 1/2026',
     type: ScheduleType.OPENTALK,
-    description: 'Weekly OpenTalk sessions for January 2026',
+    description: 'Chuỗi OpenTalk hàng tuần tháng 1/2026',
     status: 'ACTIVE' as any,
   },
   {
-    name: 'OpenTalk February 2026',
+    name: 'OpenTalk tháng 2/2026',
     type: ScheduleType.OPENTALK,
-    description: 'Weekly OpenTalk sessions for February 2026',
+    description: 'Chuỗi OpenTalk hàng tuần tháng 2/2026',
     status: 'DRAFT' as any,
   },
 ];
@@ -136,38 +136,34 @@ export class OpentalkSeeder {
       {
         title: 'Multiplayer web game dưới góc nhìn của dev',
         type: 'OPENTALK',
-        notes:
-          'Weekly team discussion and knowledge sharing - Presenter: tien.nguyenvan',
+        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: tien.nguyenvan',
         eventDate: '2026-01-10',
         status: EventStatus.COMPLETED,
         cycleId: currentCycle.id,
         assignedStaff: tienNguyen,
       },
       {
-        title: 'Weekly OpenTalk Session #2',
+        title: 'OpenTalk hàng tuần #2',
         type: 'OPENTALK',
-        notes:
-          'Weekly team discussion and knowledge sharing - Presenter: ho.nguyenphi',
+        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: ho.nguyenphi',
         eventDate: '2026-01-17',
         status: EventStatus.COMPLETED,
         cycleId: currentCycle.id,
         assignedStaff: hoNguyen,
       },
       {
-        title: 'Weekly OpenTalk Session #3',
+        title: 'OpenTalk hàng tuần #3',
         type: 'OPENTALK',
-        notes:
-          'Weekly team discussion and knowledge sharing - Presenter: thang.thieuquang',
+        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: thang.thieuquang',
         eventDate: '2026-01-24',
         status: EventStatus.COMPLETED,
         cycleId: currentCycle.id,
         assignedStaff: thangThieu,
       },
       {
-        title: 'Weekly OpenTalk Session #4',
+        title: 'OpenTalk hàng tuần #4',
         type: 'OPENTALK',
-        notes:
-          'Weekly team discussion and knowledge sharing - No presenter assigned yet',
+        notes: 'Chia sẻ & thảo luận nhóm - Chưa có diễn giả',
         eventDate: '2026-01-31',
         status: EventStatus.PENDING,
         cycleId: currentCycle.id,
@@ -259,15 +255,15 @@ export class OpentalkSeeder {
 
       const assignedStaff = staff.find((s) => s.id === assignedStaffId);
 
-      const eventTitle = `Weekly OpenTalk Session #${i + 1}`;
+      const eventTitle = `OpenTalk hàng tuần #${i + 1}`;
       const presenterInfo = assignedStaff
-        ? assignedStaff.email || assignedStaff.user?.email || 'Unknown'
-        : 'No presenter assigned';
+        ? assignedStaff.email || assignedStaff.user?.email || 'Không rõ'
+        : 'Chưa có diễn giả';
 
       const event = this.eventRepository.create({
         title: eventTitle,
         type: 'OPENTALK' as any,
-        notes: `Weekly team discussion and knowledge sharing - Presenter: ${presenterInfo}`,
+        notes: `Chia sẻ & thảo luận nhóm - Diễn giả: ${presenterInfo}`,
         eventDate: scheduleEvent.date,
         status: EventStatus.PENDING,
         cycleId: februaryCycle.id,

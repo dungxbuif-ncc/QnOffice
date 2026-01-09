@@ -21,7 +21,7 @@ export class BranchSeeder {
       {
         name: 'Quy Nhơn',
         code: 'QN',
-        address: 'Quy Nhon City, Binh Dinh Province, Vietnam',
+        address: 'Thành phố Quy Nhơn, tỉnh Bình Định, Việt Nam',
       },
     ];
 

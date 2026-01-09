@@ -4,59 +4,59 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import { Repository } from 'typeorm';
 
 const holidays2026 = [
-  // Tet Holiday (Vietnamese New Year) - Feb 16-21, 2026
+  // Tết Nguyên Đán 2026
   {
-    name: 'Tet Holiday - Day 1',
+    name: 'Tết Nguyên Đán - Ngày 1',
     date: '2026-02-16',
-    description: 'Vietnamese New Year - First Day',
+    description: 'Tết Nguyên Đán - Mùng 1',
   },
   {
-    name: 'Tet Holiday - Day 2',
+    name: 'Tết Nguyên Đán - Ngày 2',
     date: '2026-02-17',
-    description: 'Vietnamese New Year - Second Day',
+    description: 'Tết Nguyên Đán - Mùng 2',
   },
   {
-    name: 'Tet Holiday - Day 3',
+    name: 'Tết Nguyên Đán - Ngày 3',
     date: '2026-02-18',
-    description: 'Vietnamese New Year - Third Day',
+    description: 'Tết Nguyên Đán - Mùng 3',
   },
   {
-    name: 'Tet Holiday - Day 4',
+    name: 'Tết Nguyên Đán - Ngày 4',
     date: '2026-02-19',
-    description: 'Vietnamese New Year - Fourth Day',
+    description: 'Tết Nguyên Đán - Mùng 4',
   },
   {
-    name: 'Tet Holiday - Day 5',
+    name: 'Tết Nguyên Đán - Ngày 5',
     date: '2026-02-20',
-    description: 'Vietnamese New Year - Fifth Day',
+    description: 'Tết Nguyên Đán - Mùng 5',
   },
   {
-    name: 'Tet Holiday - Day 6',
+    name: 'Tết Nguyên Đán - Ngày 6',
     date: '2026-02-21',
-    description: 'Vietnamese New Year - Sixth Day',
+    description: 'Tết Nguyên Đán - Mùng 6',
   },
-  // Hung Kings' Temple Festival
+  // Giỗ Tổ Hùng Vương
   {
-    name: 'Hung Kings Temple Festival',
+    name: 'Giỗ Tổ Hùng Vương',
     date: '2026-04-27',
-    description: 'Gio To Hung Vuong - Commemoration Day for Hung Kings',
+    description: 'Ngày Giỗ Tổ Hùng Vương',
   },
-  // Liberation Day and Labor Day
+  // Ngày Giải phóng và Quốc tế Lao động
   {
-    name: 'Liberation Day',
+    name: 'Ngày Giải phóng miền Nam',
     date: '2026-04-30',
-    description: 'Southern Liberation Day - Victory Day',
+    description: 'Ngày Giải phóng miền Nam',
   },
   {
-    name: 'International Labor Day',
+    name: 'Quốc tế Lao động',
     date: '2026-05-01',
-    description: 'International Workers Day',
+    description: 'Ngày Quốc tế Lao động',
   },
-  // National Day
+  // Quốc khánh
   {
-    name: 'National Day',
+    name: 'Quốc khánh',
     date: '2026-09-02',
-    description: 'Vietnam Independence Day - Quoc Khanh',
+    description: 'Ngày Quốc khánh Việt Nam',
   },
 ];
 

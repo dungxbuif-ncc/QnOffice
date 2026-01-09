@@ -16,10 +16,10 @@ import StaffEntity from '@src/modules/staff/staff.entity';
 import { Between, Repository } from 'typeorm';
 const cycles = [
   {
-    name: 'Cleaning December 2025 - January 2026',
+    name: 'Dọn dẹp văn phòng tháng 12/2025 - 1/2026',
     type: ScheduleType.CLEANING,
     description:
-      'Daily office cleaning schedule from December 2025 to January 2026',
+      'Lịch dọn dẹp văn phòng hàng ngày từ tháng 12/2025 đến tháng 1/2026',
     status: 'ACTIVE' as any,
   },
 ];
@@ -305,12 +305,12 @@ export class CleaningSeeder {
       const isSpecial = eventDate.getDay() === 5;
 
       const notes = isSpecial
-        ? 'Daily office cleaning + microwave and refrigerator cleaning (Friday special)'
-        : 'Daily office cleaning';
+        ? 'Dọn dẹp văn phòng + vệ sinh lò vi sóng và tủ lạnh (đặc biệt Thứ Sáu)'
+        : 'Dọn dẹp văn phòng hàng ngày';
 
       const title = isSpecial
-        ? `Office Cleaning + Special (${assignedStaff.map((s) => s.email || s.user?.email || 'Unknown').join(' & ')})`
-        : `Office Cleaning (${assignedStaff.map((s) => s.email || s.user?.email || 'Unknown').join(' & ')})`;
+        ? `Dọn dẹp + Đặc biệt (${assignedStaff.map((s) => s.email || s.user?.email || 'Không rõ').join(' & ')})`
+        : `Dọn dẹp văn phòng (${assignedStaff.map((s) => s.email || s.user?.email || 'Không rõ').join(' & ')})`;
 
       const existingEvent = await this.eventRepository.findOne({
         where: {
@@ -402,18 +402,18 @@ export class CleaningSeeder {
       const eventDate = fromDateString(event.date);
       const notes =
         eventDate.getDay() === 5 // Friday
-          ? 'Daily office cleaning + microwave and refrigerator cleaning (Friday special)'
-          : 'Daily office cleaning';
+          ? 'Dọn dẹp văn phòng + vệ sinh lò vi sóng và tủ lạnh (đặc biệt Thứ Sáu)'
+          : 'Dọn dẹp văn phòng hàng ngày';
 
       const isSpecial = eventDate.getDay() === 5;
       const staffUsernames = event.staffIds.map((id) => {
         const staffMember = staff.find((s) => s.id === id);
-        return staffMember?.email || staffMember?.user?.email || 'Unknown';
+        return staffMember?.email || staffMember?.user?.email || 'Không rõ';
       });
 
       const title = isSpecial
-        ? `Office Cleaning + Special (${staffUsernames.join(' & ')})`
-        : `Office Cleaning (${staffUsernames.join(' & ')})`;
+        ? `Dọn dẹp + Đặc biệt (${staffUsernames.join(' & ')})`
+        : `Dọn dẹp văn phòng (${staffUsernames.join(' & ')})`;
 
       const createdEvent = this.eventRepository.create({
         title,
