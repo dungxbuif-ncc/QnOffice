@@ -18,3 +18,9 @@ export enum AssignmentStatus {
   CANCELLED = 'cancelled',
   SKIPPED = 'skipped',
 }
+
+export enum OpentalkSlideStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}

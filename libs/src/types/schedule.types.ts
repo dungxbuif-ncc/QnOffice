@@ -1,18 +1,18 @@
 import { CycleStatus, EventStatus, ScheduleType } from '../enums';
 import { Staff } from './staff.types';
 
-export interface ScheduleCycle {
+export interface ScheduleCycle<T = any> {
   id: number;
   name: string;
   type: ScheduleType;
   status: CycleStatus;
   description?: string;
-  events?: ScheduleEvent[];
+  events?: ScheduleEvent<T>[];
   createdAt: string | Date;
   updatedAt: string | Date;
 }
 
-export interface ScheduleEvent {
+export interface ScheduleEvent<T = any> {
   id: number;
   title: string;
   type: ScheduleType;
@@ -20,7 +20,7 @@ export interface ScheduleEvent {
   eventDate: string;
   status: EventStatus;
   notes?: string;
-  cycle?: ScheduleCycle;
+  metadata: T | null;
   eventParticipants?: ScheduleEventParticipant[];
   createdAt: string | Date;
   updatedAt: string | Date;

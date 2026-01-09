@@ -62,4 +62,9 @@ export class UploadController {
   ) {
     return this.s3Service.getMultiplePresignedUrls(dto.files);
   }
+
+  @Post('presigned-url/opentalk/view')
+  async getOpentalkViewPresignedUrl(@Body() dto: { slideKey: string }) {
+    return this.s3Service.getPresignedDownloadUrl(dto.slideKey);
+  }
 }

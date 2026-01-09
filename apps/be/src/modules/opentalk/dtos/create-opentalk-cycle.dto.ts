@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CycleStatus, ICreateOpentalkCycleDto } from '@qnoffice/shared';
 import { Type } from 'class-transformer';
 import {
-    IsDate,
-    IsEnum,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CreateOpentalkCycleDto implements ICreateOpentalkCycleDto {

@@ -1,26 +1,23 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpStatus,
-    Param,
-    ParseIntPipe,
-    Post,
-    Put,
-    Query,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
 } from '@nestjs/common';
 import {
-    ApiOperation,
-    ApiParam,
-    ApiQuery,
-    ApiResponse,
-    ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import {
-    ScheduleCycle,
-    ScheduleEvent,
-} from '@qnoffice/shared';
+import { ScheduleCycle, ScheduleEvent } from '@qnoffice/shared';
 import { CreateCycleDto } from './dtos/create-cycle.dto';
 import { CreateEventDto } from './dtos/create-event.dto';
 import { ScheduleQueryDto } from './dtos/schedule-query.dto';
@@ -51,9 +48,7 @@ export class ScheduleController {
     required: false,
     description: 'Filter by cycle type',
   })
-  async getCycles(
-    @Query('type') type?: string,
-  ): Promise<ScheduleCycle[]> {
+  async getCycles(@Query('type') type?: string): Promise<ScheduleCycle[]> {
     return this.scheduleService.getCycles(type) as any;
   }
 
@@ -83,7 +78,7 @@ export class ScheduleController {
   @ApiOperation({ summary: 'Get events with filters' })
   async getEvents(
     @Query() query: ScheduleQueryDto,
-  ): Promise<ScheduleEvent[]> {
+  ): Promise<ScheduleEvent<any>[]> {
     return this.scheduleService.getEvents(query) as any;
   }
 
@@ -92,7 +87,7 @@ export class ScheduleController {
   @ApiParam({ name: 'cycleId', description: 'Cycle ID' })
   async getEventsByCycle(
     @Param('cycleId', ParseIntPipe) cycleId: number,
-  ): Promise<ScheduleEvent[]> {
+  ): Promise<ScheduleEvent<any>[]> {
     return this.scheduleService.getEventsByCycle(cycleId) as any;
   }
 
@@ -101,7 +96,7 @@ export class ScheduleController {
   @ApiParam({ name: 'id', description: 'Event ID' })
   async getEventById(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<ScheduleEvent | null> {
+  ): Promise<ScheduleEvent<any> | null> {
     return this.scheduleService.getEventById(id) as any;
   }
 

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CreateSwapRequestDto } from '@qnoffice/shared';
+import { ICreateSwapRequestDto } from '@qnoffice/shared';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,7 +37,7 @@ export function CreateSwapRequestModal({
 }: CreateSwapRequestModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
-  const [formData, setFormData] = useState<CreateSwapRequestDto>({
+  const [formData, setFormData] = useState<ICreateSwapRequestDto>({
     scheduleId,
     targetStaffId: undefined,
     reason: '',

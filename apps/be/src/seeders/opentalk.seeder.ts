@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EventStatus, ScheduleType } from '@qnoffice/shared';
+import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
 import { toDateString } from '@src/common/utils/date.utils';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
@@ -30,13 +30,13 @@ const cycles = [
     name: 'OpenTalk tháng 1/2026',
     type: ScheduleType.OPENTALK,
     description: 'Chuỗi OpenTalk hàng tuần tháng 1/2026',
-    status: 'ACTIVE' as any,
+    status: CycleStatus.ACTIVE,
   },
   {
     name: 'OpenTalk tháng 2/2026',
     type: ScheduleType.OPENTALK,
     description: 'Chuỗi OpenTalk hàng tuần tháng 2/2026',
-    status: 'DRAFT' as any,
+    status: CycleStatus.DRAFT,
   },
 ];
 @Injectable()
@@ -75,19 +75,10 @@ export class OpentalkSeeder {
     }
     const createdCycles: ScheduleCycleEntity[] = [];
     for (const cycleData of cycles) {
-      const existingCycle = await this.cycleRepository.findOne({
-        where: { name: cycleData.name },
-      });
-
-      if (!existingCycle) {
-        const cycle = this.cycleRepository.create(cycleData);
-        const savedCycle = await this.cycleRepository.save(cycle);
-        createdCycles.push(savedCycle);
-        console.log(`Created cycle: ${cycleData.name}`);
-      } else {
-        createdCycles.push(existingCycle);
-        console.log(`Cycle already exists: ${cycleData.name}`);
-      }
+      const cycle = this.cycleRepository.create(cycleData);
+      const savedCycle = await this.cycleRepository.save(cycle);
+      createdCycles.push(savedCycle);
+      console.log(`Created cycle: ${cycleData.name}`);
     }
 
     await this.syncCurrentCycle({
@@ -136,35 +127,35 @@ export class OpentalkSeeder {
       {
         title: 'Multiplayer web game dưới góc nhìn của dev',
         type: 'OPENTALK',
-        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: tien.nguyenvan',
+        notes: 'Weekly Opentalk - Diễn giả: tien.nguyenvan',
         eventDate: '2026-01-10',
-        status: EventStatus.COMPLETED,
+        status: EventStatus.ACTIVE,
         cycleId: currentCycle.id,
         assignedStaff: tienNguyen,
       },
       {
         title: 'OpenTalk hàng tuần #2',
         type: 'OPENTALK',
-        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: ho.nguyenphi',
+        notes: 'Weekly Opentalk - Diễn giả: ho.nguyenphi',
         eventDate: '2026-01-17',
-        status: EventStatus.COMPLETED,
+        status: EventStatus.PENDING,
         cycleId: currentCycle.id,
         assignedStaff: hoNguyen,
       },
       {
         title: 'OpenTalk hàng tuần #3',
         type: 'OPENTALK',
-        notes: 'Chia sẻ & thảo luận nhóm - Diễn giả: thang.thieuquang',
+        notes: 'Weekly Opentalk - Diễn giả: thang.thieuquang',
         eventDate: '2026-01-24',
-        status: EventStatus.COMPLETED,
+        status: EventStatus.PENDING,
         cycleId: currentCycle.id,
         assignedStaff: thangThieu,
       },
       {
         title: 'OpenTalk hàng tuần #4',
         type: 'OPENTALK',
-        notes: 'Chia sẻ & thảo luận nhóm - Chưa có diễn giả',
-        eventDate: '2026-01-31',
+        notes: 'Weekly Opentalk - Chưa có diễn giả',
+        eventDate: '2026-02-07',
         status: EventStatus.PENDING,
         cycleId: currentCycle.id,
         assignedStaff: lichDuongthanh,
@@ -235,12 +226,13 @@ export class OpentalkSeeder {
       previousCycle,
       config,
     );
+    console.log('Generated schedule:', schedule);
 
     console.log(`Generated schedule with ${schedule.length} events`);
 
     // Create cycle for February
     const februaryCycle = await this.cycleRepository.findOne({
-      where: { name: 'OpenTalk February 2026' },
+      where: { name: 'OpenTalk tháng 2/2026' },
     });
 
     if (!februaryCycle) {
@@ -263,7 +255,7 @@ export class OpentalkSeeder {
       const event = this.eventRepository.create({
         title: eventTitle,
         type: 'OPENTALK' as any,
-        notes: `Chia sẻ & thảo luận nhóm - Diễn giả: ${presenterInfo}`,
+        notes: `Weekly Opentalk - Diễn giả: ${presenterInfo}`,
         eventDate: scheduleEvent.date,
         status: EventStatus.PENDING,
         cycleId: februaryCycle.id,

@@ -42,7 +42,7 @@ const cleaningEvents: Array<{
   },
   {
     date: '2025-12-04',
-    participants: ['huy.trannamhuy', 'duy.nguyenxuan'],
+    participants: ['huy.trannam', 'duy.nguyenxuan'],
   },
   {
     date: '2025-12-05',

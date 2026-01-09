@@ -72,20 +72,8 @@ class OpentalkClientService {
     );
   }
 
-  async getEventSlide(eventId: number) {
-    return baseApi.get<ApiResponse<OpentalkSlide>>(
-      `${this.baseUrl}/events/${eventId}/slide`,
-    );
-  }
-
   async getSwapRequests(params?: any) {
     return baseApi.get<any>(`${this.baseUrl}/swap-requests`, { params });
-  }
-
-  async getUserSchedules(staffId: number) {
-    return baseApi.get<ApiResponse<OpentalkEvent[]>>(`${this.baseUrl}/events`, {
-      params: { participantId: staffId },
-    });
   }
 
   async createSwapRequest(data: any) {

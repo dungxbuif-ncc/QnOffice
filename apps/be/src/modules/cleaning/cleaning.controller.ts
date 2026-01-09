@@ -17,15 +17,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateSwapRequestDto } from '@qnoffice/shared';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
 import ScheduleCycleEntity from '@src/modules/schedule/enties/schedule-cycle.entity';
 import ScheduleEventEntity from '@src/modules/schedule/enties/schedule-event.entity';
-import ReviewSwapRequestDto from '../opentalk/dtos/review-swap-request.dto';
-import SwapRequestEntity from '../opentalk/swap-request.entity';
 
 @ApiTags('Cleaning Management')
 @Controller('cleaning')
@@ -165,15 +162,6 @@ export class CleaningController {
     return this.cleaningService.bulkAssignParticipants(assignmentData);
   }
 
-  @Get('conflicts')
-  @ApiOperation({
-    summary: 'Check for participant conflicts in cleaning events',
-  })
-  @ApiQuery({ name: 'cycleId', required: false })
-  async checkConflicts(@Query('cycleId') cycleId?: number): Promise<any[]> {
-    return this.cleaningService.checkConflicts(cycleId);
-  }
-
   @Post('swap')
   @ApiOperation({ summary: 'Swap participants between two cleaning events' })
   async swapEvents(
@@ -187,46 +175,5 @@ export class CleaningController {
       swapData.participant1,
       swapData.participant2,
     );
-  }
-
-  // Swap Request Management
-  @Get('swap-requests')
-  @ApiOperation({ summary: 'Get swap requests' })
-  @ApiQuery({ name: 'requesterId', required: false })
-  @ApiQuery({ name: 'status', required: false })
-  async getSwapRequests(
-    @Query('requesterId') requesterId?: number,
-    @Query('status') status?: string,
-  ): Promise<SwapRequestEntity[]> {
-    return this.cleaningService.getSwapRequests({
-      requesterId,
-      status,
-    });
-  }
-
-  @Post('swap-requests')
-  @ApiOperation({ summary: 'Create a new swap request' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Swap request created successfully',
-  })
-  async createSwapRequest(
-    @Body() createSwapRequestDto: CreateSwapRequestDto,
-    @Query('requesterId', ParseIntPipe) requesterId: number,
-  ): Promise<SwapRequestEntity> {
-    return this.cleaningService.createSwapRequest(
-      createSwapRequestDto,
-      requesterId,
-    );
-  }
-
-  @Put('swap-requests/:id/review')
-  @ApiOperation({ summary: 'Review a swap request (approve/reject)' })
-  @ApiParam({ name: 'id', description: 'Swap request ID' })
-  async reviewSwapRequest(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() reviewDto: ReviewSwapRequestDto,
-  ): Promise<SwapRequestEntity> {
-    return this.cleaningService.reviewSwapRequest(id, reviewDto);
   }
 }

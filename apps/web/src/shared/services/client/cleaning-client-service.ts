@@ -62,22 +62,6 @@ class CleaningClientService {
     });
   }
 
-  async updateSlide(
-    eventId: number,
-    data: { slideUrl?: string; presentedAt?: string },
-  ) {
-    return baseApi.put<ApiResponse<CleaningSlide>>(
-      `${this.baseUrl}/events/${eventId}/slide`,
-      data,
-    );
-  }
-
-  async getEventSlide(eventId: number) {
-    return baseApi.get<ApiResponse<CleaningSlide>>(
-      `${this.baseUrl}/events/${eventId}/slide`,
-    );
-  }
-
   async getSwapRequests(params?: any) {
     return baseApi.get<any>(`${this.baseUrl}/swap-requests`, { params });
   }
@@ -94,7 +78,7 @@ class CleaningClientService {
 
   async reviewSwapRequest(
     id: number,
-    data: { approve: boolean; note?: string },
+    data: { status: string; reviewNote?: string },
   ) {
     return baseApi.put<any>(`${this.baseUrl}/swap-requests/${id}/review`, data);
   }

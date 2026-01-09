@@ -11,72 +11,73 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { opentalkClientService } from '@/shared/services/client/opentalk-client-service';
-import { ApiResponse } from '@qnoffice/shared';
+import {
+  ApiResponse,
+  IOpentalEventMetadata,
+  ScheduleEvent,
+} from '@qnoffice/shared';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
 import axios from 'axios';
-import { Upload, X } from 'lucide-react';
+import { ExternalLink, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-interface UpdateSlideDialogProps {
+interface SlideDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  eventId: number;
-  eventTitle: string;
+  event: ScheduleEvent<IOpentalEventMetadata>;
+  mode: 'view' | 'edit';
+  canEdit?: boolean;
   onSuccess?: () => void;
 }
 
-export function UpdateSlideDialog({
+export function SlideDialog({
   open,
   onOpenChange,
-  eventId,
-  eventTitle,
+  event,
+  mode,
+  canEdit = false,
   onSuccess,
-}: UpdateSlideDialogProps) {
+}: SlideDialogProps) {
+  const metadata = event?.metadata;
+  const hasExistingSlide = !!metadata?.slideKey;
+  const isViewMode = mode === 'view' || (mode === 'edit' && !canEdit);
   const [slidesUrl, setSlidesUrl] = useState('');
-  const [topic, setTopic] = useState('');
-  const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
   const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('url');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open && eventId) {
-      fetchExistingSlide();
-    } else if (!open) {
-      // Reset state when dialog closes
+    if (open && mode === 'edit') {
       setSlidesUrl('');
-      setTopic('');
-      setNotes('');
+      setPresignedUrl(null);
+    } else if (!open) {
+      setSlidesUrl('');
       setSelectedFile(null);
       setUploadMethod('url');
+      setPresignedUrl(null);
     }
-  }, [open, eventId]);
 
-  const fetchExistingSlide = async () => {
-    if (!eventId) return;
+    if (open && metadata?.slideKey) {
+      fetchPresignedUrl();
+    }
+  }, [open, mode, metadata?.slideKey]);
 
-    setIsFetching(true);
+  const fetchPresignedUrl = async () => {
+    if (!metadata?.slideKey) return;
+
     try {
-      const response = await opentalkClientService.getEventSlide(eventId);
-      const slide = response.data.data; // response.data is the ApiResponse, response.data.data is the OpentalkSlide
-      if (slide) {
-        setSlidesUrl(slide.slideUrl || '');
-        setTopic(''); // topic may not be available in slide response
-        setNotes('');
-      } else {
-        setSlidesUrl('');
-        setTopic('');
-        setNotes('');
-      }
+      const response = await axios.post(
+        '/api/upload/presigned-url/opentalk/view',
+        {
+          slideKey: metadata.slideKey,
+        },
+      );
+      setPresignedUrl(response.data.downloadUrl);
     } catch (error) {
-      console.error('Failed to fetch slide submission:', error);
-    } finally {
-      setIsFetching(false);
+      console.error('Failed to fetch presigned URL:', error);
     }
   };
 
@@ -111,7 +112,6 @@ export function UpdateSlideDialog({
             'Content-Type': selectedFile.type,
           },
         });
-
         finalUrl = presignedData.fileUrl;
       } catch (error) {
         toast.error('Failed to upload file');
@@ -130,8 +130,9 @@ export function UpdateSlideDialog({
 
     setIsLoading(true);
     try {
-      await opentalkClientService.updateSlide(eventId, {
-        slideUrl: finalUrl,
+      await axios.post('/api/opentalk/slides/submit', {
+        eventId: event.id,
+        slidesUrl: finalUrl,
       });
 
       toast.success('Slide submitted successfully');
@@ -166,28 +167,110 @@ export function UpdateSlideDialog({
   };
 
   const handleClose = () => {
-    if (!isLoading) {
+    if (!isLoading && !isUploading) {
       onOpenChange(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
-          <DialogTitle>Update Slide</DialogTitle>
+          <DialogTitle>{isViewMode ? 'View' : 'Update'} Slide</DialogTitle>
           <DialogDescription>
-            Submit or update the slide for <strong>{eventTitle}</strong>
+            {isViewMode
+              ? 'Slide submission for'
+              : 'Submit or update the slide for'}{' '}
+            <strong>{event.title}</strong>
           </DialogDescription>
         </DialogHeader>
 
-        {isFetching ? (
-          <div className="py-8 text-center text-muted-foreground">
-            Loading...
-          </div>
+        {isViewMode ? (
+          <>
+            {metadata?.slideKey ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Slide Preview</Label>
+                  <div className="flex items-center justify-center p-8 border rounded-lg bg-muted/30">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() =>
+                        presignedUrl && window.open(presignedUrl, '_blank')
+                      }
+                      disabled={!presignedUrl}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      {presignedUrl ? 'Download Slide' : 'Loading...'}
+                    </Button>
+                  </div>
+                </div>
+
+                {metadata.status && (
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <p className="text-sm capitalize">
+                      {metadata.status.toLowerCase()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                No slide submission found for this event.
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
+              {hasExistingSlide && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">
+                      Current Slide
+                    </Label>
+                    {metadata.status && (
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {metadata.status.toLowerCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-center p-6 border rounded-md bg-background">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        presignedUrl && window.open(presignedUrl, '_blank')
+                      }
+                      disabled={!presignedUrl}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      {presignedUrl ? 'Preview Slide' : 'Loading...'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-sm font-semibold">
+                  {hasExistingSlide ? 'Replace with New Slide' : 'Upload Slide'}
+                </Label>
+                {hasExistingSlide && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload a new slide to replace the current one
+                  </p>
+                )}
+              </div>
+
               <Tabs
                 value={uploadMethod}
                 onValueChange={(value) =>
@@ -202,7 +285,7 @@ export function UpdateSlideDialog({
                 <TabsContent value="url" className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="slidesUrl">
-                      Slides URL <span className="text-red-500">*</span>
+                      New Slides URL <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="slidesUrl"
@@ -212,13 +295,18 @@ export function UpdateSlideDialog({
                       onChange={(e) => setSlidesUrl(e.target.value)}
                       required={uploadMethod === 'url'}
                     />
+                    {hasExistingSlide && (
+                      <p className="text-xs text-muted-foreground">
+                        Enter a new URL to replace the current slide
+                      </p>
+                    )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="file" className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fileUpload">
-                      Upload Slide File <span className="text-red-500">*</span>
+                      New Slide File <span className="text-red-500">*</span>
                     </Label>
                     <div className="flex items-center gap-2">
                       <Input
@@ -257,30 +345,14 @@ export function UpdateSlideDialog({
                         </Button>
                       </div>
                     )}
+                    {hasExistingSlide && !selectedFile && (
+                      <p className="text-xs text-muted-foreground">
+                        Select a new file to replace the current slide
+                      </p>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
-
-              <div className="space-y-2">
-                <Label htmlFor="topic">Topic</Label>
-                <Input
-                  id="topic"
-                  placeholder="Presentation topic"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Additional notes or comments"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                />
-              </div>
             </div>
 
             <DialogFooter className="mt-6">
@@ -306,3 +378,6 @@ export function UpdateSlideDialog({
     </Dialog>
   );
 }
+
+export const ViewSlideDialog = SlideDialog;
+export const UpdateSlideDialog = SlideDialog;

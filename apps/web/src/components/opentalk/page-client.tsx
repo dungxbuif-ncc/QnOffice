@@ -32,15 +32,6 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
-          OpenTalk Management
-        </h1>
-        <div className="text-sm text-muted-foreground">
-          {events.length} events • {cycles.length} cycles
-        </div>
-      </div>
-
       <Tabs defaultValue="schedules" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="schedules">Schedule Management</TabsTrigger>
@@ -51,11 +42,7 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
         </TabsList>
 
         <TabsContent value="schedules" className="space-y-4">
-          <OpentalkSpreadsheetView
-            events={events}
-            cycles={cycles}
-            user={user || undefined}
-          />
+          <OpentalkSpreadsheetView cycles={cycles} user={user || undefined} />
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">

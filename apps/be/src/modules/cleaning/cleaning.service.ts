@@ -1,21 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import {
-  CreateSwapRequestDto,
-  CycleStatus,
-  EventStatus,
-  ScheduleType,
-} from '@qnoffice/shared';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
-import { DataSource, In, Repository } from 'typeorm';
-import ReviewSwapRequestDto from '../opentalk/dtos/review-swap-request.dto';
-import SwapRequestEntity from '../opentalk/swap-request.entity';
+import { EntityManager, In, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
-
 @Injectable()
 export class CleaningService {
   constructor(
@@ -25,9 +17,8 @@ export class CleaningService {
     private readonly eventRepository: Repository<ScheduleEventEntity>,
     @InjectRepository(ScheduleEventParticipantEntity)
     private readonly participantRepository: Repository<ScheduleEventParticipantEntity>,
-    @InjectRepository(SwapRequestEntity)
-    private readonly swapRequestRepository: Repository<SwapRequestEntity>,
-    private readonly dataSource: DataSource,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
   ) {}
 
   async createCycle(
@@ -316,62 +307,6 @@ export class CleaningService {
     return this.getEventsByCycle(assignmentData.cycleId);
   }
 
-  async checkConflicts(cycleId?: number): Promise<any[]> {
-    const where: any = { type: 'CLEANING' };
-    if (cycleId) {
-      where.cycleId = cycleId;
-    }
-
-    const events = await this.eventRepository.find({
-      where,
-      relations: ['eventParticipants'],
-      order: { eventDate: 'ASC' },
-    });
-
-    const conflicts: any[] = [];
-    const participantSchedule: { [key: number]: ScheduleEventEntity[] } = {};
-
-    // Build participant schedule map
-    events.forEach((event) => {
-      event.eventParticipants.forEach((participant) => {
-        const staffId = participant.staffId;
-        if (!participantSchedule[staffId]) {
-          participantSchedule[staffId] = [];
-        }
-        participantSchedule[staffId].push(event);
-      });
-    });
-
-    // Check for conflicts (same participant in multiple events on same day)
-    Object.entries(participantSchedule).forEach(([participantId, events]) => {
-      const eventsByDate: { [key: string]: ScheduleEventEntity[] } = {};
-
-      events.forEach((event) => {
-        const dateKey = event.eventDate;
-        if (!eventsByDate[dateKey]) {
-          eventsByDate[dateKey] = [];
-        }
-        eventsByDate[dateKey].push(event);
-      });
-
-      Object.entries(eventsByDate).forEach(([date, dayEvents]) => {
-        if (dayEvents.length > 1) {
-          conflicts.push({
-            participantId: Number(participantId),
-            date,
-            conflictingEvents: dayEvents.map((e) => ({
-              id: e.id,
-              title: e.title,
-              eventDate: e.eventDate,
-            })),
-          });
-        }
-      });
-    });
-
-    return conflicts;
-  }
-
   async swapEventParticipants(
     participant1: { eventId: number; staffId: number },
     participant2: { eventId: number; staffId: number },
@@ -407,7 +342,7 @@ export class CleaningService {
       throw new NotFoundException('One or both events are not cleaning events');
     }
 
-    await this.dataSource.transaction(async (manager) => {
+    await this.entityManager.transaction(async (manager) => {
       await manager.delete(ScheduleEventParticipantEntity, {
         eventId: p1.eventId,
         staffId: p1.staffId,
@@ -429,75 +364,5 @@ export class CleaningService {
         },
       ]);
     });
-  }
-
-  async createSwapRequest(
-    createSwapRequestDto: CreateSwapRequestDto,
-    requesterId: number,
-  ): Promise<SwapRequestEntity> {
-    // Validate that the requester is participating in the original event
-    const participant = await this.participantRepository.findOne({
-      where: {
-        eventId: createSwapRequestDto.scheduleId,
-        staffId: requesterId,
-        event: { type: ScheduleType.CLEANING },
-      },
-    });
-
-    if (!participant) {
-      throw new NotFoundException('You are not participating in this event');
-    }
-
-    // Find available slots or create a general swap request
-    const toEventId = createSwapRequestDto.scheduleId; // For now, use the same event ID
-
-    const swapRequest = this.swapRequestRepository.create({
-      fromEventId: createSwapRequestDto.scheduleId,
-      toEventId,
-      requesterId,
-      reason: createSwapRequestDto.reason,
-    });
-
-    return this.swapRequestRepository.save(swapRequest);
-  }
-
-  async getSwapRequests(filters?: {
-    requesterId?: number;
-    status?: string;
-  }): Promise<SwapRequestEntity[]> {
-    const where: any = {};
-    if (filters?.requesterId) {
-      where.requesterId = filters.requesterId;
-    }
-    if (filters?.status) {
-      where.status = filters.status;
-    }
-
-    return this.swapRequestRepository.find({
-      where,
-      relations: ['fromEvent', 'toEvent', 'requester'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async reviewSwapRequest(
-    requestId: number,
-    reviewDto: ReviewSwapRequestDto,
-  ): Promise<SwapRequestEntity> {
-    const swapRequest = await this.swapRequestRepository.findOne({
-      where: { id: requestId },
-    });
-
-    if (!swapRequest) {
-      throw new NotFoundException('Swap request not found');
-    }
-
-    swapRequest.status = reviewDto.status as any;
-    swapRequest.reviewNote = reviewDto.reviewNote;
-    swapRequest.updatedAt = new Date();
-
-    // If approved, we would implement the actual participant swap here
-    // For now, just save the status
-    return this.swapRequestRepository.save(swapRequest);
   }
 }

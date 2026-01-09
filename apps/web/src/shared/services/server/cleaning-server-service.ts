@@ -85,12 +85,6 @@ class CleaningServerService extends BaseServerService {
     const response = await this.get<any>(`${this.baseUrl}/spreadsheet`, params);
     return response?.data;
   }
-
-  async checkConflicts(cycleId?: number): Promise<any> {
-    const params = cycleId ? { cycleId } : {};
-    const response = await this.get<any>(`${this.baseUrl}/conflicts`, params);
-    return response?.data;
-  }
 }
 
 export const cleaningServerService = new CleaningServerService();

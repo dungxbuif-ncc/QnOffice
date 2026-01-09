@@ -5,7 +5,6 @@ import entities from '@src/common/database/entities';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
 
-import { OpentalkSlideSubscriber } from '@src/modules/opentalk/subscribers/opentalk-slide.subscriber';
 import { BranchSeeder } from '@src/seeders/branch.seeder';
 import { CleaningSeeder } from '@src/seeders/cleaning.seeder';
 import { DatabaseSeeder } from '@src/seeders/database.seeder';
@@ -34,7 +33,6 @@ import { StaffSeeder } from '@src/seeders/staff.seeder';
     CleaningSeeder,
     PenaltyTypeSeeder,
     DatabaseSeeder,
-    OpentalkSlideSubscriber,
   ],
   exports: [DatabaseSeeder],
 })

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'QN Office Management',
-  description: 'Office management system for QN',
+  description: 'Office management system for NCC QN',
 };
 
 export default async function RootLayout({

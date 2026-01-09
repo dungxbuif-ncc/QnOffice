@@ -3,7 +3,6 @@ import { StaffStatus } from '@qnoffice/shared';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import { OpentalkStaffService } from '@src/modules/schedule/services/opentalk-staff.schedule.service';
 import {
-  DataSource,
   EntitySubscriberInterface,
   EventSubscriber,
   UpdateEvent,
@@ -17,11 +16,7 @@ export class StaffSubscriber implements EntitySubscriberInterface<StaffEntity> {
   private opentalkStaffService: OpentalkStaffService;
   private appLogService: AppLogService;
 
-  constructor(dataSource: DataSource) {
-    if (dataSource?.subscribers) {
-      dataSource.subscribers.push(this);
-    }
-  }
+  constructor() {}
 
   setOpentalkStaffService(service: OpentalkStaffService) {
     this.opentalkStaffService = service;

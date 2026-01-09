@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import HolidayEntity from '../holiday/holiday.entity';
-import OpentalkSlideEntity from './enties/opentalk-slide.entity';
 import ScheduleCycleEntity from './enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from './enties/schedule-event-participant.entity';
 import ScheduleEventEntity from './enties/schedule-event.entity';
@@ -20,7 +19,6 @@ import { OpentalkStaffService } from './services/opentalk-staff.schedule.service
       ScheduleEventEntity,
       ScheduleEventParticipantEntity,
       ScheduleEventQueueEntity,
-      OpentalkSlideEntity,
       HolidayEntity,
     ]),
     EventEmitterModule,

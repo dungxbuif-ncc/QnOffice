@@ -1,45 +1,14 @@
 import {
   CycleStatus,
   EventStatus,
+  OpentalkSlideStatus,
   ScheduleType,
-  SwapRequestStatus,
 } from '../enums';
 import { SearchParams } from './pagination.types';
-import { ScheduleEvent, ScheduleEventParticipant } from './schedule.types';
-import { Staff } from './staff.types';
 
-export interface OpentalkSlideSubmission {
-  id: number;
+export interface ISubmitSlideDto {
   eventId: number;
   slidesUrl: string;
-  topic?: string;
-  submittedBy: number;
-  notes?: string;
-  event?: ScheduleEvent;
-  submitter?: Staff;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
-
-export interface SwapRequest {
-  id: number;
-  fromEventId: number;
-  toEventId: number;
-  requesterId: number;
-  reason: string;
-  status: SwapRequestStatus;
-  reviewNote?: string;
-  fromEvent?: ScheduleEvent;
-  toEvent?: ScheduleEvent;
-  requester?: Staff;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
-
-export interface OpentalkEvent extends ScheduleEvent {
-  type: ScheduleType.OPENTALK;
-  eventParticipants?: ScheduleEventParticipant[];
-  participants?: Staff[];
 }
 
 export interface ICreateOpentalkCycleDto {
@@ -104,13 +73,6 @@ export interface ICreateOpentalkScheduleDto {
   staffId: number;
 }
 
-export interface ISubmitSlideDto {
-  eventId: number;
-  slidesUrl: string;
-  topic?: string;
-  notes?: string;
-}
-
 export interface IOpentalkQueryDto extends SearchParams {
   type?: string;
   status?: EventStatus;
@@ -120,7 +82,7 @@ export interface IOpentalkQueryDto extends SearchParams {
   participantId?: number;
 }
 
-export interface IReviewSwapRequestDto {
-  status: string;
-  reviewNote?: string;
+export interface IOpentalEventMetadata {
+  slideKey?: string;
+  status: OpentalkSlideStatus;
 }

@@ -1,23 +1,23 @@
+import type { ChannelMessage } from 'mezon-sdk';
 import {
   ApiMessageAttachment,
   ApiMessageMention,
   ApiRole,
   ChannelMessageContent,
   EMarkdownType,
-  IMessageActionRow,
   IInteractiveMessageProps,
+  IMessageActionRow,
   ReactMessagePayload,
 } from 'mezon-sdk/dist/cjs/interfaces/client';
-import type { ChannelMessage } from 'mezon-sdk';
 import type { Clan } from 'mezon-sdk/dist/cjs/mezon-client/structures/Clan';
-import type { TextChannel } from 'mezon-sdk/dist/cjs/mezon-client/structures/TextChannel';
 import type { Message } from 'mezon-sdk/dist/cjs/mezon-client/structures/Message';
+import type { TextChannel } from 'mezon-sdk/dist/cjs/mezon-client/structures/TextChannel';
 import type { User } from 'mezon-sdk/dist/cjs/mezon-client/structures/User';
 import type { NezonCommandContext } from '../interfaces/command-context.interface';
 import {
   ButtonBuilder,
-  ButtonComponent,
   ButtonClickHandler,
+  ButtonComponent,
 } from './button-builder';
 import { EmbedBuilder } from './embed-builder';
 
@@ -918,26 +918,26 @@ export class ManagedMessage {
     return this.context.getMessage();
   }
 
-  async sendDM(message: SmartMessageLike) {
-    const senderId = this.context.message.sender_id;
-    if (!senderId) {
-      throw new Error('Cannot send DM: sender_id is not available');
-    }
-    const payload = await this.preparePayload(message);
+  // async sendDM(message: SmartMessageLike) {
+  //   const senderId = this.context.message.sender_id;
+  //   if (!senderId) {
+  //     throw new Error('Cannot send DM: sender_id is not available');
+  //   }
+  //   const payload = await this.preparePayload(message);
 
-    const clientAny = this.context.client as any;
-    const dmChannel = await clientAny.createDMchannel(senderId);
-    if (!dmChannel?.channel_id) {
-      throw new Error(`Failed to create DM channel with user ${senderId}`);
-    }
+  //   const clientAny = this.context.client as MezonClient;
+  //   const dmChannel = await clientAny.createDMchannel(senderId);
+  //   if (!dmChannel?.channel_id) {
+  //     throw new Error(`Failed to create DM channel with user ${senderId}`);
+  //   }
 
-    const channel = await clientAny.channels.fetch(dmChannel.channel_id);
-    if (!channel) {
-      throw new Error(`Failed to fetch DM channel ${dmChannel.channel_id}`);
-    }
+  //   const channel = await clientAny.channels.fetch(dmChannel.channel_id);
+  //   if (!channel) {
+  //     throw new Error(`Failed to fetch DM channel ${dmChannel.channel_id}`);
+  //   }
 
-    return channel.send(payload.content, payload.mentions, payload.attachments);
-  }
+  //   return channel.send(payload.content, payload.mentions, payload.attachments);
+  // }
 
   private async preparePayload(
     message: SmartMessageLike,

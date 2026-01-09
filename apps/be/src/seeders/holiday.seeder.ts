@@ -4,7 +4,6 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import { Repository } from 'typeorm';
 
 const holidays2026 = [
-  // Tết Nguyên Đán 2026
   {
     name: 'Tết Nguyên Đán - Ngày 1',
     date: '2026-02-16',
