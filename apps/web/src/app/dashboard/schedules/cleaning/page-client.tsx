@@ -20,15 +20,6 @@ export function CleaningPageClient({ cycles, error }: CleaningPageClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Office Cleaning Management
-        </h1>
-        <div className="text-sm text-muted-foreground">
-          {events.length} events • {cycles.length} cycles
-        </div>
-      </div>
-
       <CleaningSpreadsheetView events={events} cycles={cycles} />
     </div>
   );
