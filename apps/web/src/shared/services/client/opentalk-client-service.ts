@@ -1,62 +1,31 @@
 import baseApi from '@/shared/services/client/base-api';
-import { ApiResponse } from '@qnoffice/shared';
-
-export interface OpentalkEvent {
-  id: number;
-  title: string;
-  description?: string;
-  eventDate: string;
-  status: string;
-  type: string;
-  cycleId: number;
-  notes?: string;
-  eventParticipants?: Array<{
-    staffId: number;
-    staff: {
-      id: number;
-      email: string;
-      user?: {
-        email: string;
-        name: string;
-      };
-    };
-  }>;
-}
-
-export interface OpentalkSlide {
-  id: number;
-  slideUrl: string;
-  eventId: number;
-  presentedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface IUpdateEventDto {
-  title?: string;
-  description?: string;
-  eventDate?: string;
-  status?: string;
-  notes?: string;
-}
-
-export interface ISwapEventsDto {
-  eventId1: number;
-  eventId2: number;
-}
+import {
+  ICreateSwapRequestDto,
+  IOpentalkQueryDto,
+  IReviewSwapRequestDto,
+  ISubmitSlideDto,
+  IUpdateOpentalkEventDto,
+  OpentalkEvent,
+  OpentalkSlideSubmission,
+  SwapRequest
+} from '@qnoffice/shared';
 
 class OpentalkClientService {
   private readonly baseUrl = '/opentalk';
 
-  async updateEvent(eventId: number, data: IUpdateEventDto) {
-    return baseApi.put<ApiResponse<OpentalkEvent>>(
+  async getEvents(params: IOpentalkQueryDto = {}) {
+    return baseApi.get<OpentalkEvent[]>(`${this.baseUrl}/events`, { params });
+  }
+
+  async updateEvent(eventId: number, data: IUpdateOpentalkEventDto) {
+    return baseApi.put<OpentalkEvent>(
       `${this.baseUrl}/events/${eventId}`,
       data,
     );
   }
 
   async swapEvents(event1Id: number, event2Id: number) {
-    return baseApi.post<ApiResponse<void>>(`${this.baseUrl}/swap`, {
+    return baseApi.post<void>(`${this.baseUrl}/swap`, {
       event1Id,
       event2Id,
     });
@@ -64,39 +33,39 @@ class OpentalkClientService {
 
   async updateSlide(
     eventId: number,
-    data: { slideUrl?: string; presentedAt?: string },
+    data: ISubmitSlideDto
   ) {
-    return baseApi.put<ApiResponse<OpentalkSlide>>(
+    return baseApi.put<OpentalkSlideSubmission>(
       `${this.baseUrl}/events/${eventId}/slide`,
       data,
     );
   }
 
   async getEventSlide(eventId: number) {
-    return baseApi.get<ApiResponse<OpentalkSlide>>(
+    return baseApi.get<OpentalkSlideSubmission>(
       `${this.baseUrl}/events/${eventId}/slide`,
     );
   }
 
   async getSwapRequests(params?: any) {
-    return baseApi.get<any>(`${this.baseUrl}/swap-requests`, { params });
+    return baseApi.get<SwapRequest[]>(`${this.baseUrl}/swap-requests`, { params });
   }
 
   async getUserSchedules(staffId: number) {
-    return baseApi.get<ApiResponse<OpentalkEvent[]>>(`${this.baseUrl}/events`, {
+    return baseApi.get<OpentalkEvent[]>(`${this.baseUrl}/events`, {
       params: { participantId: staffId },
     });
   }
 
-  async createSwapRequest(data: any) {
-    return baseApi.post<any>(`${this.baseUrl}/swap-requests`, data);
+  async createSwapRequest(data: ICreateSwapRequestDto) {
+    return baseApi.post<SwapRequest>(`${this.baseUrl}/swap-requests`, data);
   }
 
   async reviewSwapRequest(
     id: number,
-    data: { approve: boolean; note?: string },
+    data: IReviewSwapRequestDto
   ) {
-    return baseApi.put<any>(`${this.baseUrl}/swap-requests/${id}/review`, data);
+    return baseApi.put<SwapRequest>(`${this.baseUrl}/swap-requests/${id}/review`, data);
   }
 }
 

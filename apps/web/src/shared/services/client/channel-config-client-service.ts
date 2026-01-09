@@ -1,30 +1,11 @@
 import baseApi from '@/shared/services/client/base-api';
-import { ApiResponse, MezonChannelType } from '@qnoffice/shared';
-
-export interface ChannelConfig {
-  channelType: MezonChannelType;
-  channelId: string;
-  channelName: string | null;
-  description: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ConfigureChannelDto {
-  channelType: MezonChannelType;
-  channelId: string;
-  channelName?: string;
-  description?: string;
-  isActive?: boolean;
-}
-
-export interface UpdateChannelConfigDto {
-  channelId?: string;
-  channelName?: string;
-  description?: string;
-  isActive?: boolean;
-}
+import {
+    ApiResponse,
+    ChannelConfig,
+    IConfigureChannelDto,
+    IUpdateChannelConfigDto,
+    MezonChannelType,
+} from '@qnoffice/shared';
 
 class ChannelConfigClientService {
   private readonly baseUrl = '/channel-config';
@@ -50,14 +31,14 @@ class ChannelConfigClientService {
     return response.data;
   }
 
-  async configureChannel(data: ConfigureChannelDto) {
+  async configureChannel(data: IConfigureChannelDto) {
     const response = await baseApi.post<ChannelConfig>(this.baseUrl, data);
     return response.data;
   }
 
   async updateConfig(
     channelType: MezonChannelType,
-    data: UpdateChannelConfigDto,
+    data: IUpdateChannelConfigDto,
   ) {
     const response = await baseApi.patch<ChannelConfig>(
       `${this.baseUrl}/${channelType}`,

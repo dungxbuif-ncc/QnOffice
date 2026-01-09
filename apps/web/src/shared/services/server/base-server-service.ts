@@ -1,7 +1,6 @@
 import { config } from '@/shared/config';
 import { getServerSession } from '@/shared/services/server/auth-server-service';
-import { joinUrlPaths } from '@/shared/utils/joinUrlPaths';
-import { ApiResponse } from '@qnoffice/shared';
+import { ApiResponse, joinUrlPaths } from '@qnoffice/shared';
 import console from 'console';
 
 /**

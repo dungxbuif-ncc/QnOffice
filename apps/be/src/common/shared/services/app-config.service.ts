@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { joinUrlPaths } from '@qnoffice/shared';
 import entities from '@src/common/database/entities';
 import { UserSubscriber } from '@src/common/database/entity-subscribers/user-subscriber';
 import { SnakeNamingStrategy } from '@src/common/database/snake-naming.strategy';
-import joinUrlPaths from '@src/common/utils/joinUrlPaths';
 import { isNil } from 'lodash';
 
 @Injectable()
