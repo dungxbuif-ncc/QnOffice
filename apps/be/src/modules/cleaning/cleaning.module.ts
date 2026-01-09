@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import SwapRequestEntity from '../opentalk/swap-request.entity';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
@@ -14,6 +15,7 @@ import { CleaningService } from './cleaning.service';
       ScheduleEventEntity,
       ScheduleEventParticipantEntity,
       StaffEntity,
+      SwapRequestEntity,
     ]),
   ],
   controllers: [CleaningController],

@@ -19,10 +19,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/shared/contexts/auth-context';
 import { getStatusBadgeProps } from '@/shared/utils';
 import { ArrowRightLeft, Download, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { SwapRequestManagement } from './swap-request-management';
 
 interface CleaningSpreadsheetViewProps {
   events: any[];
@@ -33,6 +35,7 @@ export function CleaningSpreadsheetView({
   events,
   cycles,
 }: CleaningSpreadsheetViewProps) {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState<
     Array<{ eventId: number; staffId: number; email: string; cycleId: number }>
@@ -144,7 +147,7 @@ export function CleaningSpreadsheetView({
     setIsSwapping(true);
     try {
       const [p1, p2] = selectedParticipants;
-      const response = await fetch(`/api/cleaning/events/swap`, {
+      const response = await fetch(`/api/cleaning/swap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -261,6 +264,7 @@ export function CleaningSpreadsheetView({
       <Tabs defaultValue="schedule" className="space-y-4">
         <TabsList>
           <TabsTrigger value="schedule">Schedule View</TabsTrigger>
+          <TabsTrigger value="requests">Swap Requests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule" className="space-y-4">
@@ -380,6 +384,9 @@ export function CleaningSpreadsheetView({
               })
             )}
           </div>
+        </TabsContent>
+        <TabsContent value="requests" className="space-y-4">
+          <SwapRequestManagement mode="user" user={user || undefined} />
         </TabsContent>
       </Tabs>
     </div>

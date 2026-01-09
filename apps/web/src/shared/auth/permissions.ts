@@ -35,6 +35,9 @@ export const PERMISSIONS = {
   CREATE_PENALTIES: { roles: [UserRole.HR] },
   MANAGE_PENALTY_TYPES: { roles: [UserRole.HR] },
   MANAGE_CHANNELS: { roles: [UserRole.HR, UserRole.GDVP] },
+  CREATE_CLEANING_SWAP_REQUEST: { roles: ALL_ROLES },
+  MANAGE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.HR, UserRole.GDVP] },
+  APPROVE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.GDVP] },
 };
 
 export function hasPermission(
