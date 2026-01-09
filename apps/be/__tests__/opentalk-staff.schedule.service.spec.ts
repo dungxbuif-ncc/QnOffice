@@ -246,8 +246,64 @@ describe('OpentalkStaffService', () => {
       const s1_c2 = allEvents.find(e => e.id === 306);
 
       expect(s5_c1?.date).toBe('2024-01-27');
-      expect(s1_c2?.date).toBe('2024-02-17');
-      TestLogger.assertion('Verified: C1 S5 shifted to Jan 27. C2 stayed at Feb 17.');
+      expect(s1_c2?.date).toBe('2024-02-03');
+      TestLogger.assertion('Verified: C1 S5 shifted to Jan 27. C2 shifted to Feb 03 (Gap Closed).');
+    });
+
+    it('Case 5: Multi Cycle - Staff Leave (Both Cycles) - Correct Shifting', async () => {
+      const currentDate = '2024-01-01';
+      TestLogger.caseStart('Case 5: Multi Cycle - Leave Both Cycles', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
+
+      // Cycle 1: [Jan 06, Jan 13, Jan 20, Jan 27]
+      // Cycle 2: [Feb 10, Feb 17, Feb 24, Mar 02] (Starts 2 weeks after C1 end)
+      // Staff 3 leaves. (Jan 20 in C1, Feb 24 in C2)
+
+      const initialCyclesMock = [
+        // C1
+        { cycleId: 1, id: 501, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 502, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 1, id: 503, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] }, // LEAVES
+        { cycleId: 1, id: 504, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        // C2
+        { cycleId: 2, id: 505, eventDate: '2024-02-10', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 2, id: 506, eventDate: '2024-02-17', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 2, id: 507, eventDate: '2024-02-24', eventParticipants: [{ staffId: 3 }] }, // LEAVES
+        { cycleId: 2, id: 508, eventDate: '2024-03-02', eventParticipants: [{ staffId: 4 }] },
+      ] as any[];
+
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
+
+      TestLogger.table('[BEFORE]', initialCyclesMock, [503, 507], currentDate);
+
+      const result = await service.handleStaffLeave(STAFF_3);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [], currentDate);
+
+      // Verify C1
+      // S3(503) removed. S4(504) should shift to Jan 20.
+      const s4_c1 = allEvents.find(e => e.id === 504);
+      expect(s4_c1?.date).toBe('2024-01-20');
+
+      // Verify C2
+      // Logic enforces continuity. C1 ends Jan 20. C2 should start Jan 27.
+      // C2 Events originally: S1(Feb 10), S2(Feb 17), S3(Feb 24-Gone), S4(Mar 02)
+      // Shifted C2: S1->Jan 27, S2->Feb 03, S4->Feb 10 (S3 removed)
+      
+      const s1_c2 = allEvents.find(e => e.id === 505);
+      expect(s1_c2?.date).toBe('2024-01-27');
+
+      const s2_c2 = allEvents.find(e => e.id === 506);
+      expect(s2_c2?.date).toBe('2024-02-03');
+
+      const s4_c2 = allEvents.find(e => e.id === 508);
+      // S3(507) was Feb 24 (before shift).
+      // Sequence: S1, S2, S4.
+      // Dates: Jan 27, Feb 03, Feb 10.
+      expect(s4_c2?.date).toBe('2024-02-10');
+
+      TestLogger.assertion('Verified: Both cycles shifted & compacted. C1 gaps filled, C2 pulled back to follow C1.');
     });
   });
 
@@ -294,6 +350,47 @@ describe('OpentalkStaffService', () => {
       expect(newStaff?.date).toBe('2024-02-10');
       expect(s1_c2?.date).toBe('2024-02-17');
       TestLogger.assertion('Verified: New Staff -> Feb 10. C2 Shifted -> Feb 17.');
+    });
+
+    it('Case 6: New Staff - Append (No Overlap)', async () => {
+      const currentDate = '2024-01-01';
+      TestLogger.caseStart('Case 6: New Staff - Append (No Overlap)', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
+
+      // C1: [Jan 06 ... Jan 27] (Ends Jan 27)
+      // C2: Starts Feb 10.
+      // Action: Add New Staff (99) to C1 -> Feb 03.
+      // C1 New End: Feb 03.
+      // Check C2 Start: Feb 03 + 7 days = Feb 10.
+      // C2 Start is ALREADY Feb 10.
+      // Expect C2 NOT to shift.
+
+      const initialCyclesMock = [
+        // C1
+        { cycleId: 1, id: 601, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 602, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 1, id: 603, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] },
+        { cycleId: 1, id: 604, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        // C2
+        { cycleId: 2, id: 605, eventDate: '2024-02-10', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 2, id: 606, eventDate: '2024-02-17', eventParticipants: [{ staffId: 2 }] },
+      ] as any[];
+
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
+      mockEventRepository.save.mockImplementation(e => Promise.resolve({ ...e, id: 699 }));
+
+      TestLogger.table('[BEFORE]', initialCyclesMock, [], currentDate);
+      const result = await service.handleNewStaff(NEW_STAFF);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [699], currentDate);
+
+      const newStaff = allEvents.find(e => e.staffId === 99);
+      const s1_c2 = allEvents.find(e => e.id === 605);
+
+      expect(newStaff?.date).toBe('2024-02-03');
+      expect(s1_c2?.date).toBe('2024-02-10'); // Unchanged
+      TestLogger.assertion('Verified: New Staff -> Feb 03. C2 stays at Feb 10 (Standard 1 week gap preserved).');
     });
   });
 });

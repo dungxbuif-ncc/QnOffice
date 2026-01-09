@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EventStatus, ScheduleType } from '@qnoffice/shared';
 import { getCurrentDateString } from '@src/common/utils/date.utils';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
 
@@ -50,10 +50,11 @@ export class OpentalkStaffService {
   constructor(
     @InjectRepository(ScheduleEventEntity)
     private readonly eventRepository: Repository<ScheduleEventEntity>,
-    @InjectRepository(ScheduleEventParticipantEntity)
-    private readonly participantRepository: Repository<ScheduleEventParticipantEntity>,
+
     @InjectRepository(HolidayEntity)
     private readonly holidayRepository: Repository<HolidayEntity>,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
   ) {}
 
   private rescheduleNewStaffCycle(
@@ -372,26 +373,41 @@ export class OpentalkStaffService {
     );
   }
   private async applyScheduleChanges(changes: ScheduleChanges): Promise<void> {
-    for (const creation of changes.eventsToCreate) {
-      await this.createEventWithParticipant(
-        creation.cycleId,
-        creation.date,
-        creation.staffId,
+    await this.entityManager.transaction(async (manager) => {
+      const eventRepo = manager.getRepository(ScheduleEventEntity);
+      const participantRepo = manager.getRepository(
+        ScheduleEventParticipantEntity,
       );
-    }
 
-    for (const update of changes.eventsToUpdate) {
-      await this.eventRepository.update(update.eventId, {
-        eventDate: update.newDate,
-      });
-    }
+      for (const creation of changes.eventsToCreate) {
+        const createdEvent = eventRepo.create({
+          title: 'OpenTalk',
+          type: ScheduleType.OPENTALK,
+          cycleId: creation.cycleId,
+          eventDate: creation.date,
+          status: EventStatus.ACTIVE,
+        });
+        const savedEvent = await eventRepo.save(createdEvent);
 
-    for (const deletion of changes.participantsToDelete) {
-      await this.participantRepository.delete({
-        eventId: deletion.eventId,
-        staffId: deletion.staffId,
-      });
-    }
+        await participantRepo.save({
+          eventId: savedEvent.id,
+          staffId: creation.staffId,
+        });
+      }
+
+      for (const update of changes.eventsToUpdate) {
+        await eventRepo.update(update.eventId, {
+          eventDate: update.newDate,
+        });
+      }
+
+      for (const deletion of changes.participantsToDelete) {
+        await participantRepo.delete({
+          eventId: deletion.eventId,
+          staffId: deletion.staffId,
+        });
+      }
+    });
   }
 
   private async getAllCyclesWithEvents(): Promise<Cycle[]> {
@@ -441,25 +457,7 @@ export class OpentalkStaffService {
     );
   }
 
-  private async createEventWithParticipant(
-    cycleId: number,
-    eventDate: string,
-    staffId: number,
-  ): Promise<void> {
-    const createdEvent = this.eventRepository.create({
-      title: 'OpenTalk',
-      type: ScheduleType.OPENTALK,
-      cycleId: cycleId,
-      eventDate: eventDate,
-      status: EventStatus.ACTIVE,
-    });
-    const savedEvent = await this.eventRepository.save(createdEvent);
 
-    await this.participantRepository.save({
-      eventId: savedEvent.id,
-      staffId: staffId,
-    });
-  }
 
   private async getHolidays(): Promise<Set<string>> {
     const holidays = await this.holidayRepository.find();
