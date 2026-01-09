@@ -1,4 +1,5 @@
 export * from './api.types';
+export * from './audit-log.types';
 export * from './branch.types';
 export * from './holiday.types';
 export * from './opentalk.types';

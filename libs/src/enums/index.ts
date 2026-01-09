@@ -1,3 +1,4 @@
+export * from './audit-log.enum';
 export * from './notification.enum';
 export * from './penalty.enum';
 export * from './schedule-type.enum';

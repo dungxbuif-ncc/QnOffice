@@ -1,3 +1,4 @@
+import AuditLogEntity from '@src/modules/audit-log/audit-log.entity';
 import { BranchEntity } from '@src/modules/branch/branch.entity';
 import { Campaign } from '@src/modules/campaign/campaign.entity';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
@@ -26,5 +27,6 @@ const entities = [
   ScheduleEventEntity,
   ScheduleEventParticipantEntity,
   ScheduleEventQueueEntity,
+  AuditLogEntity,
 ];
 export default entities;

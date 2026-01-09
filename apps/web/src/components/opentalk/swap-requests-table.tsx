@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
-import { SwapRequest, SwapRequestStatus } from '@qnoffice/shared';
+import { SearchOrder, SwapRequest, SwapRequestStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CheckCircle, Clock, MoreHorizontal, XCircle } from 'lucide-react';
@@ -26,7 +26,7 @@ export function SwapRequestsTable({ requests }: SwapRequestsTableProps) {
   const pagination = usePagination({
     defaultPage: 1,
     defaultPageSize: 10,
-    defaultOrder: 'DESC',
+    defaultOrder: SearchOrder.DESC,
   });
 
   const handleReview = async (requestId: number, status: SwapRequestStatus) => {

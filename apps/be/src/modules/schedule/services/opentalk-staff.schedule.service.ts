@@ -56,14 +56,14 @@ export class OpentalkStaffService {
     private readonly holidayRepository: Repository<HolidayEntity>,
   ) {}
 
-  static rescheduleNewStaffCycle(
+  private rescheduleNewStaffCycle(
     cycle: Cycle,
     staffId: number,
     holidays: Set<string>,
     startDateCycle?: string,
   ): Cycle {
     const lastEvent = cycle.events[cycle.events.length - 1];
-    const newEventDate = OpentalkStaffService.getNextSaturday(
+    const newEventDate = this.getNextSaturday(
       new Date(lastEvent?.date || startDateCycle || cycle.startDate),
       holidays,
     );
@@ -81,7 +81,7 @@ export class OpentalkStaffService {
     };
   }
 
-  static rescheduleStaffLeaveCycle(
+  private rescheduleStaffLeaveCycle(
     cycle: Cycle,
     staffId: number,
     currentDate: string,
@@ -104,7 +104,7 @@ export class OpentalkStaffService {
         : new Date(cycle.startDate);
 
     const shiftedEvents = eventsAfter.map((event) => {
-      const newDate = OpentalkStaffService.getNextSaturday(prevDate, holidays);
+      const newDate = this.getNextSaturday(prevDate, holidays);
       prevDate = newDate;
       return {
         ...event,
@@ -122,7 +122,7 @@ export class OpentalkStaffService {
     };
   }
 
-  static calculateNewStaffChanges(
+  private calculateNewStaffChanges(
     cycles: Cycle[],
     staffId: number,
     holidays: Set<string>,
@@ -135,34 +135,39 @@ export class OpentalkStaffService {
 
     for (let i = 0; i < cycles.length; i++) {
       const cycle = cycles[i];
-      const updatedCycle = OpentalkStaffService.rescheduleNewStaffCycle(
+      const updatedCycle = this.rescheduleNewStaffCycle(
         cycle,
         staffId,
         holidays,
       );
 
-      const newEvent = updatedCycle.events[updatedCycle.events.length - 1];
-      if (newEvent.id === -1) {
+      const newEvent = updatedCycle.events.find((e) => e.id === -1);
+      if (newEvent) {
         changes.eventsToCreate.push({
           cycleId: cycle.id,
           date: newEvent.date,
           staffId: staffId,
         });
+      }
 
-        const nextCycle = cycles[i + 1];
-        if (
-          nextCycle &&
-          OpentalkStaffService.shouldShiftCycle(
-            newEvent.date,
-            nextCycle.startDate,
-          )
-        ) {
-          const nextCycleUpdates = OpentalkStaffService.shiftCycleEvents(
-            nextCycle,
-            newEvent.date,
-            holidays,
-          );
+      const nextCycle = cycles[i + 1];
+      if (nextCycle) {
+        const nextCycleUpdates = this.shiftCycleEvents(
+          nextCycle,
+          updatedCycle.endDate,
+          holidays,
+        );
+
+        if (nextCycleUpdates.length > 0) {
           changes.eventsToUpdate.push(...nextCycleUpdates);
+
+          nextCycleUpdates.forEach((u) => {
+            const evt = nextCycle.events.find((e) => e.id === u.eventId);
+            if (evt) evt.date = u.newDate;
+          });
+          nextCycle.startDate = nextCycleUpdates[0].newDate;
+          nextCycle.endDate =
+            nextCycleUpdates[nextCycleUpdates.length - 1].newDate;
         }
       }
     }
@@ -170,7 +175,7 @@ export class OpentalkStaffService {
     return changes;
   }
 
-  static calculateStaffLeaveChanges(
+  private calculateStaffLeaveChanges(
     cycles: Cycle[],
     staffId: number,
     currentDate: string,
@@ -184,20 +189,20 @@ export class OpentalkStaffService {
 
     for (let i = 0; i < cycles.length; i++) {
       const cycle = cycles[i];
-      const updatedCycle = OpentalkStaffService.rescheduleStaffLeaveCycle(
+      const updatedCycle = this.rescheduleStaffLeaveCycle(
         cycle,
         staffId,
         currentDate,
         holidays,
       );
 
-      const dateUpdates = OpentalkStaffService.getEventDateUpdates(
+      const dateUpdates = this.getEventDateUpdates(
         cycle.events,
         updatedCycle.events,
       );
       changes.eventsToUpdate.push(...dateUpdates);
 
-      const deletions = OpentalkStaffService.getParticipantDeletions(
+      const deletions = this.getParticipantDeletions(
         cycle.events,
         updatedCycle.events,
         staffId,
@@ -205,26 +210,31 @@ export class OpentalkStaffService {
       changes.participantsToDelete.push(...deletions);
 
       const nextCycle = cycles[i + 1];
-      if (
-        nextCycle &&
-        OpentalkStaffService.shouldShiftCycle(
-          updatedCycle.endDate,
-          nextCycle.startDate,
-        )
-      ) {
-        const nextCycleUpdates = OpentalkStaffService.shiftCycleEvents(
+      if (nextCycle) {
+        const nextCycleUpdates = this.shiftCycleEvents(
           nextCycle,
           updatedCycle.endDate,
           holidays,
         );
-        changes.eventsToUpdate.push(...nextCycleUpdates);
+
+        if (nextCycleUpdates.length > 0) {
+          changes.eventsToUpdate.push(...nextCycleUpdates);
+
+          nextCycleUpdates.forEach((u) => {
+            const evt = nextCycle.events.find((e) => e.id === u.eventId);
+            if (evt) evt.date = u.newDate;
+          });
+          nextCycle.startDate = nextCycleUpdates[0].newDate;
+          nextCycle.endDate =
+            nextCycleUpdates[nextCycleUpdates.length - 1].newDate;
+        }
       }
     }
 
     return changes;
   }
 
-  static getEventDateUpdates(
+  private getEventDateUpdates(
     originalEvents: Event[],
     updatedEvents: Event[],
   ): EventUpdate[] {
@@ -246,7 +256,7 @@ export class OpentalkStaffService {
     return updates;
   }
 
-  static getParticipantDeletions(
+  private getParticipantDeletions(
     originalEvents: Event[],
     updatedEvents: Event[],
     staffId: number,
@@ -261,7 +271,7 @@ export class OpentalkStaffService {
     return removedEventIds.map((eventId) => ({ eventId, staffId }));
   }
 
-  static shiftCycleEvents(
+  private shiftCycleEvents(
     cycle: Cycle,
     newStartDate: string,
     holidays: Set<string>,
@@ -270,7 +280,7 @@ export class OpentalkStaffService {
     let currentDate = new Date(newStartDate);
 
     for (const event of cycle.events) {
-      currentDate = OpentalkStaffService.getNextSaturday(currentDate, holidays);
+      currentDate = this.getNextSaturday(currentDate, holidays);
       const newDate = currentDate.toISOString().split('T')[0];
 
       if (event.date !== newDate) {
@@ -284,14 +294,9 @@ export class OpentalkStaffService {
     return updates;
   }
 
-  static shouldShiftCycle(
-    currentEndDate: string,
-    nextStartDate: string,
-  ): boolean {
-    return new Date(currentEndDate) >= new Date(nextStartDate);
-  }
 
-  static getNextSaturday(fromDate: Date, holidays: Set<string>): Date {
+
+  private getNextSaturday(fromDate: Date, holidays: Set<string>): Date {
     const result = new Date(fromDate);
     result.setDate(result.getDate() + 7);
 
@@ -302,7 +307,7 @@ export class OpentalkStaffService {
     return result;
   }
 
-  static applyChangesToCycles(
+  private applyChangesToCycles(
     cycles: Cycle[],
     changes: ScheduleChanges,
   ): Cycle[] {
@@ -462,6 +467,23 @@ export class OpentalkStaffService {
       holidays.map((h) => new Date(h.date).toISOString().split('T')[0]),
     );
   }
+
+  private logCyclesTable(title: string, cycles: Cycle[]): void {
+    this.logger.log(`\n--- ${title} ---`);
+    if (cycles.length === 0) {
+      this.logger.log('No cycles found.');
+      return;
+    }
+    cycles.forEach((cycle) => {
+      this.logger.log(
+        `Cycle ${cycle.id} [${cycle.startDate} - ${cycle.endDate}]:`,
+      );
+      cycle.events.forEach((e) => {
+        this.logger.log(`  - ${e.date}: Staff ${e.staffId}`);
+      });
+    });
+  }
+
   async handleNewStaff(
     staff: StaffEntity,
   ): Promise<{ before: Cycle[]; after: Cycle[] }> {
@@ -470,15 +492,15 @@ export class OpentalkStaffService {
     const before = await this.getAllCyclesWithEvents();
     if (before.length === 0) return { before, after: [] };
 
+    this.logCyclesTable(`BEFORE - New Staff Onboard (${staff.email})`, before);
+
     const holidays = await this.getHolidays();
 
-    const changes = OpentalkStaffService.calculateNewStaffChanges(
-      before,
-      staff.id,
-      holidays,
-    );
+    const changes = this.calculateNewStaffChanges(before, staff.id, holidays);
 
-    const after = OpentalkStaffService.applyChangesToCycles(before, changes);
+    const after = this.applyChangesToCycles(before, changes);
+
+    this.logCyclesTable(`AFTER - New Staff Onboard (${staff.email})`, after);
 
     await this.applyScheduleChanges(changes);
 
@@ -495,17 +517,21 @@ export class OpentalkStaffService {
     const before = await this.getAllCyclesWithEvents();
     if (before.length === 0) return { before, after: [] };
 
+    this.logCyclesTable(`BEFORE - Staff Leave (${staff.email})`, before);
+
     const holidays = await this.getHolidays();
     const today = getCurrentDateString();
 
-    const changes = OpentalkStaffService.calculateStaffLeaveChanges(
+    const changes = this.calculateStaffLeaveChanges(
       before,
       staff.id,
       today,
       holidays,
     );
 
-    const after = OpentalkStaffService.applyChangesToCycles(before, changes);
+    const after = this.applyChangesToCycles(before, changes);
+
+    this.logCyclesTable(`AFTER - Staff Leave (${staff.email})`, after);
 
     await this.applyScheduleChanges(changes);
 

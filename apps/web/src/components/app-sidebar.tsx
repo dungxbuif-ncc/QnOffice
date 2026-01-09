@@ -87,6 +87,11 @@ const navigationData = [
     icon: '📢',
     permission: PERMISSIONS.MANAGE_CHANNELS,
   },
+  {
+    title: 'Audit Logs',
+    href: PATHS.DASHBOARD.AUDIT_LOGS,
+    icon: '📋',
+  },
 ];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

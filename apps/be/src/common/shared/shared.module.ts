@@ -1,7 +1,9 @@
 import { Global, Module, type Provider } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { AuditLogModule } from '@src/modules/audit-log/audit-log.module';
 import { AppConfigService } from './services/app-config.service';
+import { AppLogService } from './services/app-log.service';
 import { GeneratorService } from './services/generator.service';
 import { S3Service } from './services/s3.service';
 import { TokenService } from './services/token.service';
@@ -13,6 +15,7 @@ const providers: Provider[] = [
   GeneratorService,
   TokenService,
   S3Service,
+  AppLogService,
 ];
 
 @Global()
@@ -24,6 +27,7 @@ const providers: Provider[] = [
       isGlobal: true,
       envFilePath: '.env',
     }),
+    AuditLogModule,
   ],
   exports: [...providers],
 })

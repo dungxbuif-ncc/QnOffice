@@ -166,8 +166,8 @@ export function SwapRequestManagement({
 
     try {
       await opentalkClientService.reviewSwapRequest(requestId, {
-        status: action,
-        reviewNote: reviewNote,
+        approve: action === 'APPROVED',
+        note: reviewNote,
       });
 
       toast.success(`Request ${action.toLowerCase()} successfully`);

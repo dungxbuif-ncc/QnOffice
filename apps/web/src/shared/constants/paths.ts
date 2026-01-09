@@ -29,6 +29,7 @@ export const PATHS = {
     PENALTIES: '/dashboard/penalties',
     MANAGE_PENALTIES: '/dashboard/manage-penalties',
     CHANNELS: '/dashboard/channels',
+    AUDIT_LOGS: '/dashboard/audit-logs',
     SETTINGS: '/dashboard/settings',
   },
 

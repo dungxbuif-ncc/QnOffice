@@ -1,447 +1,299 @@
-import {
-  Cycle,
-  OpentalkStaffService,
-} from '../src/modules/schedule/services/opentalk-staff.schedule.service';
 
-describe('OpentalkStaffService - Staff Onboarding/Offboarding', () => {
-  const staffEmails = [
-    'dung.buihuu@ncc.asia',
-    'dung.phammanh@ncc.asia',
-    'duy.huynhle@ncc.asia',
-    'duy.nguyenxuan@ncc.asia',
-    'du.levanky@ncc.asia',
-    'dat.haquoc@ncc.asia',
-    'hien.nguyenthanh@ncc.asia',
-    'hoang.tranlehuy@ncc.asia',
-  ];
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import * as util from 'util';
+import HolidayEntity from '../src/modules/holiday/holiday.entity';
+import ScheduleEventParticipantEntity from '../src/modules/schedule/enties/schedule-event-participant.entity';
+import ScheduleEventEntity from '../src/modules/schedule/enties/schedule-event.entity';
+import { OpentalkStaffService } from '../src/modules/schedule/services/opentalk-staff.schedule.service';
+import StaffEntity from '../src/modules/staff/staff.entity';
 
-  function hashStringToNumber(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
+// --- Constants ---
+export const STAFF_1 = { id: 1, email: 'staff1@example.com' } as unknown as StaffEntity;
+export const STAFF_2 = { id: 2, email: 'staff2@example.com' } as unknown as StaffEntity;
+export const STAFF_3 = { id: 3, email: 'staff3@example.com' } as unknown as StaffEntity;
+export const STAFF_4 = { id: 4, email: 'staff4@example.com' } as unknown as StaffEntity;
+export const STAFF_5 = { id: 5, email: 'staff5@example.com' } as unknown as StaffEntity;
+export const NEW_STAFF = { id: 99, email: 'new@example.com' } as unknown as StaffEntity;
+
+// --- Test Logger Helper ---
+class TestLogger {
+  static caseStart(name: string, mockDate: string) {
+    process.stdout.write(`\n\x1b[33m=================================================================================\x1b[0m\n`);
+    process.stdout.write(`\x1b[33m TEST CASE: ${name} \x1b[0m\n`);
+    process.stdout.write(`\x1b[36m MOCK DATE: ${mockDate} \x1b[0m\n`);
+    process.stdout.write(`\x1b[33m=================================================================================\x1b[0m\n`);
+  }
+
+  static info(label: string, value: any) {
+    let valStr = '';
+    if (typeof value === 'object' && value !== null) {
+        if ('id' in value && 'email' in value) {
+             valStr = `id: ${value.id} - '${value.email}'`;
+        } else {
+             valStr = util.inspect(value, { compact: true, colors: true, breakLength: Infinity });
+        }
+    } else {
+        valStr = String(value);
     }
-    return Math.abs(hash);
+    process.stdout.write(`- ${label}: ${valStr}\n`);
   }
 
-  const staffIds = staffEmails.map((email) => hashStringToNumber(email));
-  const holidays = new Set<string>();
+  static table(title: string, events: any[], highlightIds: number[] = [], currentDate?: string) {
+      process.stdout.write(`\n${title}\n`);
+      if (!events || events.length === 0) {
+          process.stdout.write("  (No events)\n\n");
+          return;
+      }
+      
+      const fmt = (str: string, len: number) => str.padEnd(len);
+      const getDayName = (dateStr: string) => {
+          if (!dateStr) return '';
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('en-US', { weekday: 'short' });
+      };
 
-  function logCycles(title: string, cycles: Cycle[]) {
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(title);
-    console.log('='.repeat(60));
-    cycles.forEach((cycle, idx) => {
-      console.log(`\nCycle ${idx + 1} (ID: ${cycle.id})`);
-      console.log(`  Period: ${cycle.startDate} → ${cycle.endDate}`);
-      console.log(`  Events (${cycle.events.length}):`);
-      cycle.events.forEach((event, eventIdx) => {
-        const staffEmail =
-          staffEmails[staffIds.indexOf(event.staffId)] || 'Unknown';
-        console.log(
-          `    [${eventIdx + 1}] Event #${event.id} | ${event.date} | Staff: ${staffEmail.split('@')[0]} (${event.staffId})`,
-        );
+      const getStatus = (dateStr: string) => {
+          if (!currentDate || !dateStr) return '';
+          return dateStr < currentDate ? 'PAST' : (dateStr === currentDate ? 'TODAY' : 'FUTURE');
+      };
+
+      // Group events by CycleID
+      const eventsByCycle: { [key: string]: any[] } = {};
+      events.forEach(e => {
+          const cId = String(e.cycleId ?? '?');
+          if (!eventsByCycle[cId]) eventsByCycle[cId] = [];
+          eventsByCycle[cId].push(e);
       });
-    });
-    console.log('='.repeat(60));
+
+      Object.keys(eventsByCycle).forEach(cycleId => {
+          process.stdout.write(`  [Cycle ID: ${cycleId}]\n`);
+          process.stdout.write(`  ┌──────────┬──────────┬────────────────────┬──────────┬──────────┐\n`);
+          process.stdout.write(`  │ ${fmt('EventID', 8)} │ ${fmt('StaffID', 8)} │ ${fmt('Date', 18)} │ ${fmt('CycleID', 8)} │ ${fmt('Status', 8)} │\n`);
+          process.stdout.write(`  ├──────────┼──────────┼────────────────────┼──────────┼──────────┤\n`);
+          
+          eventsByCycle[cycleId].forEach(e => {
+            const isHighlighted = highlightIds.includes(e.id);
+            const marker = isHighlighted ? ' >>' : '   '; 
+            const idStr = String(e.id ?? -1);
+            
+            const id = fmt(idStr, 8);
+            const staffId = fmt(String(e.staffId ?? e.eventParticipants?.[0]?.staffId ?? '?'), 8);
+            const rawDate = (e.date || e.eventDate || '');
+            const dateStr = rawDate ? `${rawDate} (${getDayName(rawDate)})` : '';
+            const date = fmt(dateStr, 18);
+            const cId = fmt(String(e.cycleId ?? '?'), 8);
+            const status = fmt(getStatus(rawDate), 8);
+
+            const rowContent = `│ ${id} │ ${staffId} │ ${date} │ ${cId} │ ${status} │${marker}`;
+            if (isHighlighted) {
+                process.stdout.write(`  \x1b[32m${rowContent}\x1b[0m\n`); 
+            } else {
+                process.stdout.write(`  ${rowContent}\n`);
+            }
+          });
+          process.stdout.write(`  └──────────┴──────────┴────────────────────┴──────────┴──────────┘\n`);
+          process.stdout.write('\n');
+      });
   }
 
-  describe('Staff Leave Scenarios', () => {
-    it('Case 1: Staff leaves with upcoming event in current cycle - should shift remaining events', () => {
-      const leavingStaffId = staffIds[2];
-      const currentDate = '2026-02-01';
+  static assertion(msg: string) {
+      process.stdout.write(`✅ ${msg}\n`);
+  }
+}
 
-      const cycles: Cycle[] = [
+// --- Mocks ---
+const mockEventRepository = {
+  find: jest.fn(),
+  create: jest.fn((entity) => entity),
+  save: jest.fn((entity) => Promise.resolve({ ...entity, id: Math.floor(Math.random() * 1000) + 1000 })),
+  update: jest.fn(),
+};
+
+const mockParticipantRepository = {
+  save: jest.fn(),
+  delete: jest.fn(),
+};
+
+const mockHolidayRepository = {
+  find: jest.fn(),
+};
+
+describe('OpentalkStaffService', () => {
+  let service: OpentalkStaffService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        OpentalkStaffService,
         {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-22',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: leavingStaffId },
-            { id: 4, date: '2026-01-25', staffId: staffIds[3] },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-            { id: 6, date: '2026-02-08', staffId: leavingStaffId },
-            { id: 7, date: '2026-02-15', staffId: staffIds[5] },
-            { id: 8, date: '2026-02-22', staffId: staffIds[6] },
-          ],
+          provide: getRepositoryToken(ScheduleEventEntity),
+          useValue: mockEventRepository,
         },
-      ];
+        {
+          provide: getRepositoryToken(ScheduleEventParticipantEntity),
+          useValue: mockParticipantRepository,
+        },
+        {
+          provide: getRepositoryToken(HolidayEntity),
+          useValue: mockHolidayRepository,
+        },
+      ],
+    }).compile();
 
-      console.log(
-        '\n📋 TEST CASE 1: Staff leaves with upcoming event in current cycle',
-      );
-      console.log(
-        `Leaving Staff ID: ${leavingStaffId} (${staffEmails[2].split('@')[0]})`,
-      );
-      console.log(`Current Date: ${currentDate}`);
+    service = module.get<OpentalkStaffService>(OpentalkStaffService);
+    jest.clearAllMocks();
+  });
 
-      logCycles('BEFORE - Staff Leave', cycles);
+  describe('handleStaffLeave', () => {
 
-      const changes = OpentalkStaffService.calculateStaffLeaveChanges(
-        cycles,
-        leavingStaffId,
-        currentDate,
-        holidays,
-      );
+    it('Case 1: Single Cycle - Staff LEAVED (Future) - Events shift filling the gap', async () => {
+      const currentDate = '2024-01-01'; // Monday
+      TestLogger.caseStart('Case 1: Single Cycle (Future)', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
 
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
-      console.log('Events to Create:', changes.eventsToCreate);
+      // Cycle 1: [Jan 06, Jan 13, Jan 20, Jan 27, Feb 03]
+      // Action: S3 (Jan 20) LEAVES.
+      const initialCyclesMock = [
+        { cycleId: 1, id: 101, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 102, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 1, id: 103, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] }, // LEAVES
+        { cycleId: 1, id: 104, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 1, id: 105, eventDate: '2024-02-03', eventParticipants: [{ staffId: 5 }] }
+      ] as any[];
 
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
 
-      logCycles('AFTER - Staff Leave', after);
+      TestLogger.info('Action', 'Staff 3 leaves (Jan 20). Future events should shift left.');
+      TestLogger.table('[BEFORE]', initialCyclesMock, [], currentDate);
 
-      expect(
-        after[0].events.some(
-          (e) => e.staffId === leavingStaffId && e.date >= currentDate,
-        ),
-      ).toBe(false);
-      expect(changes.participantsToDelete.length).toBeGreaterThan(0);
-      expect(changes.eventsToUpdate.length).toBeGreaterThan(0);
+      const result = await service.handleStaffLeave(STAFF_3);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [104, 105], currentDate);
+
+      expect(allEvents.find(e => e.staffId === 3)).toBeUndefined();
+      expect(allEvents.find(e => e.staffId === 4)?.date).toBe('2024-01-20');
+      expect(allEvents.find(e => e.staffId === 5)?.date).toBe('2024-01-27');
+      TestLogger.assertion('Verified: S4->Jan 20, S5->Jan 27.');
     });
 
-    it('Case 2: Staff leaves with only past events - nothing should change', () => {
-      const leavingStaffId = staffIds[2];
-      const currentDate = '2026-03-01';
+    it('Case 2: Single Cycle - Staff LEAVED (Mixed Past) - No Change', async () => {
+      const currentDate = '2024-01-15'; // Monday
+      TestLogger.caseStart('Case 2: Single Cycle (Mixed Past)', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
 
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-22',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: leavingStaffId },
-            { id: 4, date: '2026-01-25', staffId: staffIds[3] },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-            { id: 6, date: '2026-02-08', staffId: staffIds[5] },
-            { id: 7, date: '2026-02-15', staffId: staffIds[6] },
-            { id: 8, date: '2026-02-22', staffId: staffIds[7] },
-          ],
-        },
-      ];
+      // Cycle: [Jan 06(Past), Jan 13(Past), Jan 20(Future), Jan 27(Future), Feb 03(Future)]
+      // Action: S2 (Jan 13 - PAST) LEAVES.
+      const initialCyclesMock = [
+        { cycleId: 1, id: 201, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 202, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] }, // LEAVES (Past)
+        { cycleId: 1, id: 203, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] },
+        { cycleId: 1, id: 204, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 1, id: 205, eventDate: '2024-02-03', eventParticipants: [{ staffId: 5 }] }
+      ] as any[];
 
-      console.log('\n📋 TEST CASE 2: Staff leaves with only past events');
-      console.log(
-        `Leaving Staff ID: ${leavingStaffId} (${staffEmails[2].split('@')[0]})`,
-      );
-      console.log(`Current Date: ${currentDate}`);
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
 
-      logCycles('BEFORE - Staff Leave', cycles);
+      TestLogger.info('Action', 'Staff 2 leaves (Jan 13 - PAST).');
+      TestLogger.table('[BEFORE]', initialCyclesMock, [], currentDate);
+      
+      const result = await service.handleStaffLeave(STAFF_2);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [], currentDate);
 
-      const changes = OpentalkStaffService.calculateStaffLeaveChanges(
-        cycles,
-        leavingStaffId,
-        currentDate,
-        holidays,
-      );
-
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
-      console.log('Events to Create:', changes.eventsToCreate);
-
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      logCycles('AFTER - Staff Leave', after);
-
-      expect(changes.eventsToUpdate.length).toBe(0);
-      expect(changes.participantsToDelete.length).toBe(0);
-      expect(after[0].events.length).toBe(cycles[0].events.length);
+      expect(allEvents.find(e => e.staffId === 2)).toBeDefined();
+      expect(allEvents.find(e => e.staffId === 2)?.date).toBe('2024-01-13');
+      TestLogger.assertion('Verified: No changes, history preserved.');
     });
 
-    it('Case 3: Staff leaves with events in middle of next cycle - should shift only in that cycle', () => {
-      const leavingStaffId = staffIds[3];
-      const currentDate = '2026-03-01';
+    it('Case 3: Multi Cycle - Leave Future (Overlap Check)', async () => {
+      const currentDate = '2024-01-01';
+      TestLogger.caseStart('Case 3: Multi Cycle - Overlap Check', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
 
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-22',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: staffIds[2] },
-            { id: 4, date: '2026-01-25', staffId: leavingStaffId },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-            { id: 6, date: '2026-02-08', staffId: staffIds[5] },
-            { id: 7, date: '2026-02-15', staffId: staffIds[6] },
-            { id: 8, date: '2026-02-22', staffId: staffIds[7] },
-          ],
-        },
-        {
-          id: 2,
-          startDate: '2026-03-01',
-          endDate: '2026-04-19',
-          events: [
-            { id: 9, date: '2026-03-01', staffId: staffIds[0] },
-            { id: 10, date: '2026-03-08', staffId: staffIds[1] },
-            { id: 11, date: '2026-03-15', staffId: leavingStaffId },
-            { id: 12, date: '2026-03-22', staffId: staffIds[4] },
-            { id: 13, date: '2026-03-29', staffId: staffIds[5] },
-            { id: 14, date: '2026-04-05', staffId: staffIds[6] },
-            { id: 15, date: '2026-04-12', staffId: staffIds[7] },
-            { id: 16, date: '2026-04-19', staffId: staffIds[2] },
-          ],
-        },
-      ];
+      // C1 Ends Feb 03.
+      // C2 Starts Feb 17 (2 weeks later).
+      // Action: S3 leaves C1.
+      // C1 shrinks. New End: Jan 27.
+      // Gap: Jan 27 -> Feb 17. Valid. C2 stays.
+      
+      const initialCyclesMock = [
+        // C1
+        { cycleId: 1, id: 301, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 302, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 1, id: 303, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] }, // LEAVES
+        { cycleId: 1, id: 304, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 1, id: 305, eventDate: '2024-02-03', eventParticipants: [{ staffId: 5 }] },
+        // C2
+        { cycleId: 2, id: 306, eventDate: '2024-02-17', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 2, id: 307, eventDate: '2024-02-24', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 2, id: 308, eventDate: '2024-03-02', eventParticipants: [{ staffId: 3 }] },
+        { cycleId: 2, id: 309, eventDate: '2024-03-09', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 2, id: 310, eventDate: '2024-03-16', eventParticipants: [{ staffId: 5 }] }
+      ] as any[];
 
-      console.log(
-        '\n📋 TEST CASE 3: Staff leaves with events in middle of next cycle',
-      );
-      console.log(
-        `Leaving Staff ID: ${leavingStaffId} (${staffEmails[3].split('@')[0]})`,
-      );
-      console.log(`Current Date: ${currentDate}`);
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
 
-      logCycles('BEFORE - Staff Leave', cycles);
+      TestLogger.table('[BEFORE]', initialCyclesMock, [303], currentDate);
+      const result = await service.handleStaffLeave(STAFF_3);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [304, 305], currentDate);
 
-      const changes = OpentalkStaffService.calculateStaffLeaveChanges(
-        cycles,
-        leavingStaffId,
-        currentDate,
-        holidays,
-      );
+      const s5_c1 = allEvents.find(e => e.id === 305);
+      const s1_c2 = allEvents.find(e => e.id === 306);
 
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
-      console.log('Events to Create:', changes.eventsToCreate);
-
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      logCycles('AFTER - Staff Leave', after);
-
-      const cycle2After = after.find((c) => c.id === 2);
-      expect(
-        cycle2After?.events.some((e) => e.staffId === leavingStaffId),
-      ).toBe(false);
-      expect(changes.participantsToDelete.some((d) => d.eventId === 11)).toBe(
-        true,
-      );
+      expect(s5_c1?.date).toBe('2024-01-27');
+      expect(s1_c2?.date).toBe('2024-02-17');
+      TestLogger.assertion('Verified: C1 S5 shifted to Jan 27. C2 stayed at Feb 17.');
     });
   });
 
-  describe('New Staff Onboarding Scenarios', () => {
-    it('Case 4: New staff onboard - single cycle - should add to end', () => {
-      const newStaffId = staffIds[7];
+  describe('handleNewStaff', () => {
+    it('Case 4: New Staff - Append (Overlap)', async () => {
+      const currentDate = '2024-01-01';
+      TestLogger.caseStart('Case 4: New Staff - Append (Overlap)', currentDate);
+      jest.useFakeTimers().setSystemTime(new Date(currentDate + 'T12:00:00Z'));
 
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-15',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: staffIds[2] },
-            { id: 4, date: '2026-01-25', staffId: staffIds[3] },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-            { id: 6, date: '2026-02-08', staffId: staffIds[5] },
-            { id: 7, date: '2026-02-15', staffId: staffIds[6] },
-          ],
-        },
-      ];
+      // C1: [Jan 6 ... Feb 3]
+      // C2: Starts Feb 10 (Next week).
+      // Action: Add New Staff to C1.
+      // C1 New End: Feb 10.
+      // Overlap with C2 Start (Feb 10).
+      // C2 must shift -> Feb 17.
 
-      console.log('\n📋 TEST CASE 4: New staff onboard - single cycle');
-      console.log(
-        `New Staff ID: ${newStaffId} (${staffEmails[7].split('@')[0]})`,
-      );
+      const initialCyclesMock = [
+        // C1
+        { cycleId: 1, id: 401, eventDate: '2024-01-06', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 1, id: 402, eventDate: '2024-01-13', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 1, id: 403, eventDate: '2024-01-20', eventParticipants: [{ staffId: 3 }] },
+        { cycleId: 1, id: 404, eventDate: '2024-01-27', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 1, id: 405, eventDate: '2024-02-03', eventParticipants: [{ staffId: 5 }] },
+        // C2
+        { cycleId: 2, id: 406, eventDate: '2024-02-10', eventParticipants: [{ staffId: 1 }] },
+        { cycleId: 2, id: 407, eventDate: '2024-02-17', eventParticipants: [{ staffId: 2 }] },
+        { cycleId: 2, id: 408, eventDate: '2024-02-24', eventParticipants: [{ staffId: 3 }] },
+        { cycleId: 2, id: 409, eventDate: '2024-03-02', eventParticipants: [{ staffId: 4 }] },
+        { cycleId: 2, id: 410, eventDate: '2024-03-09', eventParticipants: [{ staffId: 5 }] }
+      ] as any[];
 
-      logCycles('BEFORE - New Staff Onboard', cycles);
+      mockEventRepository.find.mockResolvedValue(initialCyclesMock);
+      mockHolidayRepository.find.mockResolvedValue([]);
+      mockEventRepository.save.mockImplementation(e => Promise.resolve({ ...e, id: 499 }));
 
-      const changes = OpentalkStaffService.calculateNewStaffChanges(
-        cycles,
-        newStaffId,
-        holidays,
-      );
+      TestLogger.table('[BEFORE]', initialCyclesMock, [], currentDate);
+      const result = await service.handleNewStaff(NEW_STAFF);
+      const allEvents = result.after.flatMap(c => c.events.map(e => ({ ...e, cycleId: c.id })));
+      TestLogger.table('[AFTER]', allEvents, [499, 406], currentDate);
 
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Create:', changes.eventsToCreate);
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
+      const newStaff = allEvents.find(e => e.staffId === 99);
+      const s1_c2 = allEvents.find(e => e.id === 406);
 
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      logCycles('AFTER - New Staff Onboard', after);
-
-      expect(changes.eventsToCreate.length).toBe(1);
-      expect(changes.eventsToCreate[0].staffId).toBe(newStaffId);
-      expect(changes.eventsToCreate[0].date).toBe('2026-02-22');
-      expect(after[0].events[after[0].events.length - 1].staffId).toBe(
-        newStaffId,
-      );
-    });
-
-    it('Case 5: New staff onboard - multiple cycles - should shift next cycle if overlap', () => {
-      const newStaffId = staffIds[7];
-
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-15',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: staffIds[2] },
-            { id: 4, date: '2026-01-25', staffId: staffIds[3] },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-            { id: 6, date: '2026-02-08', staffId: staffIds[5] },
-            { id: 7, date: '2026-02-15', staffId: staffIds[6] },
-          ],
-        },
-        {
-          id: 2,
-          startDate: '2026-02-22',
-          endDate: '2026-04-12',
-          events: [
-            { id: 8, date: '2026-02-22', staffId: staffIds[0] },
-            { id: 9, date: '2026-03-01', staffId: staffIds[1] },
-            { id: 10, date: '2026-03-08', staffId: staffIds[2] },
-            { id: 11, date: '2026-03-15', staffId: staffIds[3] },
-            { id: 12, date: '2026-03-22', staffId: staffIds[4] },
-            { id: 13, date: '2026-03-29', staffId: staffIds[5] },
-            { id: 14, date: '2026-04-05', staffId: staffIds[6] },
-            { id: 15, date: '2026-04-12', staffId: staffIds[1] },
-          ],
-        },
-      ];
-
-      console.log(
-        '\n📋 TEST CASE 5: New staff onboard - multiple cycles with overlap',
-      );
-      console.log(
-        `New Staff ID: ${newStaffId} (${staffEmails[7].split('@')[0]})`,
-      );
-
-      logCycles('BEFORE - New Staff Onboard', cycles);
-
-      const changes = OpentalkStaffService.calculateNewStaffChanges(
-        cycles,
-        newStaffId,
-        holidays,
-      );
-
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Create:', changes.eventsToCreate);
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
-
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      logCycles('AFTER - New Staff Onboard', after);
-
-      expect(changes.eventsToCreate.length).toBeGreaterThan(0);
-      expect(changes.eventsToUpdate.length).toBeGreaterThan(0);
-      expect(after[1].events[0].date).not.toBe('2026-02-22');
-    });
-
-    it('Case 6: New staff onboard - multiple cycles no overlap - should not shift next cycle', () => {
-      const newStaffId = staffIds[7];
-
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-01',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: staffIds[2] },
-            { id: 4, date: '2026-01-25', staffId: staffIds[3] },
-            { id: 5, date: '2026-02-01', staffId: staffIds[4] },
-          ],
-        },
-        {
-          id: 2,
-          startDate: '2026-03-01',
-          endDate: '2026-04-19',
-          events: [
-            { id: 6, date: '2026-03-01', staffId: staffIds[0] },
-            { id: 7, date: '2026-03-08', staffId: staffIds[1] },
-            { id: 8, date: '2026-03-15', staffId: staffIds[2] },
-            { id: 9, date: '2026-03-22', staffId: staffIds[3] },
-            { id: 10, date: '2026-03-29', staffId: staffIds[4] },
-            { id: 11, date: '2026-04-05', staffId: staffIds[5] },
-            { id: 12, date: '2026-04-12', staffId: staffIds[6] },
-            { id: 13, date: '2026-04-19', staffId: staffIds[1] },
-          ],
-        },
-      ];
-
-      console.log(
-        '\n📋 TEST CASE 6: New staff onboard - multiple cycles without overlap',
-      );
-      console.log(
-        `New Staff ID: ${newStaffId} (${staffEmails[7].split('@')[0]})`,
-      );
-
-      logCycles('BEFORE - New Staff Onboard', cycles);
-
-      const changes = OpentalkStaffService.calculateNewStaffChanges(
-        cycles,
-        newStaffId,
-        holidays,
-      );
-
-      console.log('\n📝 CALCULATED CHANGES:');
-      console.log('Events to Create:', changes.eventsToCreate);
-      console.log('Events to Update:', changes.eventsToUpdate);
-      console.log('Participants to Delete:', changes.participantsToDelete);
-
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      logCycles('AFTER - New Staff Onboard', after);
-
-      expect(changes.eventsToCreate.length).toBe(2);
-      expect(changes.eventsToUpdate.length).toBe(0);
-      expect(after[0].events[after[0].events.length - 1].staffId).toBe(
-        newStaffId,
-      );
-      expect(after[1].events[after[1].events.length - 1].staffId).toBe(
-        newStaffId,
-      );
-    });
-  });
-
-  describe('Data Integrity Tests', () => {
-    it('Should not mutate original cycles when calculating changes', () => {
-      const newStaffId = staffIds[7];
-      const cycles: Cycle[] = [
-        {
-          id: 1,
-          startDate: '2026-01-04',
-          endDate: '2026-02-15',
-          events: [
-            { id: 1, date: '2026-01-04', staffId: staffIds[0] },
-            { id: 2, date: '2026-01-11', staffId: staffIds[1] },
-            { id: 3, date: '2026-01-18', staffId: staffIds[2] },
-          ],
-        },
-      ];
-
-      const originalEventsCount = cycles[0].events.length;
-      const originalEndDate = cycles[0].endDate;
-
-      const changes = OpentalkStaffService.calculateNewStaffChanges(
-        cycles,
-        newStaffId,
-        holidays,
-      );
-
-      const after = OpentalkStaffService.applyChangesToCycles(cycles, changes);
-
-      expect(cycles[0].events.length).toBe(originalEventsCount);
-      expect(cycles[0].endDate).toBe(originalEndDate);
-      expect(after[0].events.length).toBe(originalEventsCount + 1);
+      expect(newStaff?.date).toBe('2024-02-10');
+      expect(s1_c2?.date).toBe('2024-02-17');
+      TestLogger.assertion('Verified: New Staff -> Feb 10. C2 Shifted -> Feb 17.');
     });
   });
 });

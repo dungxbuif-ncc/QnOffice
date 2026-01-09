@@ -9,13 +9,11 @@ export async function bootstrap() {
 void bootstrap();
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error(
-    `Unhandled Rejection at: ${promise}, reason: ${reason}`,
-    '',
-    'UnhandledRejection',
-  );
+  console.error(reason);
+  console.error(promise);
 });
 
 process.on('uncaughtException', (error) => {
+  console.error(error);
   logger.error(`Uncaught Exception: ${error.message}`, '', 'UncaughtException');
 });

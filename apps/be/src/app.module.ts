@@ -7,6 +7,7 @@ import { SharedModule } from '@src/common/shared/shared.module';
 import { CronModule } from '@src/modules/cron/cron.module';
 import { HolidayModule } from '@src/modules/holiday/holiday.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
+import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
@@ -39,6 +40,7 @@ import { UserModule } from './modules/user/user.module';
     UploadModule,
     ChannelConfigModule,
     CronModule,
+    AuditLogModule,
   ],
   providers: [NotificationListener],
 })
