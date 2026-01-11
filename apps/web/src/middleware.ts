@@ -1,3 +1,4 @@
+import { config as appConfig } from '@/shared/config';
 import { PATHS, PathUtils } from '@/shared/constants/paths';
 import { sessionOptions } from '@/shared/session';
 import { AuthProfile } from '@qnoffice/shared';
@@ -33,17 +34,17 @@ export async function middleware(request: NextRequest) {
         hasUser: !!session.user,
         hasTokens: !!session.tokens,
       });
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return NextResponse.redirect(new URL(PATHS.AUTH.LOGIN, appConfig.frontendBaseUrl));
     }
 
     if (!session?.user?.staffId && pathname !== PATHS.DASHBOARD.BASE) {
-      return NextResponse.redirect(new URL(PATHS.DASHBOARD.BASE, request.url));
+      return NextResponse.redirect(new URL(PATHS.DASHBOARD.BASE, appConfig.frontendBaseUrl));
     }
 
     return response;
   } catch (error) {
     console.error('Middleware auth check failed:', error);
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    return NextResponse.redirect(new URL(PATHS.AUTH.LOGIN, appConfig.frontendBaseUrl));
   }
 }
 

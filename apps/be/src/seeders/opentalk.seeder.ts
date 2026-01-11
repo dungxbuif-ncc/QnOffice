@@ -32,12 +32,12 @@ const cycles = [
     description: 'Chuỗi OpenTalk hàng tuần tháng 1/2026',
     status: CycleStatus.ACTIVE,
   },
-  {
-    name: 'OpenTalk tháng 2/2026',
-    type: ScheduleType.OPENTALK,
-    description: 'Chuỗi OpenTalk hàng tuần tháng 2/2026',
-    status: CycleStatus.DRAFT,
-  },
+  // {
+  //   name: 'OpenTalk tháng 2/2026',
+  //   type: ScheduleType.OPENTALK,
+  //   description: 'Chuỗi OpenTalk hàng tuần tháng 2/2026',
+  //   status: CycleStatus.DRAFT,
+  // },
 ];
 @Injectable()
 export class OpentalkSeeder {

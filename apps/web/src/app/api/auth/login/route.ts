@@ -1,4 +1,5 @@
 import { config } from '@/shared/config';
+import { PATHS } from '@/shared/constants/paths';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     console.error('OAuth initialization error:', error);
 
     // Redirect to error page if OAuth initialization fails
-    const errorUrl = new URL('/auth/error', request.url);
+    const errorUrl = new URL(PATHS.AUTH.ERROR, config.frontendBaseUrl);
     errorUrl.searchParams.set('error', 'oauth_init_failed');
 
     return Response.redirect(errorUrl, 302);

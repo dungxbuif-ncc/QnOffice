@@ -86,9 +86,6 @@ export class CronService {
     const journeyId = `mark-opentalk-events-completed-${uuidv4()}`;
     const executionTime = new Date();
 
-    this.logger.log(
-      '=== CRON: Mark Opentalk Events Completed (00:00 Sunday UTC+7) ===',
-    );
 
     this.appLogService.journeyLog(
       journeyId,
