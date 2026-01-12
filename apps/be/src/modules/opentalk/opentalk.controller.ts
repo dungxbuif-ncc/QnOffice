@@ -15,6 +15,8 @@ import { ScheduleCycle, ScheduleEvent, UserRole } from '@qnoffice/shared';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import { SubmitSlideDto } from '@src/modules/opentalk/dtos/submit-slide.dto';
+import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
+import { CreateOpentalkEventDto } from './dtos/create-opentalk-event.dto';
 import { OpentalkQueryDto } from './dtos/opentalk-query.dto';
 import { RejectSlideDto } from './dtos/reject-slide.dto';
 import { SwapOpentalkDto } from './dtos/swap-opentalk.dto';
@@ -82,4 +84,13 @@ export class OpentalkController {
     return this.opentalkService.swapOpentalk(swapDto);
   }
 
+  @Put('events/:id')
+  @UseGuards(RolesGuard)
+  @Roles([UserRole.GDVP, UserRole.HR])
+  async updateEvent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: Partial<CreateOpentalkEventDto>,
+  ): Promise<ScheduleEventEntity> {
+    return this.opentalkService.updateEvent(id, updateData);
+  }
 }

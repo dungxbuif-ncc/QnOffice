@@ -10,7 +10,6 @@ interface AppConfig {
   // API URLs
   apiBaseUrl: string;
   backendBaseUrl: string;
-  frontendBaseUrl: string;
 
   // Environment
   nodeEnv: string;
@@ -55,7 +54,6 @@ export const config: AppConfig = {
 
   apiBaseUrl: getEnvVar('NEXT_PUBLIC_API_BASE_URL'),
   backendBaseUrl: getEnvVar('BACKEND_BASE_URL'),
-  frontendBaseUrl: getEnvVar('NEXT_PUBLIC_FRONTEND_URL'),
 
   nodeEnv,
   isDevelopment: nodeEnv === 'development',

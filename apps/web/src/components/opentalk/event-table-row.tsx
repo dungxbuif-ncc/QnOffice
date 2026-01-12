@@ -1,49 +1,60 @@
 'use client';
 
-import { TopicEditControls } from '@/components/opentalk/topic-edit-controls';
+import { InlineEditControls } from '@/components/opentalk/inline-edit-controls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { getStatusBadgeProps } from '@/shared/utils';
-import { IOpentalkEventMetadata, ScheduleEvent } from '@qnoffice/shared';
+import { IOpentalkSlide, ScheduleEvent } from '@qnoffice/shared';
 import { Calendar, FileText, User } from 'lucide-react';
 
-import { Checkbox } from '@/components/ui/checkbox';
-
 interface EventTableRowProps {
-  event: ScheduleEvent<IOpentalkEventMetadata>;
+  event: ScheduleEvent<IOpentalkSlide>;
   isEditingTopic: boolean;
-  editedTopicValue: string;
+  isEditingDate: boolean;
+  editedValue: string;
+
   canEditTopic: boolean;
   canEditSlide: boolean;
   canManageOpentalk: boolean;
   isSelected: boolean;
-  onTopicEdit: (topic: string) => void;
-  onTopicSave: () => void;
-  onTopicCancel: () => void;
-  onTopicChange: (value: string) => void;
+  isLocked?: boolean;
+
+  onTopicEdit: (eventId: number, currentTopic: string) => void;
+  onDateEdit: (eventId: number, date: string) => void;
+
+  onEditChange: (value: string) => void;
+  onEditSave: () => void;
+  onEditCancel: () => void;
+
   onSlideClick: () => void;
   onSelect: (checked: boolean) => void;
   formatDate: (date: string) => string;
-  isLocked?: boolean;
 }
 
 export function EventTableRow({
   event,
   isEditingTopic,
-  editedTopicValue,
+  isEditingDate,
+  editedValue,
+
   canEditTopic,
   canEditSlide,
   canManageOpentalk,
   isSelected,
+  isLocked,
+
   onTopicEdit,
-  onTopicSave,
-  onTopicCancel,
-  onTopicChange,
+  onDateEdit,
+
+  onEditChange,
+  onEditSave,
+  onEditCancel,
+
   onSlideClick,
   onSelect,
   formatDate,
-  isLocked = false,
 }: EventTableRowProps) {
   const renderPresenter = () => {
     if (event.eventParticipants && event.eventParticipants.length > 0) {
@@ -68,6 +79,7 @@ export function EventTableRow({
   const isPast = new Date(event.eventDate).getTime() < new Date().getTime();
   const isCompleted =
     event.status === 'COMPLETED' || event.status === 'CANCELLED';
+
   const isCheckboxDisabled = isLocked || isPast || isCompleted;
 
   return (
@@ -85,21 +97,49 @@ export function EventTableRow({
           />
         </TableCell>
       )}
+
       <TableCell>
-        <div className="flex items-center space-x-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">
-            {formatDate(event.eventDate)}
-          </span>
-        </div>
+        {isEditingDate ? (
+          <InlineEditControls
+            type="date"
+            value={editedValue}
+            onChange={onEditChange}
+            onSave={onEditSave}
+            onCancel={onEditCancel}
+          />
+        ) : (
+          <div
+            className={`p-1 rounded ${
+              canManageOpentalk ? 'cursor-pointer hover:bg-blue-50' : ''
+            }`}
+            onClick={() => {
+              if (canManageOpentalk) {
+                onDateEdit(event.id, event.eventDate);
+              }
+            }}
+          >
+            <div className="flex gap-1 items-center">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                {formatDate(event.eventDate)}
+              </span>
+            </div>
+            {canEditTopic && (
+              <span className="ml-1 text-xs text-muted-foreground">
+                (click to edit)
+              </span>
+            )}
+          </div>
+        )}
       </TableCell>
+
       <TableCell>
         {isEditingTopic ? (
-          <TopicEditControls
-            value={editedTopicValue}
-            onChange={onTopicChange}
-            onSave={onTopicSave}
-            onCancel={onTopicCancel}
+          <InlineEditControls
+            value={editedValue}
+            onChange={onEditChange}
+            onSave={onEditSave}
+            onCancel={onEditCancel}
           />
         ) : (
           <div
@@ -109,13 +149,13 @@ export function EventTableRow({
             onClick={(e) => {
               e.stopPropagation();
               if (canEditTopic) {
-                onTopicEdit(event.title);
+                onTopicEdit(event.id, event.title || '');
               }
             }}
           >
             <span className="font-medium">{event.title || 'No topic set'}</span>
             {canEditTopic && (
-              <span className="text-xs text-muted-foreground ml-1">
+              <span className="ml-1 text-xs text-muted-foreground">
                 (click to edit)
               </span>
             )}

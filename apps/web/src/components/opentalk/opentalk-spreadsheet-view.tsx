@@ -7,7 +7,7 @@ import { useAuth } from '@/shared/contexts/auth-context';
 import { opentalkClientService } from '@/shared/services/client/opentalk-client-service';
 import { swapRequestClientService } from '@/shared/services/client/swap-request-client-service';
 import {
-  IOpentalkEventMetadata,
+  IOpentalkSlide,
   ScheduleCycle,
   ScheduleEvent,
   ScheduleType,
@@ -17,19 +17,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { SwapControls } from './swap-controls';
 
+type EditingField = {
+  eventId: number;
+  field: 'topic' | 'date';
+} | null;
+
 interface OpentalkSpreadsheetViewProps {
-  cycles: ScheduleCycle<IOpentalkEventMetadata>[];
+  cycles: ScheduleCycle<IOpentalkSlide>[];
 }
 
 export function OpentalkSpreadsheetView({
   cycles = [],
 }: OpentalkSpreadsheetViewProps) {
   const { user } = useAuth();
-  const [editingTopic, setEditingTopic] = useState<number | null>(null);
-  const [editedTopicValue, setEditedTopicValue] = useState<string>('');
+  const userStaffId = user?.staffId;
+
+  const [editingField, setEditingField] = useState<EditingField>(null);
+  const [editedValue, setEditedValue] = useState('');
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [selectedEventForSlide, setSelectedEventForSlide] =
-    useState<ScheduleEvent<IOpentalkEventMetadata> | null>(null);
+    useState<ScheduleEvent<IOpentalkSlide> | null>(null);
+
   const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
   const [lockedEvents, setLockedEvents] = useState<number[]>([]);
   const [isSwapping, setIsSwapping] = useState(false);
@@ -42,71 +50,65 @@ export function OpentalkSpreadsheetView({
           status: SwapRequestStatus.PENDING,
         });
 
-        if (response?.data?.data) {
-          const locked = response.data.data.flatMap((req) => [
+        const locked =
+          response?.data?.data?.flatMap((req) => [
             req.fromEventId,
             req.toEventId,
-          ]);
-          setLockedEvents(locked);
-        }
+          ]) || [];
+
+        setLockedEvents(locked);
       } catch (error) {
-        console.error('Failed to fetch pending requests:', error);
+        console.error(error);
       }
     };
 
     fetchPendingRequests();
   }, []);
 
-  const userStaffId = user?.staffId;
   const canManageOpentalk = hasPermission(
     user?.role,
     PERMISSIONS.MANAGE_OPENTALK,
   );
 
-  const canEditTopic = (event: ScheduleEvent<IOpentalkEventMetadata>) => {
-    if (event.status === 'COMPLETED') {
-      return false;
-    }
+  const canEditTopic = (event: ScheduleEvent<IOpentalkSlide>) => {
+    if (event.status === 'COMPLETED') return false;
 
     if (hasPermission(user?.role, PERMISSIONS.EDIT_OPENTALK_TOPIC)) {
       return true;
     }
 
-    const userIsOrganizer = event.eventParticipants?.some(
-      (participant) => participant.staffId === userStaffId,
+    return (
+      event.eventParticipants?.some((p) => p.staffId === userStaffId) || false
     );
-    return userIsOrganizer || false;
   };
 
-  const canEditSlide = (event: ScheduleEvent<IOpentalkEventMetadata>) => {
-    const userIsPresenter = event.eventParticipants?.some(
-      (participant) => participant.staffId === userStaffId,
+  const canEditSlide = (event: ScheduleEvent<IOpentalkSlide>) => {
+    return (
+      event.eventParticipants?.some((p) => p.staffId === userStaffId) || false
     );
-    return userIsPresenter || false;
   };
 
   const handleTopicEdit = (eventId: number, currentTopic: string) => {
-    setEditingTopic(eventId);
-    setEditedTopicValue(currentTopic || '');
+    setEditingField({ eventId, field: 'topic' });
+    setEditedValue(currentTopic || '');
   };
 
   const handleTopicSave = async (eventId: number) => {
     try {
       await opentalkClientService.updateEvent(eventId, {
-        title: editedTopicValue,
+        title: editedValue,
       });
-      toast.success('Topic updated successfully');
-      setEditingTopic(null);
+      toast.success('Topic updated');
+      setEditingField(null);
       window.location.reload();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update topic');
-      console.error(error);
     }
   };
 
-  const handleTopicCancel = () => {
-    setEditingTopic(null);
-    setEditedTopicValue('');
+  const handleEditCancel = () => {
+    setEditingField(null);
+    setEditedValue('');
   };
 
   const formatDate = (dateString: string) => {
@@ -125,7 +127,7 @@ export function OpentalkSpreadsheetView({
     }
 
     // Find the event first to validate
-    let targetEvent: ScheduleEvent<IOpentalkEventMetadata> | undefined;
+    let targetEvent: ScheduleEvent<IOpentalkSlide> | undefined;
     for (const cycle of cycles) {
       const found = cycle.events?.find((e) => e.id === eventId);
       if (found) {
@@ -206,9 +208,7 @@ export function OpentalkSpreadsheetView({
     }
   };
 
-  const handleSlideClick = (
-    event: ScheduleEvent<IOpentalkEventMetadata>,
-  ) => {
+  const handleSlideClick = (event: ScheduleEvent<IOpentalkSlide>) => {
     setSelectedEventForSlide(event);
     setSlideDialogOpen(true);
   };
@@ -217,8 +217,7 @@ export function OpentalkSpreadsheetView({
     return [...cycles].sort((a, b) => {
       // Helper to get latest event timestamp
       const getLatestEventTime = (cycle: typeof a) => {
-        if (!cycle.events?.length)
-          return new Date(cycle.createdAt).getTime();
+        if (!cycle.events?.length) return new Date(cycle.createdAt).getTime();
         return Math.max(
           ...cycle.events.map((e) => new Date(e.eventDate).getTime()),
         );
@@ -232,6 +231,24 @@ export function OpentalkSpreadsheetView({
     });
   }, [cycles]);
 
+  const handleDateEdit = (eventId: number, date: string) => {
+    setEditingField({ eventId, field: 'date' });
+    setEditedValue(date.split('T')[0]);
+  };
+
+  const handleDateSave = async (eventId: number) => {
+    try {
+      await opentalkClientService.updateEvent(eventId, {
+        eventDate: editedValue,
+      });
+      toast.success('Date updated');
+      setEditingField(null);
+      window.location.reload();
+    } catch {
+      toast.error('Failed to update date');
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-240px)] flex flex-col">
       <div className="flex-1 overflow-y-auto pr-4 space-y-6">
@@ -239,20 +256,23 @@ export function OpentalkSpreadsheetView({
           <CycleCard
             key={cycle.id}
             cycle={cycle}
-            editingTopic={editingTopic}
-            editedTopicValue={editedTopicValue}
+            editingField={editingField}
+            editedValue={editedValue}
             selectedEvents={selectedEvents}
             canManageOpentalk={canManageOpentalk}
             canEditTopic={canEditTopic}
             canEditSlide={canEditSlide}
             onTopicEdit={handleTopicEdit}
-            onTopicSave={handleTopicSave}
-            onTopicCancel={handleTopicCancel}
-            onTopicChange={setEditedTopicValue}
+            onEditCancel={handleEditCancel}
+            onEditChange={setEditedValue}
             onSlideClick={handleSlideClick}
             onSelectEvent={handleSelectEvent}
             formatDate={formatDate}
             lockedEvents={lockedEvents}
+            onDateEdit={handleDateEdit}
+            onEditSave={
+              editingField?.field === 'date' ? handleDateSave : handleTopicSave
+            }
           />
         ))}
       </div>

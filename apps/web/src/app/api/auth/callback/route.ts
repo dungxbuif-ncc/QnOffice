@@ -15,14 +15,17 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('[Callback] OAuth error:', error);
       return Response.redirect(
-        new URL(`${PATHS.AUTH.LOGIN}?error=${encodeURIComponent(error)}`, config.frontendBaseUrl),
+        new URL(
+          `${PATHS.AUTH.LOGIN}?error=${encodeURIComponent(error)}`,
+          config.apiBaseUrl,
+        ),
       );
     }
 
     if (!code) {
       console.error('[Callback] Missing authorization code');
       return Response.redirect(
-        new URL(`${PATHS.AUTH.LOGIN}?error=missing_code`, config.frontendBaseUrl),
+        new URL(`${PATHS.AUTH.LOGIN}?error=missing_code`, config.apiBaseUrl),
       );
     }
 
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
       const errorText = await exchangeResponse.text();
       console.error('[Callback] Token exchange error:', errorText);
       return Response.redirect(
-        new URL(`${PATHS.AUTH.LOGIN}?error=exchange_failed`, config.frontendBaseUrl),
+        new URL(`${PATHS.AUTH.LOGIN}?error=exchange_failed`, config.apiBaseUrl),
       );
     }
 
@@ -63,16 +66,18 @@ export async function GET(request: NextRequest) {
       session.user = tokenData.data.user;
       session.tokens = tokenData.data.tokens;
       await session.save();
-      return Response.redirect(new URL(PATHS.DASHBOARD.BASE, config.frontendBaseUrl));
+      return Response.redirect(
+        new URL(PATHS.DASHBOARD.BASE, config.apiBaseUrl),
+      );
     } else {
       return Response.redirect(
-        new URL(`${PATHS.AUTH.LOGIN}?error=no_token`, config.frontendBaseUrl),
+        new URL(`${PATHS.AUTH.LOGIN}?error=no_token`, config.apiBaseUrl),
       );
     }
   } catch (error) {
     console.error('[Callback] OAuth callback error:', error);
     return Response.redirect(
-      new URL(`${PATHS.AUTH.LOGIN}?error=callback_error`, config.frontendBaseUrl),
+      new URL(`${PATHS.AUTH.LOGIN}?error=callback_error`, config.apiBaseUrl),
     );
   }
 }

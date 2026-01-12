@@ -34,17 +34,23 @@ export async function middleware(request: NextRequest) {
         hasUser: !!session.user,
         hasTokens: !!session.tokens,
       });
-      return NextResponse.redirect(new URL(PATHS.AUTH.LOGIN, appConfig.frontendBaseUrl));
+      return NextResponse.redirect(
+        new URL(PATHS.AUTH.LOGIN, appConfig.apiBaseUrl),
+      );
     }
 
     if (!session?.user?.staffId && pathname !== PATHS.DASHBOARD.BASE) {
-      return NextResponse.redirect(new URL(PATHS.DASHBOARD.BASE, appConfig.frontendBaseUrl));
+      return NextResponse.redirect(
+        new URL(PATHS.DASHBOARD.BASE, appConfig.apiBaseUrl),
+      );
     }
 
     return response;
   } catch (error) {
     console.error('Middleware auth check failed:', error);
-    return NextResponse.redirect(new URL(PATHS.AUTH.LOGIN, appConfig.frontendBaseUrl));
+    return NextResponse.redirect(
+      new URL(PATHS.AUTH.LOGIN, appConfig.apiBaseUrl),
+    );
   }
 }
 

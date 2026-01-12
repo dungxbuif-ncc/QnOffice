@@ -235,7 +235,7 @@ export function CreatePenaltyForm({
     const type = penaltyTypes.find((t) => t.id === Number(typeId));
     setSelectedType(type || null);
     if (type) {
-      form.setValue('amount', type.amount);
+      form.setValue('amount', Number(type.amount));
     }
   };
 
@@ -261,8 +261,22 @@ export function CreatePenaltyForm({
     setEvidenceFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const resetAllChange = () => {
+    form.reset();
+    form.setValue('amount', 0);
+    setEvidenceFiles([]);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+          resetAllChange();
+        }
+      }}
+    >
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Tạo phạt</DialogTitle>
@@ -446,8 +460,11 @@ export function CreatePenaltyForm({
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder={selectedType?.amount.toString() || '0'}
-                        {...field}
+                        placeholder={
+                          Number(selectedType?.amount).toString() || '0'
+                        }
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -524,7 +541,16 @@ export function CreatePenaltyForm({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  {
+                    onClose();
+                    resetAllChange();
+                  }
+                }}
+              >
                 Hủy
               </Button>
               <Button type="submit" disabled={isUploading}>

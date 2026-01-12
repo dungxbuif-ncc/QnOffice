@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     console.error('OAuth initialization error:', error);
 
     // Redirect to error page if OAuth initialization fails
-    const errorUrl = new URL(PATHS.AUTH.ERROR, config.frontendBaseUrl);
+    const errorUrl = new URL(PATHS.AUTH.ERROR, config.apiBaseUrl);
     errorUrl.searchParams.set('error', 'oauth_init_failed');
 
     return Response.redirect(errorUrl, 302);

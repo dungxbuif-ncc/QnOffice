@@ -656,7 +656,7 @@ export const sessionConfig: SessionOptions = {
 ```
 BACKEND_URL=http://localhost:4000
 SECRET_COOKIE_PASSWORD=your-32-character-secret-key
-NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
 ```
 
 ### NestJS (.env)
