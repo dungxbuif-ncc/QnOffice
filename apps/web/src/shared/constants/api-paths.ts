@@ -22,6 +22,9 @@ export const API_PATHS = {
     PRESIGNED_URLS_OPENTALK: '/upload/presigned-urls/opentalk',
   },
 
+  // Pantry Menu
+  PANTRY_MENU: '/pantry-menu',
+
   // Penalty Types
   PENALTY_TYPES: {
     BASE: '/penalty-types',

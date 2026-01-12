@@ -18,6 +18,7 @@ export const PATHS = {
     BRANCHES: '/dashboard/branches',
     STAFF: '/dashboard/staff',
     CALENDAR: '/dashboard/calendar',
+    PANTRY_MENU: '/dashboard/pantry-menu',
     SCHEDULES: {
       BASE: '/dashboard/schedules',
       CLEANING: '/dashboard/schedules/cleaning',

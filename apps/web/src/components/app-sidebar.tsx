@@ -22,6 +22,11 @@ const navigationData = [
     href: PATHS.DASHBOARD.BASE,
     icon: '📊',
   },
+  {
+    title: 'Menu Pantry',
+    href: PATHS.DASHBOARD.PANTRY_MENU,
+    icon: '🍽️',
+  },
   // {
   //   title: 'Chi nhánh',
   //   href: PATHS.DASHBOARD.BRANCHES,

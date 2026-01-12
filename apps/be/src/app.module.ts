@@ -9,6 +9,7 @@ import { NezonModule } from '@src/libs/nezon';
 import { BotNotiModule } from '@src/modules/bot-noti/bot-noti.module';
 import { CronModule } from '@src/modules/cron/cron.module';
 import { HolidayModule } from '@src/modules/holiday/holiday.module';
+import { PantryMenuModule } from '@src/modules/pantry-menu/pantry-menu.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
 import { MezonClient } from 'mezon-sdk';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
@@ -52,6 +53,7 @@ import { UserModule } from './modules/user/user.module';
     CronModule,
     AuditLogModule,
     BotNotiModule,
+    PantryMenuModule,
   ],
   providers: [NotificationListener],
 })

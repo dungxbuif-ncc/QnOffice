@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "html-to-image": "^1.11.13",
     "iron-session": "^8.0.4",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.562.0",
