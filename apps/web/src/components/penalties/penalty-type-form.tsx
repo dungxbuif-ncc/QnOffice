@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import penaltyTypeService from '@/shared/services/client/penalty-type.service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ICreatePenaltyTypeDto, PenaltyType } from '@qnoffice/shared';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -53,6 +54,22 @@ export function PenaltyTypeForm({
       amount: penaltyType?.amount || 0,
     },
   });
+
+  useEffect(() => {
+    if (penaltyType) {
+      form.reset({
+        name: penaltyType.name ?? '',
+        description: penaltyType.description ?? '',
+        amount: Number(penaltyType.amount) || 0,
+      });
+    } else {
+      form.reset({
+        name: '',
+        description: '',
+        amount: 0,
+      });
+    }
+  }, [penaltyType, isOpen, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {

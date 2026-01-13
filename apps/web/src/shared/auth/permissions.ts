@@ -39,6 +39,7 @@ export const PERMISSIONS = {
   CREATE_CLEANING_SWAP_REQUEST: { roles: ALL_ROLES },
   MANAGE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.HR, UserRole.GDVP] },
   APPROVE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.GDVP] },
+  MANAGE_CLEANING: { roles: [UserRole.HR, UserRole.GDVP] },
 };
 
 export function hasPermission(

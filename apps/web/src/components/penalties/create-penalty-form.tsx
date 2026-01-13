@@ -463,7 +463,7 @@ export function CreatePenaltyForm({
                         placeholder={
                           Number(selectedType?.amount).toString() || '0'
                         }
-                        value={field.value ?? ''}
+                        value={field.value ?? 0}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
                     </FormControl>

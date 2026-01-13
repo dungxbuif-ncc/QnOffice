@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { CycleStatus, EventStatus, ScheduleType, SearchOrder, StaffStatus } from '@qnoffice/shared';
+import {
+  CycleStatus,
+  EventStatus,
+  ScheduleType,
+  SearchOrder,
+  StaffStatus,
+} from '@qnoffice/shared';
 import {
   NotificationEvent,
   OpentalkSlideReminderPayload,
@@ -15,7 +21,15 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import OpentalkSlideEntity from '@src/modules/opentalk/entities/opentalk-slide.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { addDays, addMonths, startOfMonth, subDays } from 'date-fns';
-import { Between, EntityManager, In, LessThan, Like, MoreThan, Repository } from 'typeorm';
+import {
+  Between,
+  EntityManager,
+  In,
+  LessThan,
+  Like,
+  MoreThan,
+  Repository,
+} from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
@@ -43,7 +57,6 @@ export class OpentalkCronService {
     private readonly entityManager: EntityManager,
     private readonly eventEmitter: EventEmitter2,
     private readonly appLogService: AppLogService,
-    p
   ) {}
 
   async markPastEventsCompleted(journeyId: string): Promise<void> {
@@ -271,12 +284,11 @@ export class OpentalkCronService {
 
     // ... logic ...
     try {
-      // Find all ACTIVE Opentalk events in the next 7 days
+      // Find all Opentalk events in the next 7 days
       const upcomingEvents = await this.eventRepository.find({
         where: {
           type: ScheduleType.OPENTALK,
           eventDate: Between(today, sevenDaysFromNow),
-          status: EventStatus.ACTIVE,
         },
         relations: ['eventParticipants', 'eventParticipants.staff'],
         order: {
@@ -530,11 +542,11 @@ export class OpentalkCronService {
         '❌ No active staff found',
         'OpentalkCronService',
       );
-      return; 
+      return;
     }
     const algorithmStaff: Staff[] = staff.map((s) => ({
       id: s.id,
-      username: s.email ||  `staff_${s.id}`,
+      username: s.email || `staff_${s.id}`,
     }));
 
     const previousEvents = await this.eventRepository.find({
@@ -558,13 +570,13 @@ export class OpentalkCronService {
       previousEvents[previousEvents.length - 1].eventDate,
     );
     const startDate = startOfMonth(addDays(lastEventDate, 1));
-    const endDate = addMonths(startDate, 1); 
+    const endDate = addMonths(startDate, 1);
 
     const holidays = await this.holidayRepository.find({
       where: {
         date: Between(
           toDateString(startDate),
-          toDateString(addMonths(endDate, 12)), 
+          toDateString(addMonths(endDate, 12)),
         ),
       },
     });
@@ -591,13 +603,13 @@ export class OpentalkCronService {
       previousCycleData,
       config,
     );
-this.appLogService.stepLog(
+    this.appLogService.stepLog(
       2,
       `Generated opentalk schedule for ${toDateString(startDate)}`,
       'OpentalkCronService',
       journeyId,
       { schedule },
-    );  
+    );
     await this.entityManager.transaction(async (manager) => {
       const newCycle = manager.create(ScheduleCycleEntity, {
         name: `OpenTalk tháng ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
@@ -623,8 +635,8 @@ this.appLogService.stepLog(
 
         const eventTitle = `OpenTalk hàng tuần #${i + 1}`;
         const presenterInfo = assignedStaff
-          ? assignedStaff.email || assignedStaff.email 
-          : 'Không rõ'
+          ? assignedStaff.email || assignedStaff.email
+          : 'Không rõ';
 
         const event = manager.create(ScheduleEventEntity, {
           title: eventTitle,

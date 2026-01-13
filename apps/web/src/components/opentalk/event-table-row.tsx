@@ -113,7 +113,7 @@ export function EventTableRow({
               canManageOpentalk ? 'cursor-pointer hover:bg-blue-50' : ''
             }`}
             onClick={() => {
-              if (canManageOpentalk) {
+              if (canManageOpentalk && !isCheckboxDisabled) {
                 onDateEdit(event.id, event.eventDate);
               }
             }}
@@ -124,7 +124,7 @@ export function EventTableRow({
                 {formatDate(event.eventDate)}
               </span>
             </div>
-            {canEditTopic && (
+            {canManageOpentalk && !isCheckboxDisabled && (
               <span className="ml-1 text-xs text-muted-foreground">
                 (click to edit)
               </span>
@@ -143,18 +143,18 @@ export function EventTableRow({
           />
         ) : (
           <div
-            className={`cursor-pointer hover:bg-muted/50 p-1 rounded ${
-              canEditTopic ? 'hover:bg-blue-50' : ''
+            className={`hover:bg-muted/50 p-1 rounded ${
+              canEditTopic ? 'hover:bg-blue-50 cursor-pointer' : ''
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (canEditTopic) {
+              if (canEditTopic && !isCheckboxDisabled) {
                 onTopicEdit(event.id, event.title || '');
               }
             }}
           >
             <span className="font-medium">{event.title || 'No topic set'}</span>
-            {canEditTopic && (
+            {canEditTopic && !isCheckboxDisabled && (
               <span className="ml-1 text-xs text-muted-foreground">
                 (click to edit)
               </span>

@@ -5,18 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
+import { hasPermission, PERMISSIONS } from '@/shared/auth';
+import { useAuth } from '@/shared/contexts/auth-context';
 import { getStatusBadgeProps } from '@/shared/utils';
 import { ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -43,6 +45,7 @@ export function CleaningCycleCard({
   onParticipantToggle,
   formatDate,
 }: CleaningCycleCardProps) {
+  const { user } = useAuth();
   // Determine if past based on latest event
   const isPast = useMemo(() => {
     if (!cycleEvents.length) return false;
@@ -53,6 +56,11 @@ export function CleaningCycleCard({
   }, [cycleEvents]);
 
   const [isOpen, setIsOpen] = useState(!isPast);
+  const canManageCleaning = hasPermission(
+    user?.role,
+    PERMISSIONS.MANAGE_CLEANING,
+  );
+  console.log(canManageCleaning);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -97,7 +105,6 @@ export function CleaningCycleCard({
                     <TableHead>Người trực</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Ghi chú</TableHead>
-
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -110,7 +117,10 @@ export function CleaningCycleCard({
                     const isDisabled = isPast || isCompleted;
 
                     return (
-                      <TableRow key={event.id} className={isDisabled ? 'opacity-60 bg-gray-50' : ''}>
+                      <TableRow
+                        key={event.id}
+                        className={isDisabled ? 'opacity-60 bg-gray-50' : ''}
+                      >
                         <TableCell className="font-medium">
                           {event.eventDate}
                         </TableCell>
@@ -124,26 +134,27 @@ export function CleaningCycleCard({
                                     key={idx}
                                     className="flex items-center space-x-2"
                                   >
-                                    {event.status !== 'COMPLETED' && (
-                                      <Checkbox
-                                        checked={selectedParticipants.some(
-                                          (p) =>
-                                            p.eventId === event.id &&
-                                            p.staffId === participant.staffId,
-                                        )}
-                                        onCheckedChange={() =>
-                                          onParticipantToggle(
-                                            event.id,
-                                            participant.staffId,
-                                            participant.staff?.user?.email ||
-                                              participant.staff?.email ||
-                                              'Unknown',
-                                            cycleId,
-                                          )
-                                        }
-                                        disabled={isDisabled}
-                                      />
-                                    )}
+                                    {event.status !== 'COMPLETED' &&
+                                      canManageCleaning && (
+                                        <Checkbox
+                                          checked={selectedParticipants.some(
+                                            (p) =>
+                                              p.eventId === event.id &&
+                                              p.staffId === participant.staffId,
+                                          )}
+                                          onCheckedChange={() =>
+                                            onParticipantToggle(
+                                              event.id,
+                                              participant.staffId,
+                                              participant.staff?.user?.email ||
+                                                participant.staff?.email ||
+                                                'Unknown',
+                                              cycleId,
+                                            )
+                                          }
+                                          disabled={isDisabled}
+                                        />
+                                      )}
                                     <span className="text-sm">
                                       {participant.staff?.user?.email ||
                                         participant.staff?.email ||
@@ -167,7 +178,6 @@ export function CleaningCycleCard({
                             {event.notes || 'Không có ghi chú'}
                           </div>
                         </TableCell>
-
                       </TableRow>
                     );
                   })}

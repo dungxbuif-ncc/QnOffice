@@ -15,7 +15,12 @@ export class CronService {
     private readonly opentalkCronService: OpentalkCronService,
     private readonly auditLogService: AuditLogService,
     private readonly appLogService: AppLogService,
-  ) {}
+    // private readonly mezonClient: MezonClient,
+  ) {
+    // this.mezonClient.on('ready', () => {
+    //   this.checkOpentalkSlideSubmission();
+    // });
+  }
 
   @Cron('0 0 * * 2-6', {
     name: 'mark-cleaning-events-completed',
@@ -173,7 +178,7 @@ export class CronService {
     );
 
     const nextDayJourneyId = `cleaning-next-day-reminder-${uuidv4()}`;
-    
+
     this.appLogService.journeyLog(
       nextDayJourneyId,
       'Starting cleaning next day reminder cron job',
@@ -216,7 +221,11 @@ export class CronService {
       },
     );
 
-    await this.cleaningCronService.handleAutomaticCycleCreation(cleaningJourneyId);
-    await this.opentalkCronService.handleAutomaticCycleCreation(opentalkJourneyId);
+    await this.cleaningCronService.handleAutomaticCycleCreation(
+      cleaningJourneyId,
+    );
+    await this.opentalkCronService.handleAutomaticCycleCreation(
+      opentalkJourneyId,
+    );
   }
 }
