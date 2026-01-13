@@ -43,7 +43,6 @@ export class OpentalkCronService {
     private readonly entityManager: EntityManager,
     private readonly eventEmitter: EventEmitter2,
     private readonly appLogService: AppLogService,
-    p
   ) {}
 
   async markPastEventsCompleted(journeyId: string): Promise<void> {
