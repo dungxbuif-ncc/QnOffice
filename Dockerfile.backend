@@ -1,59 +1,58 @@
-FROM node:20-alpine AS base
-
-# Install dependencies stage
-FROM base AS deps
+FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+RUN corepack enable
 
-# Copy all package.json files for workspace
+# 1. Copy package definitions
 COPY package.json yarn.lock ./
 COPY libs/package.json ./libs/
 COPY apps/be/package.json ./apps/be/
+# Include web to satisfy workspace if needed, though mostly optional for backend build
 COPY apps/web/package.json ./apps/web/
 
-# Install ALL dependencies at root (this will link workspaces)
+# 2. Install dependencies (Root level)
 RUN yarn install --frozen-lockfile
 
-# Builder stage
-FROM base AS builder
+# 3. Copy source code
+COPY libs ./libs
+COPY apps/be ./apps/be
+COPY build-libs.sh ./
+
+# 4. Build libs (Requirement: Must build libs first)
+RUN chmod +x build-libs.sh && ./build-libs.sh
+
+# 5. Build backend
+# Root package.json has "build:api" which runs "nx build api"
+# "nx build api" runs "npm run build" in apps/be
+# Artifacts will be in apps/be/dist
+RUN yarn build:api
+
+# 6. Prune dependencies for production
+# This removes devDependencies to reduce image size
+RUN yarn install --production --frozen-lockfile --ignore-scripts --prefer-offline
+
+
+# Runner Stage
+FROM node:20-alpine AS runner
 WORKDIR /app
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/libs/node_modules ./libs/node_modules
-COPY --from=deps /app/apps/be/node_modules ./apps/be/node_modules
-
-# Copy source code
-COPY . .
-
-# Build shared library FIRST (this creates dist folder that BE depends on)
-RUN yarn workspace @qnoffice/shared build
-
-# Now build backend (it can import from @qnoffice/shared)
-RUN yarn workspace qn-official-api build
-
-# Production stage
-FROM base AS runner
-WORKDIR /app
-
 ENV NODE_ENV=production
+ENV PORT=3000
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nestjs
+# Copy root files
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/yarn.lock ./
 
-# Copy production dependencies
-COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=deps --chown=nestjs:nodejs /app/package.json ./package.json
+# Copy production dependencies (re-using node_modules from builder is safest for monorepo symlinks)
+# Alternatively, prune dev dependencies, but symlinks to libs matter.
+# Since libs is a local workspace, "yarn install --production" might break symlink if source is missing.
+# We will just copy the builder's node_modules which works (though large).
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy built backend
-COPY --from=builder --chown=nestjs:nodejs /app/apps/be/dist ./apps/be/dist
+# Copy built artifacts
+COPY --from=builder /app/libs/dist ./libs/dist
+COPY --from=builder /app/libs/package.json ./libs/
+COPY --from=builder /app/apps/be/dist ./apps/be/dist
+COPY --from=builder /app/apps/be/package.json ./apps/be/
 
-# Copy built shared library (needed at runtime)
-COPY --from=builder --chown=nestjs:nodejs /app/libs/dist ./libs/dist
-COPY --from=builder --chown=nestjs:nodejs /app/libs/package.json ./libs/package.json
-
-USER nestjs
-
-EXPOSE 3000
-
-CMD ["node", "apps/be/dist/main.js"]
+WORKDIR /app/apps/be
+CMD ["node", "dist/main"]

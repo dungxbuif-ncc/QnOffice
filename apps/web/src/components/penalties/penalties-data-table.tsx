@@ -64,14 +64,20 @@ export function PenaltiesDataTable({
 
   const columns: ColumnDef<Penalty>[] = [
     {
-      accessorKey: 'userId',
-      header: 'Mã nhân viên',
-      cell: ({ row }) => row.original.userId,
+      accessorKey: 'staffId',
+      header: 'Nhân viên',
+      cell: ({ row }) => {
+        const staff = row.original.staff;
+        return staff?.email
+      },
     },
     {
       accessorKey: 'penaltyTypeId',
       header: 'Loại phạt',
-      cell: ({ row }) => `Loại ${row.original.penaltyTypeId}`,
+      cell: ({ row }) => {
+        const penaltyType = row.original.penaltyType;
+        return penaltyType?.name || `Loại ${row.original.penaltyTypeId}`;
+      },
     },
     {
       accessorKey: 'date',
@@ -137,13 +143,15 @@ export function PenaltiesDataTable({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Mã nhân viên</p>
-                  <p className="font-medium">{selectedPenalty.userId}</p>
+                  <p className="text-sm text-muted-foreground">Nhân viên</p>
+                  <p className="font-medium">
+                    {selectedPenalty.staff?.user?.name || selectedPenalty.staff?.email || selectedPenalty.staffId}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Loại phạt</p>
                   <p className="font-medium">
-                    Loại {selectedPenalty.penaltyTypeId}
+                    {selectedPenalty.penaltyType?.name || `Loại ${selectedPenalty.penaltyTypeId}`}
                   </p>
                 </div>
                 <div>

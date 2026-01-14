@@ -1,71 +1,58 @@
-FROM node:20-alpine AS base
-
-# Install dependencies stage
-FROM base AS deps
+FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+RUN corepack enable
 
-# Copy all package.json files for workspace
-COPY package.json yarn.lock ./
-COPY libs/package.json ./libs/
-COPY apps/web/package.json ./apps/web/
-COPY apps/be/package.json ./apps/be/
-
-# Install ALL dependencies at root
-RUN yarn install --frozen-lockfile
-
-# Builder stage
-FROM base AS builder
-WORKDIR /app
-
-# Accept build arguments
+# ARGs for Next.js build
 ARG NEXT_PUBLIC_FRONTEND_URL
 ARG BACKEND_BASE_URL
-
-# Set them as environment variables for Next.js build
 ENV NEXT_PUBLIC_FRONTEND_URL=$NEXT_PUBLIC_FRONTEND_URL
 ENV BACKEND_BASE_URL=$BACKEND_BASE_URL
 
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/libs/node_modules ./libs/node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+# 1. Copy package definitions
+COPY package.json yarn.lock ./
+COPY libs/package.json ./libs/
+COPY apps/web/package.json ./apps/web/
+# Include be to satisfy workspace
+COPY apps/be/package.json ./apps/be/
 
-# Copy source code
-COPY . .
+# 2. Install dependencies
+RUN yarn install --frozen-lockfile
 
-# Build shared library FIRST
-RUN yarn workspace @qnoffice/shared build
+# 3. Copy source code
+COPY libs ./libs
+COPY apps/web ./apps/web
+COPY build-libs.sh ./
 
-# Build frontend
-RUN yarn workspace web build
+# 4. Build libs (Requirement: Must build libs first)
+RUN chmod +x build-libs.sh && ./build-libs.sh
 
-# Production stage
-FROM base AS runner
+# 5. Build frontend
+# Root package.json has "build:web" -> "nx build web"
+# "nx build web" runs "next build" in apps/web
+# "standalone" output is configured in next.config.ts
+RUN yarn build:web
+
+# Runner Stage
+FROM node:20-alpine AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
-
-# Copy public assets
-COPY --from=builder /app/apps/web/public ./apps/web/public
-
-# Set the correct permission for prerender cache
-RUN mkdir -p apps/web/.next && \
-    chown nextjs:nodejs apps/web/.next
+ENV PORT=3000
 
 # Copy standalone build
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-
-USER nextjs
+# Next.js standalone folder includes necessary node_modules
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 EXPOSE 3000
-
-ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# Standalone output puts the server at apps/web/server.js usually, or root of standalone if flattened?
+# Standalone structure:
+# standalone/package.json
+# standalone/apps/web/server.js
+# standalone/node_modules
+#
+# So we need to run apps/web/server.js
 CMD ["node", "apps/web/server.js"]

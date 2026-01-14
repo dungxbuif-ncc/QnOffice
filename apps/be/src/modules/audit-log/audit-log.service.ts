@@ -55,15 +55,13 @@ export class AuditLogService {
     const [logs, total] = await this.auditLogRepository.findAndCount({
       where,
       order: { createdAt: 'DESC' },
-      skip: (searchParams.page - 1) * searchParams.take,
-      take: searchParams.take,
     });
 
     return {
       result: logs,
       total,
-      page: searchParams.page,
-      pageSize: searchParams.take,
+      page: 1,
+      pageSize: total,
     };
   }
 

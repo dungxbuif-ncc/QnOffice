@@ -37,7 +37,7 @@ export class PenaltyService {
     const [data, total] = await this.penaltyRepository.findAndCount({
       skip: queries.skip,
       take: queries.take,
-      relations: ['penaltyType'],
+      relations: ['penaltyType', 'staff', 'staff.user'],
       order: { createdAt: SearchOrder.DESC },
     });
     return {
@@ -51,7 +51,7 @@ export class PenaltyService {
   async findOne(id: number): Promise<Penalty> {
     const penalty = await this.penaltyRepository.findOne({
       where: { id },
-      relations: ['penaltyType'],
+      relations: ['penaltyType', 'staff', 'staff.user'],
     });
 
     if (!penalty) {
@@ -61,9 +61,9 @@ export class PenaltyService {
     return penalty;
   }
 
-  async findByUser(userId: number): Promise<Penalty[]> {
+  async findByUser(staffId: number): Promise<Penalty[]> {
     return this.penaltyRepository.find({
-      where: { userId },
+      where: { staffId },
       relations: ['penaltyType'],
       order: { createdAt: SearchOrder.DESC },
     });
@@ -99,10 +99,10 @@ export class PenaltyService {
   }
 
   async getTotalByUser(
-    userId: number,
+    staffId: number,
   ): Promise<{ total: number; unpaid: number }> {
     const penalties = await this.penaltyRepository.find({
-      where: { userId },
+      where: { staffId },
     });
 
     const total = penalties.reduce((sum, p) => sum + Number(p.amount), 0);
