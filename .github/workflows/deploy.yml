@@ -72,6 +72,7 @@ jobs:
             OAUTH_URL=MEZON_OAUTH_URL:latest
             MEZON_BOT_ID=MEZON_BOT_ID:latest
             MEZON_BOT_TOKEN=MEZON_BOT_TOKEN:latest
+            BOT_TOKEN=BOT_TOKEN:latest
             AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID:latest
             AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY:latest
             AWS_S3_ENDPOINT=AWS_S3_ENDPOINT:latest
