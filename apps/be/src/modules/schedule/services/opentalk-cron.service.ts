@@ -5,8 +5,7 @@ import {
   CycleStatus,
   EventStatus,
   ScheduleType,
-  SearchOrder,
-  StaffStatus,
+  StaffStatus
 } from '@qnoffice/shared';
 import {
   NotificationEvent,
@@ -16,21 +15,26 @@ import { AppLogService } from '@src/common/shared/services/app-log.service';
 import {
   fromDateString,
   getCurrentDateString,
+  getNextOpentalkDate,
   toDateString,
 } from '@src/common/utils/date.utils';
+import { formatVn, nowVn } from '@src/common/utils/time.util';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import OpentalkSlideEntity from '@src/modules/opentalk/entities/opentalk-slide.entity';
+import { OpentalkService } from '@src/modules/opentalk/opentalk.service';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import { addDays, addMonths, differenceInCalendarDays, startOfMonth, subDays } from 'date-fns';
+import {
+  addDays,
+  addMonths,
+  differenceInCalendarDays
+} from 'date-fns';
 import {
   Between,
   EntityManager,
   In,
   LessThan,
-  Like,
-  MoreThan,
   Not,
-  Repository,
+  Repository
 } from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
@@ -41,6 +45,10 @@ import {
   SchedulingAlgorithm,
   Staff,
 } from '../schedule.algorith';
+import {
+  getCycleTriggerStatus,
+  getNextCycleInfo
+} from '../schedule.utils';
 
 @Injectable()
 export class OpentalkCronService {
@@ -49,16 +57,15 @@ export class OpentalkCronService {
     private readonly eventRepository: Repository<ScheduleEventEntity>,
     @InjectRepository(OpentalkSlideEntity)
     private readonly slideRepository: Repository<OpentalkSlideEntity>,
-    @InjectRepository(ScheduleCycleEntity)
-    private readonly cycleRepository: Repository<ScheduleCycleEntity>,
     @InjectRepository(StaffEntity)
     private readonly staffRepository: Repository<StaffEntity>,
     @InjectRepository(HolidayEntity)
     private readonly holidayRepository: Repository<HolidayEntity>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly opentalkService: OpentalkService,
     private readonly appLogService: AppLogService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async markPastEventsCompleted(journeyId: string): Promise<void> {
@@ -285,69 +292,30 @@ export class OpentalkCronService {
     );
 
     try {
-      const currentCycle = await this.cycleRepository.findOne({
-        where: { type: ScheduleType.OPENTALK, status: CycleStatus.ACTIVE },
-        relations: ['events'],
-        order: { id: SearchOrder.DESC },
-      });
-
-      if (!currentCycle || currentCycle.events.length === 0) {
+      const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
+      const activeCycle = await this.opentalkService.getActiveCycle();
+      if (!activeCycle) {
         this.appLogService.journeyLog(
           journeyId,
-          'No active cycle found or cycle has no events. Skipping auto-creation.',
+          'No active opentalk cycle found for today. Skipping.',
           'OpentalkCronService',
         );
         return;
       }
+      const eventDates = activeCycle.events.map((e) => e.eventDate).sort();
+      const lastEventDateStr = eventDates[eventDates.length - 1];
+      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(lastEventDateStr, todayString);
 
-      const sortedEvents = currentCycle.events.sort((a, b) =>
-        a.eventDate.localeCompare(b.eventDate),
-      );
-      const lastEvent = sortedEvents[sortedEvents.length - 1];
-      const lastEventDate = new Date(lastEvent.eventDate);
-      const today = new Date(getCurrentDateString());
-
-      const sevenDaysBeforeEnd = subDays(lastEventDate, 7);
-
-      if (today < sevenDaysBeforeEnd) {
+      if (!shouldTrigger) {
         this.appLogService.journeyLog(
           journeyId,
-          'Current cycle is not near completion. Skipping.',
+          `Current opentalk schedule is not near completion (${daysUntilEnd} days left). Skipping.`,
           'OpentalkCronService',
           {
-            lastEventDate: lastEvent.eventDate,
-            checkDate: getCurrentDateString(),
-            triggerDate: toDateString(sevenDaysBeforeEnd),
-          },
-        );
-        return;
-      }
-
-      const startOfNextMonth = startOfMonth(addMonths(lastEventDate, 1));
-      const nextMonthStr = `${startOfNextMonth.getMonth() + 1}/${startOfNextMonth.getFullYear()}`;
-
-      const existingNextCycle = await this.cycleRepository.findOne({
-        where: {
-          type: ScheduleType.OPENTALK,
-          name: Like(`%${nextMonthStr}%`),
-        },
-      });
-
-      const newerCycleEncoded = await this.cycleRepository.findOne({
-        where: {
-          type: ScheduleType.OPENTALK,
-          id: MoreThan(currentCycle.id),
-        },
-      });
-
-      if (newerCycleEncoded || existingNextCycle) {
-        this.appLogService.journeyLog(
-          journeyId,
-          'Next cycle likely already exists. Skipping.',
-          'OpentalkCronService',
-          {
-            newerCycleId: newerCycleEncoded?.id,
-            existingNextCycleId: existingNextCycle?.id,
+            cycleName: activeCycle.name,
+            lastEventDate: lastEventDateStr,
+            checkDate: todayString,
+            daysUntilEnd,
           },
         );
         return;
@@ -355,11 +323,11 @@ export class OpentalkCronService {
 
       this.appLogService.journeyLog(
         journeyId,
-        ' Triggering new opentalk cycle creation!',
+        'Triggering new opentalk cycle creation!',
         'OpentalkCronService',
       );
 
-      await this.createNextCycle(currentCycle, journeyId);
+      await this.createNextCycle(activeCycle, journeyId);
     } catch (error) {
       this.appLogService.journeyError(
         journeyId,
@@ -393,14 +361,7 @@ export class OpentalkCronService {
       username: s.email || `staff_${s.id}`,
     }));
 
-    const previousEvents = await this.eventRepository.find({
-      where: {
-        cycleId: previousCycleEntity.id,
-        type: ScheduleType.OPENTALK,
-      },
-      relations: ['eventParticipants'],
-      order: { eventDate: 'ASC' },
-    });
+    const previousEvents = previousCycleEntity.events;
 
     const previousCycleData: CycleData = {
       id: previousCycleEntity.id,
@@ -410,33 +371,42 @@ export class OpentalkCronService {
       })),
     };
 
-    const lastEventDate = new Date(
-      previousEvents[previousEvents.length - 1].eventDate,
+    const lastEventDateStr = previousEvents[previousEvents.length - 1].eventDate;
+    const lastEventDate = fromDateString(lastEventDateStr);
+
+    const { startDate, cycleName, description } = getNextCycleInfo(
+      lastEventDateStr,
+      ScheduleType.OPENTALK,
     );
-    const startDate = startOfMonth(addDays(lastEventDate, 1));
-    const endDate = addMonths(startDate, 1);
 
     const holidays = await this.holidayRepository.find({
       where: {
         date: Between(
           toDateString(startDate),
-          toDateString(addMonths(endDate, 12)),
+          toDateString(addMonths(startDate, 12)),
         ),
       },
     });
 
+    const holidaysStr = holidays.map((h) =>
+      typeof h.date === 'string' ? h.date : toDateString(h.date),
+    );
+
+    const nextValidStartDate = getNextOpentalkDate(
+      lastEventDate,
+      holidaysStr,
+    );
+
     const config: SchedulerConfig = {
       type: ScheduleType.OPENTALK,
-      startDate: toDateString(startDate),
+      startDate: toDateString(nextValidStartDate),
       slotSize: 1,
-      holidays: holidays.map((h) =>
-        typeof h.date === 'string' ? h.date : toDateString(h.date),
-      ),
+      holidays: holidaysStr,
     };
 
     this.appLogService.stepLog(
       1,
-      `Generating opentalk schedule for ${toDateString(startDate)}`,
+      `Generating opentalk schedule for ${toDateString(nextValidStartDate)}`,
       'OpentalkCronService',
       journeyId,
       { config },
@@ -456,15 +426,15 @@ export class OpentalkCronService {
     );
     await this.entityManager.transaction(async (manager) => {
       const newCycle = manager.create(ScheduleCycleEntity, {
-        name: `OpenTalk tháng ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
+        name: cycleName,
         type: ScheduleType.OPENTALK,
-        description: `Auto-generated schedule for ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
+        description,
         status: CycleStatus.DRAFT,
       });
 
       this.appLogService.stepLog(
         3,
-        `Creating new cycle for ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
+        `Creating new cycle for ${cycleName}`,
         'OpentalkCronService',
         journeyId,
         { cycleName: newCycle.name },

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { APP_TIMEZONE } from '@src/common/constants';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
@@ -10,8 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CronService {
-  private readonly logger = new Logger(CronService.name);
-
   constructor(
     private readonly cleaningCronService: CleaningCronService,
     private readonly opentalkCronService: OpentalkCronService,
@@ -27,7 +25,26 @@ export class CronService {
     const journeyId = `mark-events-completed-${uuidv4()}`;
     const executionTime = nowVn();
     const dayOfWeek = executionTime.getDay();
-
+    const cleaningJourneyId = `daily-cleaning-cycle-check-${uuidv4()}`;
+    this.appLogService.journeyLog(
+      cleaningJourneyId,
+      'Starting daily cleaning cycle check',
+      'CronService',
+      {
+        cronJob: 'daily-cleaning-cycle-check',
+        executionTime: executionTime.toISOString(),
+      },
+    );
+    const opentalkJourneyId = `daily-opentalk-cycle-check-${uuidv4()}`;
+    this.appLogService.journeyLog(
+      opentalkJourneyId,
+      'Starting daily opentalk cycle check',
+      'CronService',
+      {
+        cronJob: 'daily-opentalk-cycle-check',
+        executionTime: executionTime.toISOString(),
+      },
+    );
     if (dayOfWeek >= 2 && dayOfWeek <= 6) {
       this.appLogService.journeyLog(
         journeyId,
@@ -55,6 +72,8 @@ export class CronService {
 
       await this.opentalkCronService.markPastEventsCompleted(journeyId);
     }
+    await this.cleaningCronService.handleAutomaticCycleCreation(journeyId);
+    await this.opentalkCronService.handleAutomaticCycleCreation(journeyId);
   }
 
   @Cron('0 2 1 * *', {
@@ -174,40 +193,5 @@ export class CronService {
 
     await this.cleaningCronService.sendAfternoonReminder(afternoonJourneyId);
     await this.cleaningCronService.sendNextDayReminder(nextDayJourneyId);
-  }
-
-  @Cron('0 6 * * *', {
-    name: 'daily-schedule-cycle-check',
-    timeZone: APP_TIMEZONE,
-  })
-  async handleDailyCycleCheck(): Promise<void> {
-    const executionTime = nowVn();
-    const cleaningJourneyId = `daily-cleaning-cycle-check-${uuidv4()}`;
-    this.appLogService.journeyLog(
-      cleaningJourneyId,
-      'Starting daily cleaning cycle check',
-      'CronService',
-      {
-        cronJob: 'daily-cleaning-cycle-check',
-        executionTime: executionTime.toISOString(),
-      },
-    );
-    const opentalkJourneyId = `daily-opentalk-cycle-check-${uuidv4()}`;
-    this.appLogService.journeyLog(
-      opentalkJourneyId,
-      'Starting daily opentalk cycle check',
-      'CronService',
-      {
-        cronJob: 'daily-opentalk-cycle-check',
-        executionTime: executionTime.toISOString(),
-      },
-    );
-
-    await this.cleaningCronService.handleAutomaticCycleCreation(
-      cleaningJourneyId,
-    );
-    await this.opentalkCronService.handleAutomaticCycleCreation(
-      opentalkJourneyId,
-    );
   }
 }

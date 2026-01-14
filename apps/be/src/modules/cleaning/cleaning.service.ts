@@ -1,13 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
+import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
-import { EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
+import { findActiveCycle } from '../schedule/schedule.utils';
 @Injectable()
 export class CleaningService {
   constructor(
@@ -93,6 +95,41 @@ export class CleaningService {
           : 0;
     });
     return cycles;
+  }
+
+  async getActiveCycle(): Promise<ScheduleCycleEntity | null> {
+    const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
+
+    const recentEvent = await this.eventRepository.findOne({
+      where: {
+        type: ScheduleType.CLEANING,
+        eventDate: LessThanOrEqual(todayString),
+      },
+      order: { eventDate: 'DESC' },
+    });
+
+    if (!recentEvent) {
+      return null;
+    }
+    const cycle = await this.cycleRepository.findOne({
+      where: { id: recentEvent.cycleId },
+      relations: ['events'],
+    });
+    if (!cycle) {
+      return null;
+    }
+    return findActiveCycle([cycle], todayString);
+  }
+
+  async getFutureEvents(): Promise<ScheduleEventEntity[]> {
+    const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
+    return this.eventRepository.find({
+      where: { type: ScheduleType.CLEANING,
+         eventDate: MoreThanOrEqual(todayString)
+       },
+      relations: ['eventParticipants'],
+      order: { eventDate: 'ASC' },
+    });
   }
 
   async getCycleById(id: number): Promise<ScheduleCycleEntity | null> {

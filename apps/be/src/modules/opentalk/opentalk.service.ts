@@ -1,24 +1,26 @@
 import {
-    BadRequestException,
-    ConflictException,
-    Injectable,
-    NotFoundException,
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-    CycleStatus,
-    EventStatus,
-    OpentalkSlideStatus,
-    OpentalkSlideType,
-    ScheduleType,
-    SearchOrder,
+  CycleStatus,
+  EventStatus,
+  OpentalkSlideStatus,
+  OpentalkSlideType,
+  ScheduleType,
+  SearchOrder,
 } from '@qnoffice/shared';
+import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { SubmitSlideDto } from '@src/modules/opentalk/dtos/submit-slide.dto';
 import { CreateSwapRequestDto } from '@src/modules/swap-request/dtos/create-swap-request.dto';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
+import { findActiveCycle } from '../schedule/schedule.utils';
 import SwapRequestEntity from '../swap-request/swap-request.entity';
 import { CreateOpentalkCycleDto } from './dtos/create-opentalk-cycle.dto';
 import { CreateOpentalkEventDto } from './dtos/create-opentalk-event.dto';
@@ -62,6 +64,40 @@ export class OpentalkService {
           eventDate: SearchOrder.ASC,
         },
       },
+    });
+  }
+
+  async getActiveCycle(): Promise<ScheduleCycleEntity | null> {
+    const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
+    const recentEvent = await this.eventRepository.findOne({
+      where: {
+        type: ScheduleType.OPENTALK,
+        eventDate: LessThanOrEqual(todayString),
+      },
+      order: { eventDate: 'DESC' },
+    });
+    if (!recentEvent) {
+      return null;
+    }
+    const cycle = await this.cycleRepository.findOne({
+      where: { id: recentEvent.cycleId },
+      relations: ['events'],
+    });
+    if (!cycle) {
+      return null;
+    }
+    return findActiveCycle([cycle], todayString);
+  }
+
+  async getFutureEvents(): Promise<ScheduleEventEntity[]> {
+    const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
+    return this.eventRepository.find({
+      where: {
+        type: ScheduleType.OPENTALK,
+        eventDate: MoreThanOrEqual(todayString),
+      },
+      relations: ['eventParticipants'],
+      order: { eventDate: SearchOrder.ASC },
     });
   }
 

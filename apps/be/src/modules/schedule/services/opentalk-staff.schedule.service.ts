@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EventStatus, ScheduleType } from '@qnoffice/shared';
+import { ScheduleType } from '@qnoffice/shared';
 import { getCurrentDateString } from '@src/common/utils/date.utils';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
@@ -295,8 +295,6 @@ export class OpentalkStaffService {
     return updates;
   }
 
-
-
   private getNextSaturday(fromDate: Date, holidays: Set<string>): Date {
     const result = new Date(fromDate);
     result.setDate(result.getDate() + 7);
@@ -385,7 +383,6 @@ export class OpentalkStaffService {
           type: ScheduleType.OPENTALK,
           cycleId: creation.cycleId,
           eventDate: creation.date,
-          status: EventStatus.ACTIVE,
         });
         const savedEvent = await eventRepo.save(createdEvent);
 
@@ -456,8 +453,6 @@ export class OpentalkStaffService {
       a.startDate.localeCompare(b.startDate),
     );
   }
-
-
 
   private async getHolidays(): Promise<Set<string>> {
     const holidays = await this.holidayRepository.find();

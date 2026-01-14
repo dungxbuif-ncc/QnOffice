@@ -129,7 +129,7 @@ export class OpentalkSeeder {
         type: 'OPENTALK',
         notes: 'Weekly Opentalk - Diễn giả: tien.nguyenvan',
         eventDate: '2026-01-10',
-        status: EventStatus.ACTIVE,
+        status: EventStatus.PENDING,
         cycleId: currentCycle.id,
         assignedStaff: tienNguyen,
       },

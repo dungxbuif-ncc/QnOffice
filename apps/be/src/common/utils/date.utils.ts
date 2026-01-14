@@ -1,6 +1,7 @@
 import { TZDate } from '@date-fns/tz';
+import { ScheduleType } from '@qnoffice/shared';
 import { APP_TIMEZONE } from '@src/common/constants';
-import { format } from 'date-fns';
+import { addDays, format, getDay, isWeekend } from 'date-fns';
 
 /**
  * Get current date in UTC+7 timezone as YYYY-MM-DD string
@@ -48,4 +49,44 @@ export function isToday(dateString: string): boolean {
 export function isAfterToday(dateString: string): boolean {
   const today = getCurrentDateString();
   return dateString > today;
+}
+/**
+ * Find the next valid date based on schedule type and holidays
+ */
+export function getNextValidDate(fromDate: Date, type: ScheduleType, holidays: string[]): Date {
+  let checkDate = addDays(fromDate, 1);
+  while (true) {
+    const dateStr = toDateString(checkDate);
+    if (holidays.includes(dateStr)) {
+      checkDate = addDays(checkDate, 1);
+      continue;
+    }
+
+    if (type === ScheduleType.CLEANING) {
+      if (isWeekend(checkDate)) {
+        checkDate = addDays(checkDate, 1);
+        continue;
+      }
+    } else if (type === ScheduleType.OPENTALK) {
+      if (getDay(checkDate) !== 6) { // Saturday
+        checkDate = addDays(checkDate, 1);
+        continue;
+      }
+    }
+    return checkDate;
+  }
+}
+
+/**
+ * Get the next working day (Monday-Friday) for cleaning, skipping holidays
+ */
+export function getNextCleaningDate(fromDate: Date, holidays: string[]): Date {
+  return getNextValidDate(fromDate, ScheduleType.CLEANING, holidays);
+}
+
+/**
+ * Get the next Saturday for Opentalk, skipping holidays
+ */
+export function getNextOpentalkDate(fromDate: Date, holidays: string[]): Date {
+  return getNextValidDate(fromDate, ScheduleType.OPENTALK, holidays);
 }

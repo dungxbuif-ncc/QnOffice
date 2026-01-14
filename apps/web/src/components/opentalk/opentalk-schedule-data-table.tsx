@@ -181,7 +181,6 @@ export function OpentalkScheduleDataTable({
 
   const getEventStatusBadge = (status: EventStatus) => {
     const variants: Record<EventStatus, { variant: any; label: string }> = {
-      [EventStatus.ACTIVE]: { variant: 'default', label: 'Scheduled' },
       [EventStatus.COMPLETED]: { variant: 'secondary', label: 'Completed' },
       [EventStatus.PENDING]: { variant: 'outline', label: 'Swapped' },
       [EventStatus.CANCELLED]: {

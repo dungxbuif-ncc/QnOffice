@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { CycleStatus, EventStatus, ScheduleType } from '@qnoffice/shared';
+import { CycleStatus, EventStatus, ScheduleType, StaffStatus } from '@qnoffice/shared';
 import {
   CleaningReminderPayload,
   NotificationEvent,
@@ -10,12 +10,25 @@ import { AppLogService } from '@src/common/shared/services/app-log.service';
 import {
   fromDateString,
   getCurrentDateString,
+  getNextCleaningDate,
   toDateString,
 } from '@src/common/utils/date.utils';
+import { formatVn, nowVn } from '@src/common/utils/time.util';
+import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import { addDays, addMonths, startOfMonth } from 'date-fns';
-import { Between, EntityManager, In, LessThan, Not, Repository } from 'typeorm';
+import {
+  addDays,
+  addMonths
+} from 'date-fns';
+import {
+  Between,
+  EntityManager,
+  In,
+  LessThan,
+  Not,
+  Repository
+} from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
@@ -25,20 +38,22 @@ import {
   SchedulingAlgorithm,
   Staff,
 } from '../schedule.algorith';
-
+import {
+  getCycleTriggerStatus,
+  getNextCycleInfo
+} from '../schedule.utils';
 @Injectable()
 export class CleaningCronService {
   constructor(
     @InjectRepository(ScheduleEventEntity)
     private readonly eventRepository: Repository<ScheduleEventEntity>,
-    @InjectRepository(ScheduleCycleEntity)
-    private readonly cycleRepository: Repository<ScheduleCycleEntity>,
     @InjectRepository(StaffEntity)
     private readonly staffRepository: Repository<StaffEntity>,
     @InjectRepository(HolidayEntity)
     private readonly holidayRepository: Repository<HolidayEntity>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    private readonly cleaningService: CleaningService,
     private readonly eventEmitter: EventEmitter2,
     private readonly appLogService: AppLogService,
   ) {}
@@ -170,10 +185,7 @@ export class CleaningCronService {
           type: ScheduleType.CLEANING,
           eventDate: today,
         },
-        relations: [
-          'eventParticipants',
-          'eventParticipants.staff',
-        ],
+        relations: ['eventParticipants', 'eventParticipants.staff'],
       });
 
       this.appLogService.stepLog(
@@ -189,19 +201,20 @@ export class CleaningCronService {
       );
 
       let totalParticipants = 0;
-      const payloads: CleaningReminderPayload[] = (todayEvents.map((event) => {
-        const eventParticipants = event.eventParticipants || [];
+      const payloads: CleaningReminderPayload[] = todayEvents
+        .map((event) => {
+          const eventParticipants = event.eventParticipants || [];
 
-        const participants = eventParticipants.map((p) => ({
-          userId: p.staff.userId || '',
-          username: p.staff.email.split('@')[0],
-        }));
+          const participants = eventParticipants.map((p) => ({
+            userId: p.staff.userId || '',
+            username: p.staff.email.split('@')[0],
+          }));
 
-        if (!participants.length) {
-            return null
-        }
+          if (!participants.length) {
+            return null;
+          }
 
-        totalParticipants += participants.length;
+          totalParticipants += participants.length;
           return {
             eventId: event.id,
             eventDate: event.eventDate,
@@ -209,8 +222,8 @@ export class CleaningCronService {
             type: 'morning',
             journeyId: journeyId,
           };
-      }).filter(Boolean)) as CleaningReminderPayload[]; 
-
+        })
+        .filter(Boolean) as CleaningReminderPayload[];
 
       if (payloads.length > 0) {
         this.appLogService.stepLog(
@@ -278,10 +291,7 @@ export class CleaningCronService {
           type: ScheduleType.CLEANING,
           eventDate: today,
         },
-        relations: [
-          'eventParticipants',
-          'eventParticipants.staff',
-        ],
+        relations: ['eventParticipants', 'eventParticipants.staff'],
       });
 
       this.appLogService.stepLog(
@@ -383,10 +393,7 @@ export class CleaningCronService {
           type: ScheduleType.CLEANING,
           eventDate: tomorrow,
         },
-        relations: [
-          'eventParticipants',
-          'eventParticipants.staff',
-        ],
+        relations: ['eventParticipants', 'eventParticipants.staff'],
       });
 
       this.appLogService.stepLog(
@@ -474,23 +481,44 @@ export class CleaningCronService {
     );
 
     try {
-      // 1. Get current active cycle
-      const currentCycle = await this.cycleRepository.findOne({
-        where: { type: ScheduleType.CLEANING, status: CycleStatus.ACTIVE },
-        relations: ['events'],
-        order: { id: 'DESC' }, // Get latest active
-      });
+      const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
 
-      if (!currentCycle || currentCycle.events.length === 0) {
+      const activeCycle = await this.cleaningService.getActiveCycle();
+      if (!activeCycle) {
         this.appLogService.journeyLog(
           journeyId,
-          'No active cycle found or cycle has no events. Skipping auto-creation.',
+          'No active cleaning cycle found for today. Checking if we need to start from absolute last event.',
           'CleaningCronService',
+        );
+      }
+
+      if (!activeCycle) return;
+
+      const eventDates = activeCycle.events.map((e) => e.eventDate).sort();
+      const lastEventDateStr = eventDates[eventDates.length - 1];
+      
+      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(lastEventDateStr, todayString);
+
+      if (!shouldTrigger) {
+        this.appLogService.journeyLog(
+          journeyId,
+          `Cleaning schedule is not near completion (${daysUntilEnd} days left). Skipping.`,
+          'CleaningCronService',
+          {
+            cycleName: activeCycle.name,
+            lastEventDate: lastEventDateStr,
+            checkDate: todayString,
+            daysUntilEnd,
+          },
         );
         return;
       }
-
-      await this.createNextCycle(currentCycle, journeyId);
+      this.appLogService.journeyLog(
+        journeyId,
+        'Triggering new cleaning cycle creation!',
+        'CleaningCronService',
+      );
+      await this.createNextCycle(activeCycle, journeyId);
     } catch (error) {
       this.appLogService.journeyError(
         journeyId,
@@ -507,28 +535,24 @@ export class CleaningCronService {
     journeyId: string,
   ): Promise<void> {
     const staff = await this.staffRepository.find({
-      where: { status: 0 }, // Active staff
+      where: { status: StaffStatus.ACTIVE }, 
       relations: ['user'],
     });
-
     if (staff.length === 0) {
-      throw new Error('No active staff found');
+      this.appLogService.journeyError(
+        journeyId,
+        '❌ No active staff found',
+        'CleaningCronService',
+      );
+      return;
     }
 
     const algorithmStaff: Staff[] = staff.map((s) => ({
       id: s.id,
-      username: s.email || `staff_${s.id}`,
+      username: s.email || s.user?.email || `staff_${s.id}`,
     }));
 
-    // Prepare previous cycle data for algorithm
-    const previousEvents = await this.eventRepository.find({
-      where: {
-        cycleId: previousCycleEntity.id,
-        type: ScheduleType.CLEANING,
-      },
-      relations: ['eventParticipants'],
-      order: { eventDate: 'ASC' },
-    });
+    const previousEvents =previousCycleEntity.events;
 
     const previousCycleData: CycleData = {
       id: previousCycleEntity.id,
@@ -538,35 +562,42 @@ export class CleaningCronService {
       })),
     };
 
-    const lastEventDate = new Date(
-      previousEvents[previousEvents.length - 1].eventDate,
+    const lastEventDateStr = previousEvents[previousEvents.length - 1].eventDate;
+    const lastEventDate = fromDateString(lastEventDateStr);
+    
+    const { startDate, cycleName, description } = getNextCycleInfo(
+      lastEventDateStr,
+      ScheduleType.CLEANING,
     );
-    // Start from the first day of the NEXT month after the last event
-    const startDate = startOfMonth(addDays(lastEventDate, 1));
-    const endDate = addMonths(startDate, 1); // 1 month duration
 
-    // Holidays
     const holidays = await this.holidayRepository.find({
       where: {
         date: Between(
           toDateString(startDate),
-          toDateString(addMonths(endDate, 3)), // Fetch enough ahead
+          toDateString(addMonths(startDate, 12)),
         ),
       },
     });
 
+    const holidaysStr = holidays.map((h) =>
+      typeof h.date === 'string' ? h.date : toDateString(h.date),
+    );
+
+    const nextValidStartDate = getNextCleaningDate(
+      lastEventDate,
+      holidaysStr,
+    );
+
     const config: SchedulerConfig = {
       type: ScheduleType.CLEANING,
-      startDate: toDateString(startDate),
+      startDate: toDateString(nextValidStartDate),
       slotSize: 2,
-      holidays: holidays.map((h) =>
-        typeof h.date === 'string' ? h.date : toDateString(h.date),
-      ),
+      holidays: holidaysStr,
     };
 
     this.appLogService.stepLog(
       1,
-      `Generating schedule for ${toDateString(startDate)}`,
+      `Generating cleaning schedule for ${toDateString(startDate)}`,
       'CleaningCronService',
       journeyId,
       { config },
@@ -580,67 +611,49 @@ export class CleaningCronService {
 
     await this.entityManager.transaction(async (manager) => {
       const newCycle = manager.create(ScheduleCycleEntity, {
-        name: `Cleaning ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
+        name: cycleName,
         type: ScheduleType.CLEANING,
-        description: `Auto-generated schedule for ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
+        description,
         status: CycleStatus.DRAFT,
       });
 
-      this.appLogService.stepLog(
-        2,
-        `Creating new cleaning cycle for ${startDate.getMonth() + 1}/${startDate.getFullYear()}`,
-        'CleaningCronService',
-        journeyId,
-        { cycleName: newCycle.name },
-      );
-
       const savedCycle = await manager.save(ScheduleCycleEntity, newCycle);
 
-      const events = schedule.map((item) => {
-        const eventDate = new Date(item.date);
+      const events = schedule.map((scheduleEvent) => {
+        const staffUsernames = scheduleEvent.staffIds.map((id) => {
+          const staffMember = staff.find((s) => s.id === id);
+          return staffMember?.email || staffMember?.user?.email || 'Không rõ';
+        });
+
+        const eventDate = fromDateString(scheduleEvent.date);
         const isSpecial = eventDate.getDay() === 5; // Friday
 
-        const assignedStaff = staff.filter((s) => item.staffIds.includes(s.id));
-        const names = assignedStaff
-          .map((s) => s.email?.split('@')[0] || 'Unknown')
-          .join(' & ');
-
         const title = isSpecial
-          ? `Dọn dẹp + Đặc biệt (${names})`
-          : `Dọn dẹp văn phòng (${names})`;
+          ? `Dọn dẹp + Thứ Sáu (${staffUsernames.join(' & ')})`
+          : `Dọn dẹp văn phòng (${staffUsernames.join(' & ')})`;
 
         const notes = isSpecial
-          ? 'Dọn dẹp văn phòng + vệ sinh lò vi sóng và tủ lạnh (đặc biệt Thứ Sáu)'
+          ? 'Dọn dẹp văn phòng + vệ sinh lò vi sóng và tủ lạnh (Thứ Sáu)'
           : 'Dọn dẹp văn phòng hàng ngày';
 
         return manager.create(ScheduleEventEntity, {
           title,
           type: ScheduleType.CLEANING,
           notes,
-          eventDate: item.date,
+          eventDate: scheduleEvent.date,
           status: EventStatus.PENDING,
           cycle: savedCycle,
-          ...(item.staffIds.length > 0 && {
-            eventParticipants: item.staffIds.map((staffId) =>
-              manager.create(ScheduleEventParticipantEntity, { staffId }),
-            ),
-          }),
+          eventParticipants: scheduleEvent.staffIds.map((staffId) =>
+            manager.create(ScheduleEventParticipantEntity, { staffId }),
+          ),
         });
       });
-
-      this.appLogService.stepLog(
-        3,
-        `Creating ${events.length} events (batch save with participant cascade)`,
-        'CleaningCronService',
-        journeyId,
-        { eventCount: events.length },
-      );
 
       await manager.save(ScheduleEventEntity, events);
 
       this.appLogService.journeyLog(
         journeyId,
-        `✅ Created new cycle ${savedCycle.name} with ${events.length} events`,
+        `✅ Created new cleaning cycle ${savedCycle.name} with ${events.length} events`,
         'CleaningCronService',
         { cycleId: savedCycle.id },
       );
