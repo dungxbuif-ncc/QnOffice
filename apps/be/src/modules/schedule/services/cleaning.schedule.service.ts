@@ -51,7 +51,7 @@ export class CleaningScheduleService {
     const holidays = await this.getHolidays();
     // Ensure new holiday is included
     if (!holidays.includes(holidayDate)) {
-        holidays.push(holidayDate);
+      holidays.push(holidayDate);
     }
 
     const changes = this.calculateHolidayChanges(cycles, holidays);
@@ -75,54 +75,62 @@ export class CleaningScheduleService {
     };
 
     const config: SchedulerConfig = {
-        type: ScheduleType.CLEANING,
-        startDate: '', // Not used by shiftSchedule
-        slotSize: 2,
-        holidays: holidays,
+      type: ScheduleType.CLEANING,
+      startDate: '', // Not used by shiftSchedule
+      slotSize: 2,
+      holidays: holidays,
     };
 
     for (const cycle of cycles) {
-        // Convert to Algorithm Format
-        const algoEvents = cycle.events.map(e => ({
-            date: e.date,
-            staffIds: e.staffIds
-        }));
+      // Convert to Algorithm Format
+      const algoEvents = cycle.events.map((e) => ({
+        date: e.date,
+        staffIds: e.staffIds,
+      }));
 
-        // Run Algorithm
-        const newSchedule = SchedulingAlgorithm.shiftSchedule(algoEvents, [], config);
+      // Run Algorithm
+      const newSchedule = SchedulingAlgorithm.shiftSchedule(
+        algoEvents,
+        [],
+        config,
+      );
 
-        // Map back changes
-        // Assuming 1-to-1 mapping by index
-        if (newSchedule.length !== cycle.events.length) {
-            this.logger.error(`Algorithm returned ${newSchedule.length} events, expected ${cycle.events.length} for Cycle ${cycle.id}. skipping.`);
+      // Map back changes
+      // Assuming 1-to-1 mapping by index
+      if (newSchedule.length !== cycle.events.length) {
+        this.logger.error(
+          `Algorithm returned ${newSchedule.length} events, expected ${cycle.events.length} for Cycle ${cycle.id}. skipping.`,
+        );
+        continue;
+      }
+
+      for (let i = 0; i < cycle.events.length; i++) {
+        const oldEvent = cycle.events[i];
+        const newEvent = newSchedule[i];
+
+        if (oldEvent.date !== newEvent.date) {
+          // Double check staff consistency?
+          // shiftSchedule redistributes staff.
+          // If the staff list is [A, B, C, D]
+          // Events: [AB, CD]
+          // shiftSchedule uses [A, B, C, D] and creates [AB, CD].
+          // So staffIds should match exactly if no staff removed.
+          const oldStaff = [...oldEvent.staffIds].sort().join(',');
+          const newStaff = [...newEvent.staffIds].sort().join(',');
+
+          if (oldStaff !== newStaff) {
+            this.logger.warn(
+              `Staff mismatch for event ${oldEvent.id} during shift. Old: ${oldStaff}, New: ${newStaff}. Ignoring update.`,
+            );
             continue;
+          }
+
+          changes.eventsToUpdate.push({
+            eventId: oldEvent.id,
+            newDate: newEvent.date,
+          });
         }
-
-        for (let i = 0; i < cycle.events.length; i++) {
-            const oldEvent = cycle.events[i];
-            const newEvent = newSchedule[i];
-
-            if (oldEvent.date !== newEvent.date) {
-                // Double check staff consistency?
-                // shiftSchedule redistributes staff.
-                // If the staff list is [A, B, C, D]
-                // Events: [AB, CD]
-                // shiftSchedule uses [A, B, C, D] and creates [AB, CD].
-                // So staffIds should match exactly if no staff removed.
-                const oldStaff = [...oldEvent.staffIds].sort().join(',');
-                const newStaff = [...newEvent.staffIds].sort().join(',');
-                
-                if (oldStaff !== newStaff) {
-                    this.logger.warn(`Staff mismatch for event ${oldEvent.id} during shift. Old: ${oldStaff}, New: ${newStaff}. Ignoring update.`);
-                    continue;
-                }
-
-                changes.eventsToUpdate.push({
-                    eventId: oldEvent.id,
-                    newDate: newEvent.date
-                });
-            }
-        }
+      }
     }
 
     return changes;
@@ -187,8 +195,10 @@ export class CleaningScheduleService {
 
       const cycle = cyclesMap.get(event.cycleId)!;
       // Map participants to IDs
-      const staffIds = event.eventParticipants ? event.eventParticipants.map(p => p.staffId) : [];
-      
+      const staffIds = event.eventParticipants
+        ? event.eventParticipants.map((p) => p.staffId)
+        : [];
+
       cycle.events.push({
         id: event.id,
         date: event.eventDate,

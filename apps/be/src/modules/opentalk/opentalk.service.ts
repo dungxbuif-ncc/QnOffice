@@ -16,7 +16,12 @@ import {
 import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { SubmitSlideDto } from '@src/modules/opentalk/dtos/submit-slide.dto';
 import { CreateSwapRequestDto } from '@src/modules/swap-request/dtos/create-swap-request.dto';
-import { FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
@@ -178,7 +183,7 @@ export class OpentalkService {
         .createQueryBuilder('slide')
         .where('slide.eventId IN (:...eventIds)', { eventIds })
         .getMany();
-      
+
       console.log('OpentalkService getEvents IDs:', eventIds);
       console.log('OpentalkService found slides:', slides);
 
@@ -482,7 +487,9 @@ export class OpentalkService {
     await this.slideRepository.save(slide);
   }
 
-  async getSlideByEventId(eventId: number): Promise<OpentalkSlideEntity | null> {
+  async getSlideByEventId(
+    eventId: number,
+  ): Promise<OpentalkSlideEntity | null> {
     return this.slideRepository.findOne({
       where: { eventId },
     });

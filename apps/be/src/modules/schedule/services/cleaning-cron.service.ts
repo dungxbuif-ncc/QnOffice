@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { CycleStatus, EventStatus, ScheduleType, StaffStatus } from '@qnoffice/shared';
+import {
+  CycleStatus,
+  EventStatus,
+  ScheduleType,
+  StaffStatus,
+} from '@qnoffice/shared';
 import {
   CleaningReminderPayload,
   NotificationEvent,
@@ -17,18 +22,8 @@ import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import {
-  addDays,
-  addMonths
-} from 'date-fns';
-import {
-  Between,
-  EntityManager,
-  In,
-  LessThan,
-  Not,
-  Repository
-} from 'typeorm';
+import { addDays, addMonths } from 'date-fns';
+import { Between, EntityManager, In, LessThan, Not, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
@@ -38,10 +33,7 @@ import {
   SchedulingAlgorithm,
   Staff,
 } from '../schedule.algorith';
-import {
-  getCycleTriggerStatus,
-  getNextCycleInfo
-} from '../schedule.utils';
+import { getCycleTriggerStatus, getNextCycleInfo } from '../schedule.utils';
 @Injectable()
 export class CleaningCronService {
   constructor(
@@ -496,8 +488,11 @@ export class CleaningCronService {
 
       const eventDates = activeCycle.events.map((e) => e.eventDate).sort();
       const lastEventDateStr = eventDates[eventDates.length - 1];
-      
-      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(lastEventDateStr, todayString);
+
+      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(
+        lastEventDateStr,
+        todayString,
+      );
 
       if (!shouldTrigger) {
         this.appLogService.journeyLog(
@@ -535,7 +530,7 @@ export class CleaningCronService {
     journeyId: string,
   ): Promise<void> {
     const staff = await this.staffRepository.find({
-      where: { status: StaffStatus.ACTIVE }, 
+      where: { status: StaffStatus.ACTIVE },
       relations: ['user'],
     });
     if (staff.length === 0) {
@@ -552,7 +547,7 @@ export class CleaningCronService {
       username: s.email || s.user?.email || `staff_${s.id}`,
     }));
 
-    const previousEvents =previousCycleEntity.events;
+    const previousEvents = previousCycleEntity.events;
 
     const previousCycleData: CycleData = {
       id: previousCycleEntity.id,
@@ -562,9 +557,10 @@ export class CleaningCronService {
       })),
     };
 
-    const lastEventDateStr = previousEvents[previousEvents.length - 1].eventDate;
+    const lastEventDateStr =
+      previousEvents[previousEvents.length - 1].eventDate;
     const lastEventDate = fromDateString(lastEventDateStr);
-    
+
     const { startDate, cycleName, description } = getNextCycleInfo(
       lastEventDateStr,
       ScheduleType.CLEANING,
@@ -583,10 +579,7 @@ export class CleaningCronService {
       typeof h.date === 'string' ? h.date : toDateString(h.date),
     );
 
-    const nextValidStartDate = getNextCleaningDate(
-      lastEventDate,
-      holidaysStr,
-    );
+    const nextValidStartDate = getNextCleaningDate(lastEventDate, holidaysStr);
 
     const config: SchedulerConfig = {
       type: ScheduleType.CLEANING,

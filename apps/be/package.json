@@ -17,6 +17,7 @@
       "migration:generate": "npm run typeorm -- migration:generate ./migrations/$npm_config_name -d ormconfig.ts",
       "migration:create": "npm run typeorm -- migration:create ./migrations/$npm_config_name",
       "migration:revert": "npm run typeorm -- migration:revert -d ormconfig.ts",
+      "migration:run:prod": "node dist/src/scripts/run-migration.js",
       "seed": "ts-node -r tsconfig-paths/register ./src/seed.ts",
       "schema:drop": "yarn run typeorm schema:drop",
       "test": "jest",

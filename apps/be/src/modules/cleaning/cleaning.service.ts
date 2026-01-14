@@ -5,7 +5,13 @@ import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
-import { EntityManager, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  EntityManager,
+  In,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
@@ -124,9 +130,10 @@ export class CleaningService {
   async getFutureEvents(): Promise<ScheduleEventEntity[]> {
     const todayString = formatVn(nowVn(), 'yyyy-MM-dd');
     return this.eventRepository.find({
-      where: { type: ScheduleType.CLEANING,
-         eventDate: MoreThanOrEqual(todayString)
-       },
+      where: {
+        type: ScheduleType.CLEANING,
+        eventDate: MoreThanOrEqual(todayString),
+      },
       relations: ['eventParticipants'],
       order: { eventDate: 'ASC' },
     });

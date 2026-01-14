@@ -39,7 +39,9 @@ export class OpentalkHolidayScheduleService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async handleHolidayAdded(holidayDate: string): Promise<{ before: Cycle[]; after: Cycle[] }> {
+  async handleHolidayAdded(
+    holidayDate: string,
+  ): Promise<{ before: Cycle[]; after: Cycle[] }> {
     this.logger.log(`Handling holiday added: ${holidayDate}`);
 
     const before = await this.getAllCyclesWithEvents();
@@ -75,139 +77,158 @@ export class OpentalkHolidayScheduleService {
       eventsToUpdate: [],
     };
 
-    // We process cycles sequentially. 
+    // We process cycles sequentially.
     // If a cycle extends, we track its new end date to check overlap with next cycle.
     let prevCycleEndDate: string | null = null;
 
     // To handle cross-cycle awareness properly while iterating:
-    // We treat the sequence as: 
+    // We treat the sequence as:
     // [Cycle 1 Events] ... gap ... [Cycle 2 Events]
-    
+
     // We iterate cycles.
     for (let i = 0; i < cycles.length; i++) {
-        const cycle = cycles[i];
-        
-        const cycleUpdates = this.processCycleEvents(cycle, prevCycleEndDate, holidays);
-        
-        if (cycleUpdates.length > 0) {
-            changes.eventsToUpdate.push(...cycleUpdates);
-            
-            // Calculate new end date for this cycle
-            // Calculate new end date for this cycle
-            // If the last event was updated, use its new date.
-            // If not, we still need the actual end date of the cycle (which might be the original last event).
-            // But we need the *projected* end date considering updates.
-            
-            // Construct projected events for this cycle to determine true end date
-            const lastEvent = cycle.events[cycle.events.length - 1];
-            const updatedLastEvent = cycleUpdates.find(u => u.eventId === lastEvent.id);
-            prevCycleEndDate = updatedLastEvent ? updatedLastEvent.newDate : lastEvent.date;
-        } else {
-            // No changes in this cycle.
-            prevCycleEndDate = cycle.events[cycle.events.length - 1].date;
-        }
+      const cycle = cycles[i];
+
+      const cycleUpdates = this.processCycleEvents(
+        cycle,
+        prevCycleEndDate,
+        holidays,
+      );
+
+      if (cycleUpdates.length > 0) {
+        changes.eventsToUpdate.push(...cycleUpdates);
+
+        // Calculate new end date for this cycle
+        // Calculate new end date for this cycle
+        // If the last event was updated, use its new date.
+        // If not, we still need the actual end date of the cycle (which might be the original last event).
+        // But we need the *projected* end date considering updates.
+
+        // Construct projected events for this cycle to determine true end date
+        const lastEvent = cycle.events[cycle.events.length - 1];
+        const updatedLastEvent = cycleUpdates.find(
+          (u) => u.eventId === lastEvent.id,
+        );
+        prevCycleEndDate = updatedLastEvent
+          ? updatedLastEvent.newDate
+          : lastEvent.date;
+      } else {
+        // No changes in this cycle.
+        prevCycleEndDate = cycle.events[cycle.events.length - 1].date;
+      }
     }
 
     return changes;
   }
 
   private processCycleEvents(
-      cycle: Cycle, 
-      prevCycleEndDate: string | null, 
-      holidays: Set<string>,
+    cycle: Cycle,
+    prevCycleEndDate: string | null,
+    holidays: Set<string>,
   ): EventUpdate[] {
-      const updates: EventUpdate[] = [];
-      let prevProyectedDate: Date | null = null;
-      
-      // Determine invalid date triggers.
-      // 1. Event is on holiday.
-      // 2. Event overlaps with previous cycle + 7 days (standard gap rule).
-      
-      // We iterate events in the cycle.
-      for (let j = 0; j < cycle.events.length; j++) {
-          const event = cycle.events[j];
+    const updates: EventUpdate[] = [];
+    let prevProyectedDate: Date | null = null;
 
-          
-          let projectedDate = new Date(event.date);
-          let needsUpdate = false;
+    // Determine invalid date triggers.
+    // 1. Event is on holiday.
+    // 2. Event overlaps with previous cycle + 7 days (standard gap rule).
 
-          // Case 1: First event of cycle
-          if (j === 0) {
-              // Check overlap with previous cycle if it shifted
-              if (prevCycleEndDate) {
-                  const minStartDate = this.getNextSaturday(new Date(prevCycleEndDate), holidays);
-                  // If current start < minStartDate, we must shift.
-                  // Note: minStartDate logic (next saturday) ensures 1-week gap and non-holiday.
-                  
-                  if (projectedDate.getTime() < minStartDate.getTime()) {
-                      projectedDate = minStartDate;
-                      needsUpdate = true;
-                  }
-              }
-              
-              // Check if date is holiday (redundant if getNextSaturday handled it, but critical if no prev cycle)
-              if (holidays.has(projectedDate.toISOString().split('T')[0])) {
-                  projectedDate = this.getNextSaturday(projectedDate, holidays);
-                  needsUpdate = true;
-              }
-          } else {
-              // Subsequent events: Must follow prev event 
-              // Standard rule: Next saturday after prev event
-              if (prevProyectedDate) {
-                  const expectedDate = this.getNextSaturday(prevProyectedDate, holidays);
-                  if (projectedDate.getTime() !== expectedDate.getTime()) {
-                      projectedDate = expectedDate;
-                      needsUpdate = true;
-                  }
-              }
-          }
-          
-          // Also check specifically for the NEW holiday date if we haven't shifted yet?
-          // If existing date == holidayDate, then holidays.has() above catches it.
-          // So the logic holds.
+    // We iterate events in the cycle.
+    for (let j = 0; j < cycle.events.length; j++) {
+      const event = cycle.events[j];
 
-          if (needsUpdate || (updates.length > 0)) { // Ripple effect: if any update occurred, verify subsequent
-              // Actually the logic 'if projected != expected' covers ripple.
+      let projectedDate = new Date(event.date);
+      let needsUpdate = false;
+
+      // Case 1: First event of cycle
+      if (j === 0) {
+        // Check overlap with previous cycle if it shifted
+        if (prevCycleEndDate) {
+          const minStartDate = this.getNextSaturday(
+            new Date(prevCycleEndDate),
+            holidays,
+          );
+          // If current start < minStartDate, we must shift.
+          // Note: minStartDate logic (next saturday) ensures 1-week gap and non-holiday.
+
+          if (projectedDate.getTime() < minStartDate.getTime()) {
+            projectedDate = minStartDate;
+            needsUpdate = true;
           }
-          
-          if (needsUpdate) {
-              const newDateStr = projectedDate.toISOString().split('T')[0];
-              // Only push if different from original (double check)
-              if (newDateStr !== event.date) {
-                   updates.push({ eventId: event.id, newDate: newDateStr });
-              }
+        }
+
+        // Check if date is holiday (redundant if getNextSaturday handled it, but critical if no prev cycle)
+        if (holidays.has(projectedDate.toISOString().split('T')[0])) {
+          projectedDate = this.getNextSaturday(projectedDate, holidays);
+          needsUpdate = true;
+        }
+      } else {
+        // Subsequent events: Must follow prev event
+        // Standard rule: Next saturday after prev event
+        if (prevProyectedDate) {
+          const expectedDate = this.getNextSaturday(
+            prevProyectedDate,
+            holidays,
+          );
+          if (projectedDate.getTime() !== expectedDate.getTime()) {
+            projectedDate = expectedDate;
+            needsUpdate = true;
           }
-          
-          prevProyectedDate = projectedDate;
+        }
       }
-      
-      return updates;
+
+      // Also check specifically for the NEW holiday date if we haven't shifted yet?
+      // If existing date == holidayDate, then holidays.has() above catches it.
+      // So the logic holds.
+
+      if (needsUpdate || updates.length > 0) {
+        // Ripple effect: if any update occurred, verify subsequent
+        // Actually the logic 'if projected != expected' covers ripple.
+      }
+
+      if (needsUpdate) {
+        const newDateStr = projectedDate.toISOString().split('T')[0];
+        // Only push if different from original (double check)
+        if (newDateStr !== event.date) {
+          updates.push({ eventId: event.id, newDate: newDateStr });
+        }
+      }
+
+      prevProyectedDate = projectedDate;
+    }
+
+    return updates;
   }
 
-  private applyInMemoryChanges(cycles: Cycle[], changes: ScheduleChanges): Cycle[] {
-     // Deep copy cycles
-     const newCycles = cycles.map(c => ({
-         ...c,
-         events: c.events.map(e => ({...e}))
-     }));
-     
-     const updateMap = new Map(changes.eventsToUpdate.map(u => [u.eventId, u.newDate]));
-     
-     newCycles.forEach(c => {
-         c.events.forEach(e => {
-             if (updateMap.has(e.id)) {
-                 e.date = updateMap.get(e.id)!;
-             }
-         });
-         // Update cycle end date
-         const lastEvent = c.events[c.events.length -1];
-         if (lastEvent) c.endDate = lastEvent.date;
-         // Update cycle start date
-         const firstEvent = c.events[0];
-         if (firstEvent) c.startDate = firstEvent.date;
-     });
-     
-     return newCycles;
+  private applyInMemoryChanges(
+    cycles: Cycle[],
+    changes: ScheduleChanges,
+  ): Cycle[] {
+    // Deep copy cycles
+    const newCycles = cycles.map((c) => ({
+      ...c,
+      events: c.events.map((e) => ({ ...e })),
+    }));
+
+    const updateMap = new Map(
+      changes.eventsToUpdate.map((u) => [u.eventId, u.newDate]),
+    );
+
+    newCycles.forEach((c) => {
+      c.events.forEach((e) => {
+        if (updateMap.has(e.id)) {
+          e.date = updateMap.get(e.id)!;
+        }
+      });
+      // Update cycle end date
+      const lastEvent = c.events[c.events.length - 1];
+      if (lastEvent) c.endDate = lastEvent.date;
+      // Update cycle start date
+      const firstEvent = c.events[0];
+      if (firstEvent) c.startDate = firstEvent.date;
+    });
+
+    return newCycles;
   }
 
   private async applyScheduleChanges(changes: ScheduleChanges): Promise<void> {
@@ -302,23 +323,23 @@ export class OpentalkHolidayScheduleService {
     // Opentalk events are Saturdays.
     // If we shift, we want the NEXT Saturday.
     // If calculateHolidayChanges logic ensures fromDate is Saturday, then fromDate+7 is Saturday.
-    
+
     // BUT: getNextSaturday implies finding a valid Saturday date.
     // Ideally:
     // while (day != Saturday or isHoliday) { date++ }
     // But system design seems to enforce "Weekly on Saturday".
     // So "Next Slot" = +7 days.
     // If that Slot is Holiday -> +7 days again.
-    
+
     while (holidays.has(result.toISOString().split('T')[0])) {
       result.setDate(result.getDate() + 7);
     }
-    
-    // Safety: ensure it is a Saturday? 
+
+    // Safety: ensure it is a Saturday?
     // Assuming data integrity assumes current events are Saturdays.
     return result;
   }
-  
+
   private logCyclesTable(title: string, cycles: Cycle[]): void {
     this.logger.log(`\n--- ${title} ---`);
     if (cycles.length === 0) {

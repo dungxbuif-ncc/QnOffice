@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CleaningService } from '@src/modules/cleaning/cleaning.service';
+import { OpentalkService } from '@src/modules/opentalk/opentalk.service';
+import SwapRequestEntity from '@src/modules/swap-request/swap-request.entity';
 import HolidayEntity from '../holiday/holiday.entity';
 import OpentalkSlideEntity from '../opentalk/entities/opentalk-slide.entity';
 import StaffEntity from '../staff/staff.entity';
@@ -22,6 +25,7 @@ import { OpentalkStaffService } from './services/opentalk-staff.schedule.service
       HolidayEntity,
       OpentalkSlideEntity,
       StaffEntity,
+      SwapRequestEntity
     ]),
     EventEmitterModule,
   ],
@@ -31,6 +35,8 @@ import { OpentalkStaffService } from './services/opentalk-staff.schedule.service
     OpentalkStaffService,
     OpentalkCronService,
     CleaningCronService,
+    OpentalkService,
+    CleaningService
   ],
   exports: [
     ScheduleService,

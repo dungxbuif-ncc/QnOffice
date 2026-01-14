@@ -13,6 +13,14 @@ export const dataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   namingStrategy: new SnakeNamingStrategy(),
-  entities: ['src/modules/**/*.entity{.ts,.js}'],
-  migrations: ['migrations/*{.ts,.js}'],
+  entities: [
+    process.env.NODE_ENV === 'production'
+      ? 'dist/modules/**/*.entity{.ts,.js}'
+      : 'src/modules/**/*.entity{.ts,.js}',
+  ],
+  migrations: [
+    process.env.NODE_ENV === 'production'
+      ? 'dist/migrations/*{.ts,.js}'
+      : 'migrations/*{.ts,.js}',
+  ],
 });

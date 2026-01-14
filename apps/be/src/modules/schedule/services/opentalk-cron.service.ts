@@ -5,7 +5,7 @@ import {
   CycleStatus,
   EventStatus,
   ScheduleType,
-  StaffStatus
+  StaffStatus,
 } from '@qnoffice/shared';
 import {
   NotificationEvent,
@@ -23,19 +23,8 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import OpentalkSlideEntity from '@src/modules/opentalk/entities/opentalk-slide.entity';
 import { OpentalkService } from '@src/modules/opentalk/opentalk.service';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import {
-  addDays,
-  addMonths,
-  differenceInCalendarDays
-} from 'date-fns';
-import {
-  Between,
-  EntityManager,
-  In,
-  LessThan,
-  Not,
-  Repository
-} from 'typeorm';
+import { addDays, addMonths, differenceInCalendarDays } from 'date-fns';
+import { Between, EntityManager, In, LessThan, Not, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
@@ -45,10 +34,7 @@ import {
   SchedulingAlgorithm,
   Staff,
 } from '../schedule.algorith';
-import {
-  getCycleTriggerStatus,
-  getNextCycleInfo
-} from '../schedule.utils';
+import { getCycleTriggerStatus, getNextCycleInfo } from '../schedule.utils';
 
 @Injectable()
 export class OpentalkCronService {
@@ -304,7 +290,10 @@ export class OpentalkCronService {
       }
       const eventDates = activeCycle.events.map((e) => e.eventDate).sort();
       const lastEventDateStr = eventDates[eventDates.length - 1];
-      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(lastEventDateStr, todayString);
+      const { shouldTrigger, daysUntilEnd } = getCycleTriggerStatus(
+        lastEventDateStr,
+        todayString,
+      );
 
       if (!shouldTrigger) {
         this.appLogService.journeyLog(
@@ -371,7 +360,8 @@ export class OpentalkCronService {
       })),
     };
 
-    const lastEventDateStr = previousEvents[previousEvents.length - 1].eventDate;
+    const lastEventDateStr =
+      previousEvents[previousEvents.length - 1].eventDate;
     const lastEventDate = fromDateString(lastEventDateStr);
 
     const { startDate, cycleName, description } = getNextCycleInfo(
@@ -392,10 +382,7 @@ export class OpentalkCronService {
       typeof h.date === 'string' ? h.date : toDateString(h.date),
     );
 
-    const nextValidStartDate = getNextOpentalkDate(
-      lastEventDate,
-      holidaysStr,
-    );
+    const nextValidStartDate = getNextOpentalkDate(lastEventDate, holidaysStr);
 
     const config: SchedulerConfig = {
       type: ScheduleType.OPENTALK,
