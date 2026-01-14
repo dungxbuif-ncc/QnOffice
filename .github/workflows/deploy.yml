@@ -60,7 +60,11 @@ jobs:
             AWS_REGION=${{ vars.AWS_REGION }}
             AWS_S3_BUCKET=${{ vars.AWS_S3_BUCKET }}
           secrets: |
-            DATABASE_URL=DATABASE_URL:latest
+            DB_HOST=DB_HOST:latest
+            DB_PORT=DB_PORT:latest
+            DB_USERNAME=DB_USERNAME:latest
+            DB_PASSWORD=DB_PASSWORD:latest
+            DB_DATABASE=DB_DATABASE:latest
             JWT_SECRET=JWT_SECRET:latest
             JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest
             CLIENT_ID=MEZON_CLIENT_ID:latest
@@ -113,4 +117,5 @@ jobs:
           env_vars: |
             NEXT_PUBLIC_FRONTEND_URL=${{ vars.NEXT_PUBLIC_FRONTEND_URL }}
             BACKEND_BASE_URL=${{ vars.BACKEND_BASE_URL }}
-            SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+          secrets: |
+            SESSION_SECRET=SESSION_SECRET:latest
