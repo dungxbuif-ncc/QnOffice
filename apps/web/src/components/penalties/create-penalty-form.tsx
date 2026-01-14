@@ -50,7 +50,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 const formSchema = z.object({
-  userId: z.number().min(1, 'Nhân viên là bắt buộc'),
+  staffId: z.number().min(1, 'Nhân viên là bắt buộc'),
   penaltyTypeId: z.number().min(1, 'Loại phạt là bắt buộc'),
   date: z.string().min(1, 'Ngày là bắt buộc'),
   amount: z.number().optional(),
@@ -91,7 +91,7 @@ export function CreatePenaltyForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userId: 0,
+      staffId: 0,
       penaltyTypeId: 0,
       date: new Date().toISOString().split('T')[0],
       reason: '',
@@ -288,7 +288,7 @@ export function CreatePenaltyForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="userId"
+              name="staffId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Nhân viên</FormLabel>
@@ -330,7 +330,7 @@ export function CreatePenaltyForm({
                                 value={staff.user?.email || staff.email}
                                 key={staff.id}
                                 onSelect={() => {
-                                  form.setValue('userId', staff.id);
+                                  form.setValue('staffId', staff.id);
                                   setStaffOpen(false);
                                 }}
                               >

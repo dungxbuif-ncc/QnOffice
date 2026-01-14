@@ -12,7 +12,7 @@ import {
 export class CreatePenaltyDto implements ICreatePenaltyDto {
   @IsNumber()
   @IsNotEmpty()
-  userId: number;
+  staffId: number;
 
   @IsNumber()
   @IsNotEmpty()

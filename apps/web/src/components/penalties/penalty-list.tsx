@@ -98,7 +98,7 @@ export function PenaltyList({ showAllUsers = false }: PenaltyListProps) {
             <TableRow key={penalty.id}>
               {showAllUsers && (
                 <TableCell className="font-medium">
-                  NV #{penalty.userId}
+                  NV #{penalty?.staffId}
                 </TableCell>
               )}
               <TableCell>Loại {penalty.penaltyTypeId}</TableCell>

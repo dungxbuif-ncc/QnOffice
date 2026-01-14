@@ -1,8 +1,9 @@
 import { PenaltyStatus } from '../enums/penalty.enum';
+import { Staff } from './staff.types';
 
 export interface Penalty {
   id: number;
-  userId: number;
+  staffId: number;
   penaltyTypeId: number;
   date: string | Date;
   amount: number;
@@ -10,6 +11,7 @@ export interface Penalty {
   evidenceUrls: string[];
   status: PenaltyStatus;
   penaltyType?: PenaltyType;
+  staff?: Staff;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -24,7 +26,7 @@ export interface PenaltyType {
 }
 
 export interface ICreatePenaltyDto {
-  userId: number;
+  staffId: number;
   penaltyTypeId: number;
   date: string;
   amount?: number;
@@ -33,7 +35,7 @@ export interface ICreatePenaltyDto {
 }
 
 export interface IUpdatePenaltyDto {
-  userId?: number;
+  staffId?: number;
   penaltyTypeId?: number;
   date?: string;
   amount?: number;

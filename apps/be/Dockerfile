@@ -12,7 +12,7 @@ COPY apps/be/package.json ./apps/be/
 COPY apps/web/package.json ./apps/web/
 
 # Install ALL dependencies at root (this will link workspaces)
-RUN yarn install --frozen-lockfile
+RUN yarn install 
 
 # Builder stage
 FROM base AS builder

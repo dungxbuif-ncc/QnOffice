@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { BaseDataTable } from '@/components/ui/base-data-table';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
@@ -45,15 +45,15 @@ interface OpentalkSchedule {
 }
 
 import {
-  ArrowRightLeft,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Edit,
-  ExternalLink,
-  FileText,
-  MoreHorizontal,
-  XCircle,
+    ArrowRightLeft,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Edit,
+    ExternalLink,
+    FileText,
+    MoreHorizontal,
+    XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -181,6 +181,7 @@ export function OpentalkScheduleDataTable({
 
   const getEventStatusBadge = (status: EventStatus) => {
     const variants: Record<EventStatus, { variant: any; label: string }> = {
+      [EventStatus.ACTIVE]: { variant: 'default', label: 'Active' },
       [EventStatus.COMPLETED]: { variant: 'secondary', label: 'Completed' },
       [EventStatus.PENDING]: { variant: 'outline', label: 'Swapped' },
       [EventStatus.CANCELLED]: {
