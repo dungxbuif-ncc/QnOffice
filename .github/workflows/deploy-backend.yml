@@ -14,7 +14,6 @@ on:
 env:
   PROJECT_ID: qn-office
   REGION: asia-southeast1
-  REPO_NAME: qn-office-repo
 
 jobs:
   deploy-backend:
@@ -32,48 +31,17 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Configure Docker
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Build and Push Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: apps/be/Dockerfile
-          push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/qn-office-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: qn-office-backend
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/qn-office-backend:${{ github.sha }}
-          region: ${{ env.REGION }}
-          env_vars: |
-            NODE_ENV=production
-            FRONTEND_URL=${{ vars.NEXT_PUBLIC_FRONTEND_URL }}
-            AWS_REGION=${{ vars.AWS_REGION }}
-            AWS_S3_BUCKET=${{ vars.AWS_S3_BUCKET }}
-          secrets: |
-            DB_HOST=DB_HOST:latest
-            DB_PORT=DB_PORT:latest
-            DB_USERNAME=DB_USERNAME:latest
-            DB_PASSWORD=DB_PASSWORD:latest
-            DB_DATABASE=DB_DATABASE:latest
-            JWT_SECRET=JWT_SECRET:latest
-            JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest
-            CLIENT_ID=MEZON_CLIENT_ID:latest
-            CLIENT_SECRET=MEZON_CLIENT_SECRET:latest
-            OAUTH_URL=MEZON_OAUTH_URL:latest
-            MEZON_BOT_ID=MEZON_BOT_ID:latest
-            MEZON_BOT_TOKEN=MEZON_BOT_TOKEN:latest
-            BOT_TOKEN=BOT_TOKEN:latest
-            AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID:latest
-            AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY:latest
-            AWS_S3_ENDPOINT=AWS_S3_ENDPOINT:latest
-            AWS_S3_PUBLIC_URL=AWS_S3_PUBLIC_URL:latest
+      - name: Deploy to Cloud Run from Source
+        run: |
+          gcloud run deploy qn-office-backend \
+            --source apps/be \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --ingress internal \
+            --min-instances 0 \
+            --max-instances 1 \
+            --memory 512Mi \
+            --cpu 1 \
+            --set-env-vars="NODE_ENV=production,AWS_REGION=${{ vars.AWS_REGION }},AWS_S3_BUCKET=${{ vars.AWS_S3_BUCKET }}" \
+            --set-secrets="DB_HOST=DB_HOST:latest,DB_PORT=DB_PORT:latest,DB_USERNAME=DB_USERNAME:latest,DB_PASSWORD=DB_PASSWORD:latest,DB_DATABASE=DB_DATABASE:latest,JWT_SECRET=JWT_SECRET:latest,JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest,CLIENT_ID=MEZON_CLIENT_ID:latest,CLIENT_SECRET=MEZON_CLIENT_SECRET:latest,OAUTH_URL=MEZON_OAUTH_URL:latest,MEZON_BOT_ID=MEZON_BOT_ID:latest,MEZON_BOT_TOKEN=MEZON_BOT_TOKEN:latest,AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID:latest,AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY:latest,AWS_S3_ENDPOINT=AWS_S3_ENDPOINT:latest,AWS_S3_PUBLIC_URL=AWS_S3_PUBLIC_URL:latest" \
+            --quiet
