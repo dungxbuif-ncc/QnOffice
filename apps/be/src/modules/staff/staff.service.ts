@@ -6,7 +6,7 @@ import { AppPaginationDto } from '@src/common/dtos/paginate.dto';
 import CreateStaffDto from '@src/modules/staff/dtos/create-staff.dto';
 import StaffEntity from '@src/modules/staff/staff.entity';
 import { UserService } from '@src/modules/user/user.service';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class StaffService {
@@ -30,9 +30,16 @@ export class StaffService {
   async getStaffs(
     queries: AppPaginateOptionsDto,
   ): Promise<AppPaginationDto<StaffEntity>> {
+    const { skip, take, q } = queries;
+
     const [data, total] = await this.staffRepository.findAndCount({
-      skip: queries.skip,
-      take: queries.take,
+      where: q
+        ? {
+            email: ILike(`%${q}%`),
+          }
+        : {},
+      skip,
+      take,
     });
     return {
       page: queries.page,

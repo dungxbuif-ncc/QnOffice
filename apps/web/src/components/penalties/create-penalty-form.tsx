@@ -102,12 +102,20 @@ export function CreatePenaltyForm({
     },
   });
 
-  const loadStaff = async (page: number, append = false) => {
+  const loadStaff = async (page: number, append = false, q?: string) => {
     if (staffLoading) return;
+
     try {
       setStaffLoading(true);
-      const response = await staffService.getStaffs({ page, take: 20 });
+
+      const response = await staffService.getStaffs({
+        page,
+        take: 20,
+        q,
+      });
+
       const data = response.data.data;
+
       setStaffList((prev) =>
         append ? [...prev, ...data.result] : data.result,
       );
@@ -136,10 +144,19 @@ export function CreatePenaltyForm({
 
   useEffect(() => {
     if (isOpen) {
+      setSearch('');
+      setStaffPage(1);
       loadStaff(1);
       loadPenaltyTypes(1);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setStaffPage(1);
+    loadStaff(1, false, searchDebounced);
+  }, [searchDebounced, isOpen]);
 
   const handleStaffScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -149,7 +166,7 @@ export function CreatePenaltyForm({
     if (bottom && !staffLoading && staffList.length < staffTotal) {
       const nextPage = staffPage + 1;
       setStaffPage(nextPage);
-      loadStaff(nextPage, true);
+      loadStaff(nextPage, true, searchDebounced);
     }
   };
 
