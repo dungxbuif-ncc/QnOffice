@@ -175,6 +175,41 @@ const staffData: StaffData[] = [
     avatar:
       'https://profile.mezon.ai/0/1820647905879396352/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
   },
+  {
+    email: 'son.cuhoangnguyen@ncc.asia',
+    mezonId: '1959485009781854208',
+    username: 'son.cuhoangnguyen',
+    avatar:
+      'https://profile.mezon.ai/0/1959485009781854208/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
+  },
+  {
+    email: 'huong.nguyenthithanh@ncc.asia',
+    mezonId: '1946594672524660736',
+    username: 'huong.nguyenthithanh',
+    avatar:
+      'https://profile.mezon.ai/0/1946594672524660736/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
+  },
+  {
+    email: 'phu.nguyenthien@ncc.asia',
+    mezonId: '1942867974385831936',
+    username: 'phu.nguyenthien',
+    avatar:
+      'https://profile.mezon.ai/0/1942867974385831936/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
+  },
+  {
+    email: 'ho.nguyenphi@ncc.asia',
+    mezonId: '1840676689630203904',
+    username: 'ho.nguyenphi',
+    avatar:
+      'https://profile.mezon.ai/0/1840676689630203904/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
+  },
+  {
+    email: 'quang.tranduong@ncc.asia',
+    mezonId: '1987523042833600512',
+    username: 'quang.tranduong',
+    avatar:
+      'https://profile.mezon.ai/0/1987523042833600512/1820647905879396400/1762243079866_1762243019447_1IMG_6750.JPG',
+  },
 ];
 
 const roleMapping: Record<string, UserRole> = {
