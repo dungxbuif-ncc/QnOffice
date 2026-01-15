@@ -52,6 +52,8 @@ export function SwapRequestManagement({
   mode,
   user: propUser,
 }: SwapRequestManagementProps) {
+  console.log(mode);
+
   const { user: contextUser } = useAuth();
   const user = propUser || contextUser;
   const [swapRequests, setSwapRequests] = useState<SwapRequest[]>([]);
@@ -131,7 +133,7 @@ export function SwapRequestManagement({
   const isUserMode = mode === 'user';
   const isHRMode = mode === 'hr';
 
-  if (isUserMode && !canCreateRequests && !canManageRequests) {
+  if (isUserMode && !canCreateRequests && !canManageRequests && !isHRMode) {
     return (
       <div className="text-center text-muted-foreground py-8">
         Bạn không có quyền truy cập yêu cầu đổi lịch.
@@ -139,7 +141,7 @@ export function SwapRequestManagement({
     );
   }
 
-  if (isHRMode && !canApproveRequests) {
+  if (!isHRMode && !canApproveRequests) {
     return (
       <div className="text-center text-muted-foreground py-8">
         Bạn không có quyền duyệt yêu cầu đổi lịch.
@@ -275,6 +277,7 @@ export function SwapRequestManagement({
                 onOpenChange={setCreateModalOpen}
                 scheduleId={selectedScheduleId}
                 onSuccess={handleCreateSuccess}
+                userStaffId={userStaffId}
               />
             )}
           </>

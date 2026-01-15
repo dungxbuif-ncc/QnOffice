@@ -37,16 +37,17 @@ export class OpentalkController {
   async submitSlide(@Body() dto: SubmitSlideDto): Promise<void> {
     this.opentalkService.submitSlide(dto);
   }
-  @Get('events')
+  @Get('events/swap-available')
   async getEvents(@Query() query: OpentalkQueryDto): Promise<ScheduleEvent[]> {
-    return this.opentalkService.getEvents(query) as any;
+    return this.opentalkService.getAvailableEvents(query) as any;
   }
 
   @Get('events/:id/cycle-events')
   async getCycleEvents(
     @Param('id', ParseIntPipe) eventId: number,
+    @Query() query: { participantId: number },
   ): Promise<ScheduleEvent[]> {
-    return this.opentalkService.getCycleEventsByEventId(eventId) as any;
+    return this.opentalkService.getCycleEventsByEventId(eventId, query) as any;
   }
 
   @Get('events/:id/slide')

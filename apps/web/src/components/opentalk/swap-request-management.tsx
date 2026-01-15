@@ -3,28 +3,26 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { hasPermission, PERMISSIONS } from '@/shared/auth/permissions';
 import { useAuth } from '@/shared/contexts/auth-context';
 import {
-    opentalkClientService,
-    OpentalkEvent,
+  opentalkClientService,
+  OpentalkEvent,
 } from '@/shared/services/client/opentalk-client-service';
 import { swapRequestClientService } from '@/shared/services/client/swap-request-client-service';
 import {
-    ScheduleType,
-    SwapRequest,
-    SwapRequestStatus,
-    UserAuth,
+  ScheduleType,
+  SwapRequest,
+  SwapRequestStatus,
+  UserAuth,
 } from '@qnoffice/shared';
-import {
-    Plus
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { CreateSwapRequestModal } from './create-swap-request-modal';
@@ -51,6 +49,12 @@ export function SwapRequestManagement({
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
 
   const userStaffId = user?.staffId;
+
+  const lockedEventIds = useMemo(() => {
+    return swapRequests
+      .filter((req) => req.status === SwapRequestStatus.PENDING)
+      .flatMap((req) => [req.fromEventId, req.toEventId]);
+  }, [swapRequests]);
 
   const loadSwapRequests = useCallback(async () => {
     try {
@@ -110,7 +114,7 @@ export function SwapRequestManagement({
   const isUserMode = mode === 'user';
   const isHRMode = mode === 'hr';
 
-  if (isUserMode && !canCreateRequests && !canManageRequests) {
+  if (!isUserMode && !canCreateRequests && !canManageRequests && !isHRMode) {
     return (
       <div className="text-center text-muted-foreground py-8">
         You don&apos;t have permission to access swap requests.
@@ -118,7 +122,7 @@ export function SwapRequestManagement({
     );
   }
 
-  if (isHRMode && !canApproveRequests) {
+  if (!isHRMode && !canApproveRequests) {
     return (
       <div className="text-center text-muted-foreground py-8">
         You don&apos;t have permission to approve swap requests.
@@ -139,7 +143,8 @@ export function SwapRequestManagement({
     try {
       await swapRequestClientService.reviewSwapRequest(requestId, {
         status: action,
-        reviewNote: action === SwapRequestStatus.APPROVED ? 'Approved' : 'Rejected',
+        reviewNote:
+          action === SwapRequestStatus.APPROVED ? 'Approved' : 'Rejected',
       });
 
       toast.success(`Request ${action.toLowerCase()} successfully`);
@@ -157,12 +162,6 @@ export function SwapRequestManagement({
     setSelectedScheduleId(null);
     await loadSwapRequests();
   };
-
-  const lockedEventIds = useMemo(() => {
-    return swapRequests
-      .filter((req) => req.status === SwapRequestStatus.PENDING)
-      .flatMap((req) => [req.fromEventId, req.toEventId]);
-  }, [swapRequests]);
 
   const filteredRequests =
     mode === 'hr'
@@ -231,7 +230,7 @@ export function SwapRequestManagement({
                 </Button>
               </div>
             ) : (
-                // ...
+              // ...
               <div className="text-sm text-muted-foreground">
                 <p>You have no scheduled OpenTalk sessions to swap.</p>
                 <p className="text-xs mt-1">
@@ -253,10 +252,10 @@ export function SwapRequestManagement({
         )}
       </div>
 
-      <SwapRequestTable 
-          requests={filteredRequests}
-          onReview={mode === 'hr' ? handleReviewRequest : undefined}
-          isProcessingId={isProcessing}
+      <SwapRequestTable
+        requests={filteredRequests}
+        onReview={mode === 'hr' ? handleReviewRequest : undefined}
+        isProcessingId={isProcessing}
       />
     </div>
   );

@@ -4,7 +4,7 @@ import { OpentalkSpreadsheetView } from '@/components/opentalk/opentalk-spreadsh
 import { SwapRequestManagement } from '@/components/opentalk/swap-request-management';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/shared/contexts/auth-context';
-import { ScheduleCycle } from '@qnoffice/shared';
+import { ScheduleCycle, UserRole } from '@qnoffice/shared';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -26,10 +26,15 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
     params.set('tab', value);
     router.push(`${pathname}?${params.toString()}`);
   };
+  const mode = user?.role === UserRole.STAFF ? 'user' : 'hr';
 
   return (
     <div className="space-y-6">
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
+      <Tabs
+        value={currentTab}
+        onValueChange={handleTabChange}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="schedules">Schedule Management</TabsTrigger>
           <TabsTrigger value="requests">Swap Requests</TabsTrigger>
@@ -40,7 +45,7 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">
-          <SwapRequestManagement mode="user" user={user || undefined} />
+          <SwapRequestManagement mode={mode} user={user || undefined} />
         </TabsContent>
       </Tabs>
     </div>

@@ -95,12 +95,12 @@ export class CleaningController {
     return this.cleaningService.createEvent(createEventDto);
   }
 
-  @Get('events')
+  @Get('events/swap-available')
   @ApiOperation({ summary: 'Get cleaning events with filters' })
   async getEvents(
     @Query() query: CleaningQueryDto,
   ): Promise<ScheduleEventEntity[]> {
-    return this.cleaningService.getEvents(query);
+    return this.cleaningService.getAvailableEvents(query);
   }
 
   @Get('cycles/:cycleId/events')
@@ -123,13 +123,14 @@ export class CleaningController {
 
   @Get('events/:id/cycle-events')
   @ApiOperation({
-    summary: 'Get all events from the same cycle as the specified event',
+    summary: 'Get events from the same cycle as the specified event',
   })
   @ApiParam({ name: 'id', description: 'Event ID' })
   async getCycleEvents(
     @Param('id', ParseIntPipe) eventId: number,
+    @Query() query: { participantId: number },
   ): Promise<ScheduleEventEntity[]> {
-    return this.cleaningService.getCycleEventsByEventId(eventId);
+    return this.cleaningService.getCycleEventsByEventId(eventId, query);
   }
 
   @Put('events/:id')

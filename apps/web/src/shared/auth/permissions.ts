@@ -27,7 +27,7 @@ export const PERMISSIONS = {
   MANAGE_OPENTALK: { roles: [UserRole.HR, UserRole.GDVP] },
   CREATE_OPENTALK_SWAP_REQUEST: { roles: ALL_ROLES },
   MANAGE_OPENTALK_SWAP_REQUESTS: { roles: [UserRole.HR, UserRole.GDVP] },
-  APPROVE_OPENTALK_SWAP_REQUESTS: { roles: [UserRole.GDVP] },
+  APPROVE_OPENTALK_SWAP_REQUESTS: { roles: [UserRole.GDVP, UserRole.HR] },
   APPROVE_OPENTALK_SLIDES: { roles: [UserRole.GDVP] },
   EDIT_OPENTALK_TOPIC: { roles: [UserRole.HR, UserRole.GDVP] },
   EDIT_OWN_OPENTALK_TOPIC: { roles: ALL_ROLES },
@@ -38,7 +38,7 @@ export const PERMISSIONS = {
   MANAGE_CHANNELS: { roles: [UserRole.HR, UserRole.GDVP] },
   CREATE_CLEANING_SWAP_REQUEST: { roles: ALL_ROLES },
   MANAGE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.HR, UserRole.GDVP] },
-  APPROVE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.GDVP] },
+  APPROVE_CLEANING_SWAP_REQUESTS: { roles: [UserRole.GDVP, UserRole.HR] },
   MANAGE_CLEANING: { roles: [UserRole.HR, UserRole.GDVP] },
 };
 

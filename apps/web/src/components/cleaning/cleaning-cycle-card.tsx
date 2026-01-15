@@ -60,7 +60,6 @@ export function CleaningCycleCard({
     user?.role,
     PERMISSIONS.MANAGE_CLEANING,
   );
-  console.log(canManageCleaning);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>

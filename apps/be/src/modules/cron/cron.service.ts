@@ -15,7 +15,12 @@ export class CronService {
     private readonly opentalkCronService: OpentalkCronService,
     private readonly auditLogService: AuditLogService,
     private readonly appLogService: AppLogService,
-  ) {}
+    // private readonly mezonClient: MezonClient,
+  ) {
+    // this.mezonClient.on('ready', () => {
+    //   this.sendCleaningMorningReminder();
+    // });
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'mark-events-completed',

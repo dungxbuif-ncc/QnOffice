@@ -51,9 +51,12 @@ class CleaningClientService {
   }
 
   async getUserSchedules(staffId: number) {
-    return baseApi.get<ApiResponse<CleaningEvent[]>>(`${this.baseUrl}/events`, {
-      params: { participantId: staffId },
-    });
+    return baseApi.get<ApiResponse<CleaningEvent[]>>(
+      `${this.baseUrl}/events/swap-available`,
+      {
+        params: { participantId: staffId },
+      },
+    );
   }
 
   async swapParticipants(payload: {

@@ -197,6 +197,37 @@ export class CleaningService {
     return savedEvent;
   }
 
+  async getAvailableEvents(
+    query: CleaningQueryDto,
+  ): Promise<ScheduleEventEntity[]> {
+    const queryBuilder = this.eventRepository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.cycle', 'cycle')
+      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
+      .leftJoinAndSelect('eventParticipants.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('event.type = :type', { type: 'CLEANING' });
+
+    queryBuilder.andWhere('event.status = :status', {
+      status: EventStatus.PENDING,
+    });
+    if (query.participantId) {
+      queryBuilder.andWhere('eventParticipants.staffId = :participantId', {
+        participantId: query.participantId,
+      });
+    }
+
+    queryBuilder.andWhere('event.eventDate > :today', {
+      today: new Date(),
+    });
+
+    const events = await queryBuilder
+      .orderBy('event.eventDate', 'ASC')
+      .getMany();
+
+    return events;
+  }
+
   async getEvents(query: CleaningQueryDto): Promise<ScheduleEventEntity[]> {
     // Use QueryBuilder for better relation loading with composite keys
     const queryBuilder = this.eventRepository
@@ -240,6 +271,33 @@ export class CleaningService {
     return events;
   }
 
+  async getAvailableEventsByCycle(
+    cycleId: number,
+    participantId?: number,
+  ): Promise<ScheduleEventEntity[]> {
+    const now = new Date();
+
+    const qb = this.eventRepository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.cycle', 'cycle')
+      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
+      .leftJoinAndSelect('eventParticipants.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('event.cycleId = :cycleId', { cycleId })
+      .andWhere('event.type = :type', { type: 'CLEANING' })
+      .andWhere('event.status = :status', { status: EventStatus.PENDING })
+      .andWhere('event.eventDate > :now', { now });
+
+    if (participantId) {
+      qb.andWhere(
+        '(eventParticipants.staffId IS NULL OR eventParticipants.staffId != :participantId)',
+        { participantId },
+      );
+    }
+
+    return qb.orderBy('event.eventDate', 'ASC').getMany();
+  }
+
   async getEventsByCycle(cycleId: number): Promise<ScheduleEventEntity[]> {
     return this.eventRepository
       .createQueryBuilder('event')
@@ -255,6 +313,7 @@ export class CleaningService {
 
   async getCycleEventsByEventId(
     eventId: number,
+    query: { participantId?: number },
   ): Promise<ScheduleEventEntity[]> {
     const event = await this.eventRepository.findOne({
       where: { id: eventId },
@@ -265,7 +324,8 @@ export class CleaningService {
       throw new Error('Event not found');
     }
 
-    return this.getEventsByCycle(event.cycleId);
+    console.log(event);
+    return this.getAvailableEventsByCycle(event.cycleId, query.participantId);
   }
 
   async getEventById(id: number): Promise<ScheduleEventEntity | null> {
@@ -363,7 +423,7 @@ export class CleaningService {
       await this.participantRepository.save(participantRecords);
     }
 
-    return this.getEventsByCycle(assignmentData.cycleId);
+    return this.getAvailableEventsByCycle(assignmentData.cycleId);
   }
 
   async swapEventParticipants(

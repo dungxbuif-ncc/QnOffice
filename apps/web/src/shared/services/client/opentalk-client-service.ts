@@ -53,7 +53,7 @@ class OpentalkClientService {
 
   async getUserSchedules(staffId: number): Promise<OpentalkEvent[]> {
     const response = await baseApi.get<ApiResponse<OpentalkEvent[]>>(
-      `${this.baseUrl}/events?participantId=${staffId}`,
+      `${this.baseUrl}/events/swap-available?participantId=${staffId}`,
     );
     return response.data.data || [];
   }
