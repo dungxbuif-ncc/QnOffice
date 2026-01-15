@@ -139,7 +139,7 @@ export function PenaltyTypeForm({
                     <Input
                       type="number"
                       placeholder="10000"
-                      {...field}
+                      value={field.value ?? 0}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </FormControl>

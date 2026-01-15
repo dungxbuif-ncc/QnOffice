@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { useDebouncedValue } from '@/shared/hooks/use-debounce-value';
 import penaltyTypeService from '@/shared/services/client/penalty-type.service';
 import penaltyService from '@/shared/services/client/penalty.service';
 import staffService from '@/shared/services/client/staff.service';
@@ -87,6 +88,8 @@ export function CreatePenaltyForm({
 
   const staffListRef = useRef<HTMLDivElement>(null);
   const typeListRef = useRef<HTMLDivElement>(null);
+  const [search, setSearch] = useState('');
+  const searchDebounced = useDebouncedValue(search, 1000);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -317,7 +320,11 @@ export function CreatePenaltyForm({
                     </PopoverTrigger>
                     <PopoverContent className="w-[400px] p-0">
                       <Command>
-                        <CommandInput placeholder="Tìm kiếm nhân viên..." />
+                        <CommandInput
+                          placeholder="Tìm kiếm nhân viên..."
+                          value={search}
+                          onValueChange={setSearch}
+                        />
                         <CommandList
                           onScroll={handleStaffScroll}
                           ref={staffListRef}

@@ -78,7 +78,7 @@ export class CalendarService {
   ): Promise<CalendarEvent[]> {
     if (type === ScheduleType.CLEANING) {
       const query: CleaningQueryDto = { startDate, endDate };
-      const events = await this.cleaningService.getEvents(query);
+      const events = await this.cleaningService.getAvailableEvents(query);
       return events.map((event) => this.mapToCalendarEvent(event));
     } else {
       const query: OpentalkQueryDto = { startDate, endDate };

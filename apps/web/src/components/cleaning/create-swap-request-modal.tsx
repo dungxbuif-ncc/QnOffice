@@ -32,6 +32,7 @@ interface CreateSwapRequestModalProps {
   onOpenChange: (open: boolean) => void;
   scheduleId: number;
   onSuccess?: () => void;
+  userStaffId?: number;
 }
 
 export function CreateSwapRequestModal({
@@ -39,6 +40,7 @@ export function CreateSwapRequestModal({
   onOpenChange,
   scheduleId,
   onSuccess,
+  userStaffId,
 }: CreateSwapRequestModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [availableEvents, setAvailableEvents] = useState<ScheduleEvent[]>([]);
@@ -51,7 +53,7 @@ export function CreateSwapRequestModal({
   const fetchAvailableEvents = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/cleaning/events/${scheduleId}/cycle-events`,
+        `/api/cleaning/events/${scheduleId}/cycle-events?participantId=${userStaffId}`,
       );
       if (response.ok) {
         const data = await response.json();
