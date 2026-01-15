@@ -6,11 +6,11 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarRail,
 } from '@/components/ui/sidebar';
 import { PERMISSIONS } from '@/shared/auth';
 import { PATHS } from '@/shared/constants/paths';
@@ -26,6 +26,11 @@ const navigationData = [
     title: 'Menu Pantry',
     href: PATHS.DASHBOARD.PANTRY_MENU,
     icon: '🍽️',
+  },
+  {
+    title: 'Giao dịch Pantry',
+    href: PATHS.DASHBOARD.PANTRY_TRANSACTIONS,
+    icon: '💰',
   },
   // {
   //   title: 'Chi nhánh',

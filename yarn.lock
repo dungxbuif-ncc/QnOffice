@@ -13715,6 +13715,16 @@ mmn-client-js@^1.0.10:
     crypto-js "^4.2.0"
     tweetnacl "^1.0.3"
 
+mmn-client-js@^1.0.15:
+  version "1.0.15"
+  resolved "https://registry.npmjs.org/mmn-client-js/-/mmn-client-js-1.0.15.tgz#9a49fa5b51fd54bbbccb88d557aabdd2641ae22c"
+  integrity sha512-/FRqv6PGahDki7C3dJ6cABjc/NP2esqpCpEuSg8YXY3GSO7N1Hmfbd6xyFEPgNdT6/4Bfed6sOLQ5wieUDIZLw==
+  dependencies:
+    bip39 "^3.1.0"
+    bs58 "^5.0.0"
+    crypto-js "^4.2.0"
+    tweetnacl "^1.0.3"
+
 moment-timezone@^0.5.40:
   version "0.5.48"
   resolved "https://registry.npmjs.org/moment-timezone/-/moment-timezone-0.5.48.tgz#111727bb274734a518ae154b5ca589283f058967"
