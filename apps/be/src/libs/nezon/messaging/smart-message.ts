@@ -916,7 +916,7 @@ export class ManagedMessage {
     return this.context.message.channel_id;
   }
 
-  get senderId(): string | undefined {
+  get senderId(): string {
     return this.context.message.sender_id;
   }
 

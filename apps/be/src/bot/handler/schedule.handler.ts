@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Arg, AutoContext, Command, EmbedBuilder, SmartMessage } from '@src/libs/nezon';
+import { PREFIXES } from '@src/common/constants/prefix';
+import { Arg, AutoContext, Command, EmbedBuilder, Prefix, SmartMessage } from '@src/libs/nezon';
 import type { Nezon } from '@src/libs/nezon';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import { StaffService } from '@src/modules/staff/staff.service';
@@ -15,22 +16,31 @@ export class CleaningScheduleHandler {
     private readonly staffService: StaffService
   ) { }
 
-  @Command({ name: 'lichtruc_cuatoi', aliases: ['MyCleaningSchedule', 'trucnhat_cuatao', 'trucnhat_cuatoi', 'trucnhat'] })
-  async onCheckMySchedule(@AutoContext() [managedMessage]: Nezon.AutoContext, @Arg(0) name?: string | undefined) {
-    const userId = managedMessage.senderId || "";
+  @Command({ name: 'trucnhat', prefixes: PREFIXES })
+  async onCheckMySchedule(@AutoContext() [managedMessage]: Nezon.AutoContext, @Prefix() prefix: string, @Arg() name: Nezon.Args) {
+    const userId = managedMessage.senderId;
     this.logger.log(`User ${userId} requested cleaning schedule`);
+
+    const officeCode = prefix.replace('*', '').toUpperCase();
+
     try {
       const staff = name
-        ? await this.staffService.findByEmail(`${name}@ncc.asia`)
+        ? await this.staffService.findByName(name.toString())
         : await this.staffService.findByUserId(userId);
 
       if (!staff) {
-        await managedMessage.reply(SmartMessage.system("Bạn chưa được đăng kí trực nhật"));
+        await managedMessage.reply(SmartMessage.system("Tài khoản của bạn không có trong hệ thống"));
         return;
       }
+
+      if (staff.branch.code !== officeCode) {
+        await managedMessage.reply(SmartMessage.system(`Bạn không không có lịch trực tại chi nhánh ${officeCode}`));
+        return;
+      }
+
       const today = startOfToday().toISOString();
       const eventCleans = await this.cleaningService.getEvents({ startDate: today, participantId: staff.id });
-      if (!eventCleans) {
+      if (!eventCleans.length) {
         await managedMessage.reply(SmartMessage.system("Lịch trực nhật của bạn chưa được cập nhật"));
         return;
       }

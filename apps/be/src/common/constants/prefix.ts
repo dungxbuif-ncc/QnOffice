@@ -1,0 +1,1 @@
+export const PREFIXES:string[] = ["*qn", "*hn", "*sg", "*dn"]

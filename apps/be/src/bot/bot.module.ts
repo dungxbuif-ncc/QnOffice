@@ -35,12 +35,5 @@ export class BotModule {
     this.mezonClient.on('ready', async () => {
       this.logger.log('🤖 Mezon Client is ready!');
     });
-    this.mezonClient.on("ready", async () => {
-    console.log(`Client authenticated and ready!`);
-    console.log(`Client ID: ${this.mezonClient.clientId}`);
-    
-    // Access cached clans and channels
-    console.log(`Connected to ${this.mezonClient.clans.cache?.size || 0} clans.`);
-  });
   }
 }
