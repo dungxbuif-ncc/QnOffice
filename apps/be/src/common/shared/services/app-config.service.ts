@@ -101,6 +101,7 @@ export class AppConfigService {
       namingStrategy: new SnakeNamingStrategy(),
       synchronize: false,
       entities,
+      ssl: this.isProduction,
     };
   }
   get appConfig() {
