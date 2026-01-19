@@ -36,6 +36,7 @@ import {
   NormalizedSmartMessage,
   cloneMentionPlaceholders,
 } from '../messaging/smart-message';
+import { DEFAULT_BOT_PREFIX } from '@src/common/constants/prefix';
 
 @Injectable()
 export class NezonCommandService {
@@ -75,7 +76,7 @@ export class NezonCommandService {
 
   private registerCommands(definitions: NezonCommandDefinition[]) {
     this.commands = definitions.map((definition) => {
-      const prefixes = definition.options.prefixes?.map((prefix) => prefix.toLowerCase()) ?? ['*qn'];
+      const prefixes = definition.options.prefixes?.map((prefix) => prefix.toLowerCase()) ?? [DEFAULT_BOT_PREFIX];
       const baseName = definition.options.name.toLowerCase();
       const aliases =
         definition.options.aliases?.map((alias) => alias.toLowerCase()) ?? [];

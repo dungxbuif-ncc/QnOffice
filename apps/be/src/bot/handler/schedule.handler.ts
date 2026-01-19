@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PREFIXES } from '@src/common/constants/prefix';
 import { Arg, AutoContext, Command, EmbedBuilder, Prefix, SmartMessage } from '@src/libs/nezon';
 import type { Nezon } from '@src/libs/nezon';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
@@ -16,7 +15,7 @@ export class CleaningScheduleHandler {
     private readonly staffService: StaffService
   ) { }
 
-  @Command({ name: 'trucnhat', prefixes: PREFIXES })
+  @Command({ name: 'trucnhat' })
   async onCheckMySchedule(@AutoContext() [managedMessage]: Nezon.AutoContext, @Prefix() prefix: string, @Arg() name: Nezon.Args) {
     const userId = managedMessage.senderId;
     this.logger.log(`User ${userId} requested cleaning schedule`);

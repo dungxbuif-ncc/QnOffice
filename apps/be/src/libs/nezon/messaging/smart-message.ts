@@ -916,6 +916,10 @@ export class ManagedMessage {
     return this.context.message.channel_id;
   }
 
+  /**
+ * change logs:
+ *  - remove undefined, sender_id is null only in case of action events (MessageButtonClicked)
+ */ 
   get senderId(): string {
     return this.context.message.sender_id;
   }
