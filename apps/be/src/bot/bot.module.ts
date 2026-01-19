@@ -9,6 +9,9 @@ import { SharedModule } from '@src/common/shared/shared.module';
 import { BotNotiDeliveryService } from '@src/modules/bot-noti/bot-noti-delivery.service';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import { MezonClient } from 'mezon-sdk';
+import { CleaningScheduleHandler } from './handler/schedule.handler';
+import { StaffModule } from '@src/modules/staff/staff.module';
+import { CleaningModule } from '@src/modules/cleaning/cleaning.module';
 
 @Module({
   imports: [
@@ -20,8 +23,10 @@ import { MezonClient } from 'mezon-sdk';
     DatabaseModule,
     BotCronModule,
     TypeOrmModule.forFeature([ChannelConfigEntity]),
+    StaffModule,
+    CleaningModule
   ],
-  providers: [ChannelMessageHandler, BotNotiDeliveryService],
+  providers: [ChannelMessageHandler, BotNotiDeliveryService, CleaningScheduleHandler],
 })
 export class BotModule {
   private readonly logger = new Logger('BotModule');
