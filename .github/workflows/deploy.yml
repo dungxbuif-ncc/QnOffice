@@ -1,0 +1,86 @@
+name: Build and Deploy QnOffice
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - frontend
+        - backend
+
+env:
+  HARBOR_REGISTRY: registry.dungxbuif.com
+  HARBOR_PROJECT: qn-office
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Log in to Harbor Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.HARBOR_REGISTRY }}
+        username: ${{ secrets.HARBOR_USERNAME }}
+        password: ${{ secrets.HARBOR_PASSWORD }}
+
+    - name: Set Image Tag
+      id: meta
+      run: echo "TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+    # Build Backend
+    - name: Build and Push Backend
+      if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'backend' }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./apps/be
+        push: true
+        tags: |
+          ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-backend:${{ steps.meta.outputs.TAG }}
+          ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-backend:latest
+
+    # Build Frontend
+    - name: Build and Push Frontend
+      if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'frontend' }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./apps/web
+        push: true
+        build-args: |
+          NEXT_PUBLIC_FRONTEND_URL=https://prod-office.nccquynhon.edu.vn
+        tags: |
+          ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-frontend:${{ steps.meta.outputs.TAG }}
+          ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-frontend:latest
+
+    # Update Manifests
+    - name: Update Manifests
+      if: success()
+      run: |
+        # Update Backend Tag
+        if [[ "${{ github.event.inputs.target }}" == "all" || "${{ github.event.inputs.target }}" == "backend" ]]; then
+          sed -i "s|image: .*/office-backend:.*|image: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-backend:${{ steps.meta.outputs.TAG }}|g" kubernetes/base/backend.yml
+        fi
+
+        # Update Frontend Tag
+        if [[ "${{ github.event.inputs.target }}" == "all" || "${{ github.event.inputs.target }}" == "frontend" ]]; then
+          sed -i "s|image: .*/office-frontend:.*|image: ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-frontend:${{ steps.meta.outputs.TAG }}|g" kubernetes/base/frontend.yml
+        fi
+
+        # Commit changes
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+        # Check if there are changes
+        if [[ -n $(git status -s) ]]; then
+          git add kubernetes/base/*.yml
+          git commit -m "chore: update image tags to ${{ steps.meta.outputs.TAG }}"
+          git push
+        else
+          echo "No changes to commit"
+        fi

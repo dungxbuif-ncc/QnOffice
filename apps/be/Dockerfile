@@ -70,7 +70,7 @@ COPY --from=be-builder --chown=nestjs:nodejs /workspace/apps/be/dist ./dist
 
 USER nestjs
 
-EXPOSE 4000
+EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
 
