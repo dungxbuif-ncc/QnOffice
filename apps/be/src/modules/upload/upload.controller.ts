@@ -33,6 +33,9 @@ class GenerateMultiplePresignedUrlsDto {
   @ArrayMinSize(1)
   @Type(() => FileUploadDto)
   files: FileUploadDto[];
+
+  @IsString()
+  folder?: string;
 }
 
 @Controller('upload')

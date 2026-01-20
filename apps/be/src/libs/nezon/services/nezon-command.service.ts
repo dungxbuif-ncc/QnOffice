@@ -36,13 +36,14 @@ import {
   NormalizedSmartMessage,
   cloneMentionPlaceholders,
 } from '../messaging/smart-message';
+import { DEFAULT_BOT_PREFIX } from '@src/common/constants/prefix';
 
 @Injectable()
 export class NezonCommandService {
   private readonly logger = new Logger(NezonCommandService.name);
   private commands: Array<{
     names: Set<string>;
-    prefix: string;
+    prefixes: string[];
     definition: NezonCommandDefinition;
   }> = [];
   private isInitialized = false;
@@ -75,13 +76,13 @@ export class NezonCommandService {
 
   private registerCommands(definitions: NezonCommandDefinition[]) {
     this.commands = definitions.map((definition) => {
-      const prefix = definition.options.prefix ?? '*';
+      const prefixes = definition.options.prefixes?.map((prefix) => prefix.toLowerCase()) ?? [DEFAULT_BOT_PREFIX];
       const baseName = definition.options.name.toLowerCase();
       const aliases =
         definition.options.aliases?.map((alias) => alias.toLowerCase()) ?? [];
       return {
         names: new Set([baseName, ...aliases]),
-        prefix,
+        prefixes,
         definition,
       };
     });
@@ -124,10 +125,14 @@ export class NezonCommandService {
       return;
     }
     for (const command of this.commands) {
-      if (!content.startsWith(command.prefix)) {
+      
+      const matchedPrefix = command.prefixes.find(p => content.startsWith(p));
+
+      if (!matchedPrefix) {
         continue;
       }
-      const body = content.slice(command.prefix.length).trim();
+      const prefix = content.slice(0, matchedPrefix.length);
+      const body = content.slice(matchedPrefix.length).trim();
       if (!body) {
         continue;
       }
@@ -139,7 +144,7 @@ export class NezonCommandService {
       if (!name || !command.names.has(name)) {
         continue;
       }
-      const context = this.createCommandContext(message, parts);
+      const context = this.createCommandContext(message, parts, prefix);
       await this.executeCommand(command.definition, context);
       break;
     }
@@ -368,6 +373,8 @@ export class NezonCommandService {
         }
         return autoContext;
       }
+      case NezonParamType.PREFIX:
+        return context.prefix;
       default:
         return undefined;
     }
@@ -552,11 +559,13 @@ export class NezonCommandService {
   private createCommandContext(
     message: ChannelMessage,
     args: string[],
+    prefix: string
   ): NezonCommandContext {
     const context: NezonCommandContext = {
       message,
       client: this.clientService.getClient(),
       args,
+      prefix,
       cache: new Map<symbol, unknown>(),
       reply: async (...replyArgs) => {
         const entity = await this.getMessageEntity(context);

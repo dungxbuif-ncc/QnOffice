@@ -1,6 +1,7 @@
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import FeedbackWidget from '@/components/feedback/feedbackWidget';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -91,6 +92,7 @@ export default function DashboardLayout({
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>
+      <FeedbackWidget />
     </SidebarProvider>
   );
 }

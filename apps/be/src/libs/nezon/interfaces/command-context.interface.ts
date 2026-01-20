@@ -9,6 +9,7 @@ export interface NezonCommandContext {
   client: MezonClient;
   args: string[];
   cache?: Map<symbol, unknown>;
+  prefix?: string;
   reply(
     ...args: Parameters<Message['reply']>
   ): Promise<Awaited<ReturnType<Message['reply']>> | undefined>;
