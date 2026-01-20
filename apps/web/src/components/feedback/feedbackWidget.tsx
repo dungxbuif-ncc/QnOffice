@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ApiResponse } from '@qnoffice/shared';
 
 type Message = {
   id: number;
@@ -32,54 +33,99 @@ export default function FeedbackWidget() {
   const sendMessage = async () => {
     if (!input.trim() && images.length === 0) return;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        text: input || undefined,
-        images: images.map((img) => URL.createObjectURL(img)),
-        from: 'user',
-      },
-    ]);
-
-    const formData = new FormData();
-    formData.append('text', input);
-    images.forEach((img) => formData.append('image', img));
-
-    const response = await fetch(`/api/feedback`, {
-      method: 'POST',
-      body: formData,
-      credentials: "include"
-    });
-
-    setInput('');
-    setImages([]);
-
-    if (!response.ok) {
-     setTimeout(() => {
+    try {
+      // Optimistic UI
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
-          text: 'Đã xảy ra lỗi!',
-          from: 'bot',
+          id: Date.now(),
+          text: input || undefined,
+          images: images[0]
+            ? [URL.createObjectURL(images[0])]
+            : [],
+          from: 'user',
         },
       ]);
-    }, 600);
-    }else{
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: 'Mình đã nhận được feedback 👍',
-          from: 'bot',
-        },
-      ]);
-    }, 600);
+
+      let imageKey: string | undefined;
+
+      if (images.length > 0) {
+        const file = images[0];
+
+        const response = await fetch('/api/upload/presigned-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type,
+            folder: 'feedback/temp',
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get presigned url');
+        }
+
+        const { uploadUrl, key }: { uploadUrl: string; key: string } =
+          (await response.json()).data;
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type,
+          },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Upload failed');
+        }
+
+        imageKey = key;
+      }
+
+      // 2️⃣ Gửi feedback
+      const payload = {
+        text: input,
+        imageKey, // ✅ chỉ gửi key
+      };
+
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      setInput('');
+      setImages([]);
+
+      // Bot reply
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: response.ok
+              ? 'Mình đã nhận được feedback 👍'
+              : 'Đã xảy ra lỗi!',
+            from: 'bot',
+          },
+        ]);
+      }, 600);
+    } catch (error) {
+      console.error(error);
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: 'Đã xảy ra lỗi!',
+            from: 'bot',
+          },
+        ]);
+      }, 600);
     }
-
-    
   };
 
   return (

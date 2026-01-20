@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { formatOfficeCode } from '@src/common/utils';
 import { Arg, AutoContext, Command, EmbedBuilder, Prefix, SmartMessage } from '@src/libs/nezon';
 import type { Nezon } from '@src/libs/nezon';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
@@ -20,19 +21,18 @@ export class CleaningScheduleHandler {
     const userId = managedMessage.senderId;
     this.logger.log(`User ${userId} requested cleaning schedule`);
 
-    const officeCode = prefix.replace('*', '').toUpperCase();
+    const officeCode = formatOfficeCode(prefix);
 
     try {
-      const staff = name
-        ? await this.staffService.findByName(name.toString())
-        : await this.staffService.findByUserId(userId);
+      const identify = name ? name.toString() : userId;
+      const staff =  await this.staffService.findByUserIdOrName(identify);
 
       if (!staff) {
-        await managedMessage.reply(SmartMessage.system("Tài khoản của bạn không có trong hệ thống"));
+        await managedMessage.reply(SmartMessage.system("Không có nhân viên này trong hệ thống"));
         return;
       }
 
-      if (staff.branch.code !== officeCode) {
+      if (!staff.branch.code && staff.branch.code !== officeCode) {
         await managedMessage.reply(SmartMessage.system(`Bạn không không có lịch trực tại chi nhánh ${officeCode}`));
         return;
       }

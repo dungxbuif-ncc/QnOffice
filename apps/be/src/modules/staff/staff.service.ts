@@ -88,4 +88,13 @@ export class StaffService {
       where: { user: { name } }
     })
   }
+
+  async findByUserIdOrName(identifier: string) {
+    return this.staffRepository.findOne({
+      relations: { user: true },
+      where: [
+        { userId: identifier }, { user: { name: identifier } }
+      ]
+    })
+  }
 }

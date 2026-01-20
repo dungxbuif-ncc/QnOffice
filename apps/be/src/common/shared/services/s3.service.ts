@@ -4,7 +4,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AppConfigService } from './app-config.service';
 import { GeneratorService } from './generator.service';
 
@@ -51,6 +51,7 @@ export class S3Service {
     fileName: string,
     contentType: string,
     folder: string = 'penalties/evidence',
+    expiresIn: number = 3600
   ): Promise<PresignedUrlResponse> {
     // Generate unique file key
     const fileExtension = fileName.split('.').pop();
@@ -64,7 +65,6 @@ export class S3Service {
     });
 
     // Generate presigned URL that expires in 1 hour for Cloudflare R2
-    const expiresIn = 3600; // 1 hour
     const uploadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
     });
@@ -91,13 +91,13 @@ export class S3Service {
 
   async getPresignedDownloadUrl(
     key: string,
+    expiresIn:number = 3600
   ): Promise<{ downloadUrl: string; expiresIn: number }> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
 
-    const expiresIn = 3600; // 1 hour
     const downloadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
     });
@@ -117,59 +117,6 @@ export class S3Service {
     );
 
     return Promise.all(promises);
-  }
-
-  async uploadBufferFile(
-    file: Express.Multer.File,
-    folder = 'feedback/temp',
-    expire: number = 300000
-  ) {
-
-    if (!file.mimetype?.startsWith('image/')) {
-      throw new BadRequestException('Only image files allowed');
-    }
-
-    const ext = file.originalname.split('.').pop() || 'png';
-    const key = `${folder}/${this.generatorService.uuid()}.${ext}`;
-
-    await this.s3Client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-        ContentLength: file.size,
-      }),
-    );
-
-    const signedUrl = await getSignedUrl(
-      this.s3Client,
-      new GetObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      }),
-      {
-        expiresIn: expire, 
-      },
-    );
-
-    return {
-      key,
-      signedUrl,
-      size: file.size,
-      mimetype: file.mimetype,
-      originalName: file.originalname,
-    };
-  }
-
-  async uploadMultipleBuffers(
-    files: Express.Multer.File[],
-    folder = 'feedback/temp',
-    expired?: number
-  ) {
-    return Promise.all(
-      files.map((file) => this.uploadBufferFile(file, folder, expired)),
-    );
   }
 }
 
