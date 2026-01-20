@@ -47,8 +47,13 @@ COPY tailwind.config.js postcss.config.js ../../
 COPY apps/web ./
 
 # Set environment variables for build
+# Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+
+# Build argument for frontend URL
+ARG NEXT_PUBLIC_FRONTEND_URL
+ENV NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
 
 # Build Next.js application
 RUN yarn build

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: office-config
+  namespace: qn-office
+data:
+  # Common
+  NODE_ENV: "production"
+  
+  # Backend Config
+  PORT: "3000"
+  DB_PORT: "5432"
+  DB_HOST: "ep-solitary-math-a1a2ilwz-pooler.ap-southeast-1.aws.neon.tech"
+  DB_DATABASE: "qn_office_prod"
+
+  FRONTEND_URL: "https://prod-office.nccquynhon.edu.vn"
+  
+  AWS_REGION: "auto "
+  AWS_S3_ENDPOINT: "https://d5e907f8e99977228dd976d33ec22858.r2.cloudflarestorage.com"
+  AWS_S3_PUBLIC_URL: "https://d5e907f8e99977228dd976d33ec22858.r2.cloudflarestorage.com"
+
+  # Frontend Config
+  BACKEND_BASE_URL: "http://office-backend"    # Internal K8s Service URL
+  NEXT_PUBLIC_FRONTEND_URL: "https://prod-office.nccquynhon.edu.vn"
