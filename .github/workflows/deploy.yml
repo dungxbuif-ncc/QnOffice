@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: "[PROD] Build and Deploy QnOffice"
+=======
+name: Build and Deploy QnOffice
+>>>>>>> fix/calendar-data-response
 
 on:
   workflow_dispatch:
@@ -39,8 +43,12 @@ jobs:
       if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'backend' }}
       uses: docker/build-push-action@v5
       with:
+<<<<<<< HEAD
         context: .
         file: ./apps/be/Dockerfile
+=======
+        context: ./apps/be
+>>>>>>> fix/calendar-data-response
         push: true
         tags: |
           ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/office-backend:${{ steps.meta.outputs.TAG }}
@@ -51,8 +59,12 @@ jobs:
       if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'frontend' }}
       uses: docker/build-push-action@v5
       with:
+<<<<<<< HEAD
         context: .
         file: ./apps/web/Dockerfile
+=======
+        context: ./apps/web
+>>>>>>> fix/calendar-data-response
         push: true
         build-args: |
           NEXT_PUBLIC_FRONTEND_URL=https://prod-office.nccquynhon.edu.vn

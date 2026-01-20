@@ -10,6 +10,7 @@ data:
   # Backend Config
   PORT: "3000"
   DB_PORT: "5432"
+<<<<<<< HEAD
   DB_HOST: "ep-solitary-math-a1a2ilwz-pooler.ap-southeast-1.aws.neon.tech"
   DB_DATABASE: "qn_office_prod"
 
@@ -18,6 +19,23 @@ data:
   AWS_REGION: "auto "
   AWS_S3_ENDPOINT: "https://d5e907f8e99977228dd976d33ec22858.r2.cloudflarestorage.com"
   AWS_S3_PUBLIC_URL: "https://d5e907f8e99977228dd976d33ec22858.r2.cloudflarestorage.com"
+=======
+  DB_HOST: "CHANGE_ME_DB_HOST"
+  DB_USERNAME: "CHANGE_ME_DB_USER"
+  DB_DATABASE: "qn_office_prod"
+  
+  CLIENT_ID: "CHANGE_ME_CLIENT_ID"
+  OAUTH_URL: "CHANGE_ME_OAUTH_URL"
+  
+  FRONTEND_URL: "https://prod-office.nccquynhon.edu.vn"
+  
+  AWS_REGION: "ap-southeast-1"
+  AWS_S3_BUCKET: "CHANGE_ME_BUCKET"
+  AWS_S3_ENDPOINT: "CHANGE_ME_S3_ENDPOINT"
+  AWS_S3_PUBLIC_URL: "CHANGE_ME_S3_PUBLIC_URL"
+  
+  MEZON_BOT_ID: "CHANGE_ME_BOT_ID"
+>>>>>>> fix/calendar-data-response
 
   # Frontend Config
   BACKEND_BASE_URL: "http://office-backend"    # Internal K8s Service URL

@@ -32,12 +32,14 @@ export class CalendarService {
     startDate?: string,
     endDate?: string,
   ): Promise<CalendarEvent[]> {
-    const cleaningQuery: CleaningQueryDto = { startDate, endDate };
-    const opentalkQuery: OpentalkQueryDto = { startDate, endDate };
+    const normalizedQuery = {
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    };
 
     const [cleaningEvents, opentalkEvents] = await Promise.all([
-      this.cleaningService.getEvents(cleaningQuery),
-      this.opentalkService.getEvents(opentalkQuery),
+      this.cleaningService.getEvents(normalizedQuery),
+      this.opentalkService.getEvents(normalizedQuery),
     ]);
 
     const allEvents: CalendarEvent[] = [

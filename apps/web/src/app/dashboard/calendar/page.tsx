@@ -24,7 +24,7 @@ function mapCalendarEventsToFullCalendar(events: CalendarEvent[]) {
   return events.map((event) => ({
     id: event.id.toString(),
     title: event.title,
-    date: new Date(event.date),
+    date: event.date,
     type: event.type.toLowerCase() as 'cleaning' | 'opentalk',
     participants: event.participants?.map(
       (p) => p.email || p.name || 'Unknown',
@@ -42,7 +42,8 @@ function mapHolidaysToCalendarEvents(holidays: Holiday[]) {
   return holidays.map((holiday) => ({
     id: `holiday-${holiday.id}`,
     title: holiday.name,
-    date: new Date(holiday.date),
+    date:
+      holiday.date instanceof Date ? holiday.date.toISOString() : holiday.date,
     type: 'holiday' as const,
   }));
 }
@@ -107,6 +108,11 @@ export default async function CalendarPage({
 
   const safeEvents = Array.isArray(events) ? events : [];
   const safeHolidays = holidays?.result || [];
+  safeEvents.forEach((e) => {
+    if (!e.date || isNaN(Date.parse(e.date))) {
+      console.error('BAD EVENT', e);
+    }
+  });
 
   const calendarEvents = mapCalendarEventsToFullCalendar(safeEvents);
   const holidayEvents = mapHolidaysToCalendarEvents(safeHolidays);

@@ -24,7 +24,7 @@ import {
   FileText,
   Paperclip,
   Upload,
-  Users
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -45,7 +45,9 @@ interface EventModalProps {
 
 export function EventModal({ isOpen, onClose, event }: EventModalProps) {
   const { data: slide, isLoading: loadingSlide } = useOpentalkSlide(
-    isOpen && event?.type.toLowerCase() === 'opentalk' ? Number(event.id) : null,
+    isOpen && event?.type.toLowerCase() === 'opentalk'
+      ? Number(event.id)
+      : null,
   );
 
   const [showPreview, setShowPreview] = useState(false);
@@ -88,9 +90,11 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
 
     try {
       setLoadingPreview(true);
-      const response = await uploadClientService.getOpentalkViewPresignedUrl(key);
-      const downloadUrl = (response.data as any).data?.downloadUrl || response.data.downloadUrl;
-      
+      const response =
+        await uploadClientService.getOpentalkViewPresignedUrl(key);
+      const downloadUrl =
+        (response.data as any).data?.downloadUrl || response.data.downloadUrl;
+
       if (downloadUrl) {
         setPresignedUrl(downloadUrl);
         setShowPreview(true);
@@ -108,8 +112,8 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
     if (loadingSlide) {
       return (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
-           <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-           Loading slide info...
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          Loading slide info...
         </div>
       );
     }
@@ -156,7 +160,7 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
             </div>
           </div>
         </div>
-        
+
         {hasSlide && (
           <div className="ml-7">
             {isFileType ? (
@@ -174,7 +178,9 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => slide?.slideUrl && window.open(slide.slideUrl, '_blank')}
+                onClick={() =>
+                  slide?.slideUrl && window.open(slide.slideUrl, '_blank')
+                }
                 className="gap-2"
               >
                 <ExternalLink className="h-3 w-3" />
@@ -183,10 +189,10 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
             )}
           </div>
         )}
-        
+
         {slide?.rejectionReason && currentStatus === 'REJECTED' && (
           <div className="ml-7 text-sm text-red-600 bg-red-50 p-2 rounded">
-             Reason: {slide.rejectionReason}
+            Reason: {slide.rejectionReason}
           </div>
         )}
       </div>
@@ -195,96 +201,96 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
 
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {event.title}
-          </DialogTitle>
-          <DialogDescription>
-            <Badge className={getEventTypeColor(event.type)}>
-              {getEventTypeLabel(event.type)}
-            </Badge>
-          </DialogDescription>
-        </DialogHeader>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              {event.title}
+            </DialogTitle>
+            <DialogDescription>
+              <Badge className={getEventTypeColor(event.type)}>
+                {getEventTypeLabel(event.type)}
+              </Badge>
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Date and Time */}
-          <div className="flex items-center gap-3">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="font-medium">
-                {format(event.date, 'EEEE, MMMM d, yyyy')}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {format(event.date, 'h:mm a')}
-              </p>
-            </div>
-          </div>
-
-          {/* Participants */}
-          {event.participants && event.participants.length > 0 && (
-            <div className="flex items-start gap-3">
-              <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="font-medium mb-1">Participants</p>
-                <div className="space-y-1">
-                  {event.participants.map((participant, index) => (
-                    <p key={index} className="text-sm text-muted-foreground">
-                      {participant}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Status */}
-          {event.status && (
+          <div className="space-y-4">
+            {/* Date and Time */}
             <div className="flex items-center gap-3">
-              <div className="h-4 w-4 flex items-center justify-center">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              </div>
+              <Clock className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="font-medium">Status</p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {event.status}
+                <p className="font-medium">
+                  {format(event.date, 'EEEE, MMMM d, yyyy')}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {format(event.date, 'h:mm a')}
                 </p>
               </div>
             </div>
-          )}
 
-          {/* Slide Status */}
-          {renderSlideStatus()}
-
-          {/* Notes */}
-          {event.notes && (
-            <div className="flex items-start gap-3">
-              <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="font-medium mb-1">Notes</p>
-                <p className="text-sm text-muted-foreground">{event.notes}</p>
+            {/* Participants */}
+            {event.participants && event.participants.length > 0 && (
+              <div className="flex items-start gap-3">
+                <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="font-medium mb-1">Participants</p>
+                  <div className="space-y-1">
+                    {event.participants.map((participant, index) => (
+                      <p key={index} className="text-sm text-muted-foreground">
+                        {participant}
+                      </p>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            {/* Status */}
+            {event.status && (
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 flex items-center justify-center">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                </div>
+                <div>
+                  <p className="font-medium">Status</p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {event.status}
+                  </p>
+                </div>
+              </div>
+            )}
 
-    <FilePreviewDialog
-      open={showPreview}
-      onOpenChange={setShowPreview}
-      url={presignedUrl}
-      fileName={slide?.slideKey || 'Slide'}
-      fileType={slide?.type}
-    />
-  </>
+            {/* Slide Status */}
+            {renderSlideStatus()}
+
+            {/* Notes */}
+            {event.notes && (
+              <div className="flex items-start gap-3">
+                <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="font-medium mb-1">Notes</p>
+                  <p className="text-sm text-muted-foreground">{event.notes}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <FilePreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        url={presignedUrl}
+        fileName={slide?.slideKey || 'Slide'}
+        fileType={slide?.mimeType}
+      />
+    </>
   );
 }

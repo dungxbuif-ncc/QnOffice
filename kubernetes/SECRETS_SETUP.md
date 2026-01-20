@@ -53,6 +53,7 @@ kubectl create namespace qn-office --dry-run=client -o yaml | kubectl apply -f -
 ```bash
 kubectl create secret generic office-backend-secret \
   --namespace=qn-office \
+<<<<<<< HEAD
   --from-literal=DB_USERNAME='YOUR_DB_USER' \
   --from-literal=DB_DATABASE='qn_office_prod' \
   --from-literal=DB_PASSWORD='YOUR_DB_PASSWORD' \
@@ -66,6 +67,14 @@ kubectl create secret generic office-backend-secret \
   --from-literal=AWS_ACCESS_KEY_ID='YOUR_AWS_ACCESS_KEY' \
   --from-literal=AWS_SECRET_ACCESS_KEY='YOUR_AWS_SECRET_KEY' \
   --from-literal=MEZON_BOT_ID='YOUR_BOT_ID' \
+=======
+  --from-literal=DB_PASSWORD='YOUR_DB_PASSWORD' \
+  --from-literal=CLIENT_SECRET='YOUR_CLIENT_SECRET' \
+  --from-literal=JWT_SECRET='YOUR_JWT_SECRET' \
+  --from-literal=JWT_REFRESH_SECRET='YOUR_JWT_REFRESH_SECRET' \
+  --from-literal=AWS_ACCESS_KEY_ID='YOUR_AWS_ACCESS_KEY' \
+  --from-literal=AWS_SECRET_ACCESS_KEY='YOUR_AWS_SECRET_KEY' \
+>>>>>>> fix/calendar-data-response
   --from-literal=MEZON_BOT_TOKEN='YOUR_BOT_TOKEN'
 ```
 
