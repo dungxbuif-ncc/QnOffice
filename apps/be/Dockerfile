@@ -1,59 +1,78 @@
-FROM node:20-alpine AS base
+# ==========================================
+# Stage 1: Build shared libs
+# ==========================================
+FROM node:20-alpine AS libs-builder
 
-# Install dependencies stage
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+WORKDIR /workspace/libs
+
+# Copy libs package files
+COPY libs/package.json libs/yarn.lock* ./
+
+# Install libs dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy libs source and tsconfig
+COPY libs/tsconfig.json ./
+COPY libs/src ./src
+
+# Build libs
+RUN yarn build
+
+# ==========================================
+# Stage 2: Build backend
+# ==========================================
+
+FROM node:20-alpine AS be-builder
+
+WORKDIR /workspace/apps/be
+
+# Copy backend package files
+COPY apps/be/package.json ./
+
+COPY --from=libs-builder /workspace/libs /workspace/apps/be/libs
+
+RUN sed -i 's|"@qnoffice/shared": "file:../../libs"|"@qnoffice/shared": "file:./libs"|g' package.json
+
+# Copy yarn.lock if exists
+COPY apps/be/yarn.lock* ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy backend source
+COPY apps/be ./
+
+# Build backend
+RUN yarn build
+
+# ==========================================
+# Stage 3: Production runtime
+# ==========================================
+FROM node:20-alpine
+
+RUN apk add --no-cache dumb-init
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
 WORKDIR /app
+RUN mkdir -p mezon-cache && chown -R nestjs:nodejs /app
+COPY --from=be-builder --chown=nestjs:nodejs /workspace/apps/be/package.json ./
+RUN sed -i 's|"@qnoffice/shared": "file:../../libs"|"@qnoffice/shared": "file:./libs"|g' package.json
 
-# Copy all package.json files for workspace
-COPY package.json yarn.lock ./
-COPY libs/package.json ./libs/
-COPY apps/be/package.json ./apps/be/
-COPY apps/web/package.json ./apps/web/
+COPY --from=be-builder --chown=nestjs:nodejs /workspace/apps/be/yarn.lock* ./
 
-# Install ALL dependencies at root (this will link workspaces)
-RUN yarn install 
+COPY --from=libs-builder --chown=nestjs:nodejs /workspace/libs /app/libs
+RUN yarn install --frozen-lockfile --production && \
+    yarn cache clean
 
-# Builder stage
-FROM base AS builder
-WORKDIR /app
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/libs/node_modules ./libs/node_modules
-COPY --from=deps /app/apps/be/node_modules ./apps/be/node_modules
-
-# Copy source code
-COPY . .
-
-# Build shared library FIRST (this creates dist folder that BE depends on)
-RUN yarn workspace @qnoffice/shared build
-
-# Now build backend (it can import from @qnoffice/shared)
-RUN yarn workspace qn-official-api build
-
-# Production stage
-FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nestjs
-
-# Copy production dependencies
-COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=deps --chown=nestjs:nodejs /app/package.json ./package.json
-
-# Copy built backend
-COPY --from=builder --chown=nestjs:nodejs /app/apps/be/dist ./apps/be/dist
-
-# Copy built shared library (needed at runtime)
-COPY --from=builder --chown=nestjs:nodejs /app/libs/dist ./libs/dist
-COPY --from=builder --chown=nestjs:nodejs /app/libs/package.json ./libs/package.json
+COPY --from=be-builder --chown=nestjs:nodejs /workspace/apps/be/dist ./dist
 
 USER nestjs
 
-EXPOSE 3000
+EXPOSE 4000
 
-CMD ["node", "apps/be/dist/main.js"]
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/main.js"]
