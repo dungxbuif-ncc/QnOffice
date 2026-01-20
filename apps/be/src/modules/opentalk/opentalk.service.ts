@@ -150,51 +150,57 @@ export class OpentalkService {
   }
 
   async getEvents(query: OpentalkQueryDto): Promise<ScheduleEventEntity[]> {
-    const events = await this.eventRepository.find({
-      where: { type: ScheduleType.OPENTALK },
-      relations: [
-        'cycle',
-        'eventParticipants',
-        'eventParticipants.staff',
-        'eventParticipants.staff.user',
-      ],
-      order: { eventDate: 'ASC' },
-    });
-
-    // Apply filters in memory
-    let filtered = events;
+    const qb = this.eventRepository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.cycle', 'cycle')
+      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
+      .leftJoinAndSelect('eventParticipants.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('event.type = :type', { type: ScheduleType.OPENTALK });
 
     if (query.status) {
-      filtered = filtered.filter((e) => e.status === query.status);
-    }
-    if (query.cycleId) {
-      filtered = filtered.filter((e) => e.cycleId === query.cycleId);
-    }
-    if (query.participantId) {
-      filtered = filtered.filter((e) =>
-        e.eventParticipants?.some((p) => p.staffId === query.participantId),
-      );
+      qb.andWhere('event.status = :status', { status: query.status });
     }
 
-    // Manually attach slides to events (no FK relation)
-    if (filtered.length > 0) {
-      const eventIds = filtered.map((e) => e.id);
+    if (query.cycleId) {
+      qb.andWhere('event.cycleId = :cycleId', { cycleId: query.cycleId });
+    }
+
+    if (query.participantId) {
+      qb.andWhere('eventParticipants.staffId = :participantId', {
+        participantId: query.participantId,
+      });
+    }
+
+    if (query.startDate && !isNaN(Date.parse(query.startDate))) {
+      qb.andWhere('event.eventDate >= :startDate', {
+        startDate: new Date(query.startDate),
+      });
+    }
+
+    if (query.endDate && !isNaN(Date.parse(query.endDate))) {
+      qb.andWhere('event.eventDate <= :endDate', {
+        endDate: new Date(query.endDate),
+      });
+    }
+
+    const events = await qb.orderBy('event.eventDate', 'ASC').getMany();
+
+    if (events.length > 0) {
+      const eventIds = events.map((e) => e.id);
+
       const slides = await this.slideRepository
         .createQueryBuilder('slide')
         .where('slide.eventId IN (:...eventIds)', { eventIds })
         .getMany();
 
-      console.log('OpentalkService getEvents IDs:', eventIds);
-      console.log('OpentalkService found slides:', slides);
-
-      // Create a map for quick lookup
       const slideMap = new Map(slides.map((s) => [s.eventId, s]));
-      filtered.forEach((event) => {
+      events.forEach((event) => {
         (event as any).slide = slideMap.get(event.id) || null;
       });
     }
 
-    return filtered;
+    return events;
   }
 
   async getAvailableEvents(

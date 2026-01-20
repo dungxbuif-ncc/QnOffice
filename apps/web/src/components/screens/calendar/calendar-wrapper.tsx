@@ -8,7 +8,7 @@ interface CalendarWrapperProps {
   events: Array<{
     id: string;
     title: string;
-    date: Date;
+    date: string;
     type: 'cleaning' | 'opentalk' | 'holiday';
     participants?: string[];
     notes?: string;
@@ -48,7 +48,7 @@ export function CalendarWrapper({
   const calendarEvents = events.map((event) => ({
     id: event.id,
     title: event.title,
-    date: event.date,
+    date: new Date(event.date),
     type: event.type,
     color:
       event.type === 'cleaning'
@@ -72,7 +72,7 @@ export function CalendarWrapper({
       setSelectedEvent({
         id: originalEvent.id,
         title: originalEvent.title,
-        date: originalEvent.date,
+        date: new Date(originalEvent.date),
         type: originalEvent.type,
         participants: originalEvent.participants,
         notes: originalEvent.notes,

@@ -253,12 +253,13 @@ export class CleaningService {
     }
 
     // Date range filter
-    if (query.startDate) {
+    if (query.startDate && !isNaN(Date.parse(query.startDate))) {
       queryBuilder.andWhere('event.eventDate >= :startDate', {
         startDate: new Date(query.startDate),
       });
     }
-    if (query.endDate) {
+
+    if (query.endDate && !isNaN(Date.parse(query.endDate))) {
       queryBuilder.andWhere('event.eventDate <= :endDate', {
         endDate: new Date(query.endDate),
       });
