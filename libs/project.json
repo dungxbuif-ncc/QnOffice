@@ -1,0 +1,41 @@
+{
+   "name": "shared",
+   "$schema": "../node_modules/nx/schemas/project-schema.json",
+   "sourceRoot": "libs/src",
+   "projectType": "library",
+   "tags": [
+      "type:lib",
+      "scope:shared"
+   ],
+   "targets": {
+      "build": {
+         "executor": "nx:run-commands",
+         "options": {
+            "commands": [
+               "npm run build",
+               "mkdir -p ../apps/web/node_modules/@qnoffice/shared && cp -r dist ../apps/web/node_modules/@qnoffice/shared/ && cp package.json ../apps/web/node_modules/@qnoffice/shared/",
+               "mkdir -p ../apps/be/node_modules/@qnoffice/shared && cp -r dist ../apps/be/node_modules/@qnoffice/shared/ && cp package.json ../apps/be/node_modules/@qnoffice/shared/"
+            ],
+            "cwd": "libs",
+            "parallel": false
+         },
+         "outputs": [
+            "{projectRoot}/dist"
+         ]
+      },
+      "watch": {
+         "executor": "nx:run-commands",
+         "options": {
+            "command": "npm run watch",
+            "cwd": "libs"
+         }
+      },
+      "dev": {
+         "executor": "nx:run-commands",
+         "options": {
+            "command": "node watch-libs.js",
+            "cwd": "{workspaceRoot}"
+         }
+      }
+   }
+}

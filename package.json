@@ -23,8 +23,8 @@
     "build": "nx run-many --target=build --all",
     "lint": "nx run-many --target=lint --all",
     "test": "nx run-many --target=test --all",
-    "build:libs": "./build-libs.sh",
-    "watch:libs": "node watch-libs.js"
+    "build:libs": "nx build shared",
+    "watch:libs": "nx dev shared"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -51,8 +51,6 @@
     "typescript-eslint": "^8.40.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.964.0",
-    "@aws-sdk/s3-request-presigner": "^3.964.0",
     "autoprefixer": "^10.4.23",
     "chokidar": "^4.0.3",
     "postcss": "^8.5.6",
