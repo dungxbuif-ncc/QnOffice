@@ -13,8 +13,7 @@ export class FeedbackService {
     async sendFeedbackToChannel(username: string, feedbackDto: FeedbackDto) {
         const presignUrl = await this.s3Service.getPresignedDownloadUrl(feedbackDto.imageKey, 30000)
         const message = await this.formatFeedbackMessage(username, feedbackDto.text, presignUrl.downloadUrl);
-        // const channelId = "2013469503454711808";
-        const channelId = "2011979291633389568"; // test clan
+        const channelId = "2013469503454711808";
         const channel = await this.mezonService.channels.fetch(channelId);
         if (!channel) {
             throw new Error(`Channel ${channelId} not found`);
