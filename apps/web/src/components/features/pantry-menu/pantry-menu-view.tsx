@@ -6,15 +6,14 @@ import pantryMenuService from '@/shared/services/client/pantry-menu.service';
 import { PantryMenuItem, UserRole } from '@qnoffice/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Download, Heart, Settings, Video } from 'lucide-react';
-import { Inter } from 'next/font/google';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { PantryMenuManagementModal } from './pantry-menu-management-modal';
 
-const inter = Inter({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '600', '700', '800', '900'],
-});
+// const inter = Inter({
+//   subsets: ['latin', 'vietnamese'],
+//   weight: ['400', '600', '700', '800', '900'],
+// });
 
 interface Props {
   initialData: PantryMenuItem[];
@@ -184,13 +183,13 @@ export default function PantryMenuView({ initialData }: Props) {
           {/* Payment Instructions */}
           <div className="bg-[#FFCC00] rounded-3xl p-4 flex flex-col justify-center shadow-sm">
             <h3
-              className={`text-xl font-black text-[#3D3D3D] text-center mb-3 uppercase tracking-tight ${inter.className}`}
+              className={`text-xl font-black text-[#3D3D3D] text-center mb-3 uppercase tracking-tight`}
               style={{ fontWeight: 900 }}
             >
               HƯỚNG DẪN THANH TOÁN:
             </h3>
             <ul
-              className={`space-y-1.5 text-[#3D3D3D] font-black text-base list-none pl-0 leading-relaxed ${inter.className}`}
+              className={`space-y-1.5 text-[#3D3D3D] font-black text-base list-none pl-0 leading-relaxed`}
               style={{ fontWeight: 800 }}
             >
               <li>Quét mã QR trên bằng Mezon</li>
