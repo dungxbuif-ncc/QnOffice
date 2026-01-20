@@ -14,7 +14,7 @@ export class StaffService {
     @InjectRepository(StaffEntity)
     private readonly staffRepository: Repository<StaffEntity>,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   async findByUserId(userId: string): Promise<StaffEntity | null> {
     return this.staffRepository.findOne({
@@ -87,5 +87,21 @@ export class StaffService {
 
   async findById(id: number): Promise<StaffEntity | null> {
     return this.staffRepository.findOneBy({ id });
+  }
+
+  async findByName(name: string): Promise<StaffEntity | null> {
+    return this.staffRepository.findOne({
+      relations: { user: true },
+      where: { user: { name } }
+    })
+  }
+
+  async findByUserIdOrName(identifier: string) {
+    return this.staffRepository.findOne({
+      relations: { user: true },
+      where: [
+        { userId: identifier }, { user: { name: identifier } }
+      ]
+    })
   }
 }

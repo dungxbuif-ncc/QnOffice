@@ -51,6 +51,7 @@ export class S3Service {
     fileName: string,
     contentType: string,
     folder: string = 'penalties/evidence',
+    expiresIn: number = 3600
   ): Promise<PresignedUrlResponse> {
     // Generate unique file key
     const fileExtension = fileName.split('.').pop();
@@ -64,7 +65,6 @@ export class S3Service {
     });
 
     // Generate presigned URL that expires in 1 hour for Cloudflare R2
-    const expiresIn = 3600; // 1 hour
     const uploadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
     });
@@ -91,13 +91,13 @@ export class S3Service {
 
   async getPresignedDownloadUrl(
     key: string,
+    expiresIn:number = 3600
   ): Promise<{ downloadUrl: string; expiresIn: number }> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
 
-    const expiresIn = 3600; // 1 hour
     const downloadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
     });
@@ -119,3 +119,4 @@ export class S3Service {
     return Promise.all(promises);
   }
 }
+
