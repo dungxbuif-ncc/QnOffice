@@ -26,6 +26,7 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { SwapRequestModule } from './modules/swap-request/swap-request.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UserModule } from './modules/user/user.module';
+import { FeedbackModule } from '@src/modules/feedback/feedback.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { UserModule } from './modules/user/user.module';
     BotNotiModule,
     PantryMenuModule,
     PantryTransactionModule,
+    FeedbackModule
   ],
   providers: [NotificationListener],
 })

@@ -4,7 +4,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AppConfigService } from './app-config.service';
 import { GeneratorService } from './generator.service';
 
@@ -118,4 +118,58 @@ export class S3Service {
 
     return Promise.all(promises);
   }
+
+  async uploadBufferFile(
+    file: Express.Multer.File,
+    folder = 'feedback/temp',
+    expire: number = 300000
+  ) {
+
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Only image files allowed');
+    }
+
+    const ext = file.originalname.split('.').pop() || 'png';
+    const key = `${folder}/${this.generatorService.uuid()}.${ext}`;
+
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ContentLength: file.size,
+      }),
+    );
+
+    const signedUrl = await getSignedUrl(
+      this.s3Client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      }),
+      {
+        expiresIn: expire, 
+      },
+    );
+
+    return {
+      key,
+      signedUrl,
+      size: file.size,
+      mimetype: file.mimetype,
+      originalName: file.originalname,
+    };
+  }
+
+  async uploadMultipleBuffers(
+    files: Express.Multer.File[],
+    folder = 'feedback/temp',
+    expired?: number
+  ) {
+    return Promise.all(
+      files.map((file) => this.uploadBufferFile(file, folder, expired)),
+    );
+  }
 }
+

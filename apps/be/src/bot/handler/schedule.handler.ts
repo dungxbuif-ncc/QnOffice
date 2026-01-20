@@ -46,6 +46,7 @@ export class CleaningScheduleHandler {
       await managedMessage.reply(SmartMessage.system("")
         .addEmbed(
           new EmbedBuilder().setColor('#f0a8da')
+          
             .setTitle(`🧑‍💼 Lịch trực nhật của bạn (thuộc Văn phòng ${staff.branch.name})`)
             .setThumbnail(staff.user.avatar || "https://cdn.mezon.ai/1779815181480628224/1999356326202839040.png")
             .setDescriptionMarkdown(
