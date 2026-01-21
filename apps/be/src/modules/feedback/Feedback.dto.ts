@@ -5,5 +5,5 @@ export class FeedbackDto{
     text: string;
 
     @IsString()
-    imageKey: string;
+    imageKey: string | undefined;
 }
