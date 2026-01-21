@@ -25,6 +25,9 @@ class GeneratePresignedUrlDto {
 
   @IsString()
   contentType: string;
+
+  @IsString()
+  folder?: string;
 }
 
 class GenerateMultiplePresignedUrlsDto {
@@ -47,7 +50,7 @@ export class UploadController {
 
   @Post('presigned-url-public')
   async getPresignedUrlFeedback(@Body() dto: GeneratePresignedUrlDto) {
-    return this.s3Service.getPresignedUploadUrl(dto.fileName, dto.contentType, "public", 300000000);
+    return this.s3Service.getPresignedUploadUrl(dto.fileName, dto.contentType, dto.folder || 'public');
   }
 
   @Post('presigned-url')
