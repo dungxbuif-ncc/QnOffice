@@ -1,7 +1,7 @@
 import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NezonModule } from '@nezon';
-import ChannelMessageHandler from '@src/bot/handler/channel-message.handler';
+import { ChannelMessageHandler } from '@src/bot/handler/channel-message.handler';
 import { DatabaseModule } from '@src/common/database/database.module';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
@@ -24,7 +24,7 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     TypeOrmModule.forFeature([ChannelConfigEntity]),
     StaffModule,
     CleaningModule,
-    BotNotiModule
+    BotNotiModule,
   ],
   providers: [ChannelMessageHandler, CleaningScheduleHandler, OrderHandler],
 })

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { WHITE_LIST_CHANNEL } from '@src/common/constants/mezon';
 import { NotificationEvent } from '@src/common/events/notification.events';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import type { Nezon } from '@src/libs/nezon';
 import { AutoContext, Command } from '@src/libs/nezon';
 import EventEmitter2 from 'eventemitter2';
-
-const datacomChannels =[`1841290471456903168`]
 
 @Injectable()
 export class OrderHandler {
@@ -19,7 +18,7 @@ export class OrderHandler {
     const [managedMessage] = context;
     const message = managedMessage?.raw;
     this.appLogService.log(message);
-    if (message && datacomChannels.includes(message?.channel_id)) {
+    if (message && WHITE_LIST_CHANNEL.DATCOM === message?.channel_id) {
       this.emitter.emit(NotificationEvent.ORDER_CREATED, message);
     }
   }
