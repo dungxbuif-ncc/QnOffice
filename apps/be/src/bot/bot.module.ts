@@ -5,7 +5,7 @@ import ChannelMessageHandler from '@src/bot/handler/channel-message.handler';
 import { DatabaseModule } from '@src/common/database/database.module';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
-import { BotNotiDeliveryService } from '@src/modules/bot-noti/bot-noti-delivery.service';
+import { BotNotiModule } from '@src/modules/bot-noti/bot-noti.module';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import { CleaningModule } from '@src/modules/cleaning/cleaning.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
@@ -23,9 +23,10 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     DatabaseModule,
     TypeOrmModule.forFeature([ChannelConfigEntity]),
     StaffModule,
-    CleaningModule
+    CleaningModule,
+    BotNotiModule
   ],
-  providers: [ChannelMessageHandler, BotNotiDeliveryService, CleaningScheduleHandler, OrderHandler],
+  providers: [ChannelMessageHandler, CleaningScheduleHandler, OrderHandler],
 })
 export class BotModule {
   private readonly logger = new Logger('BotModule');
