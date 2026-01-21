@@ -3,32 +3,48 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
-   Popover,
-   PopoverContent,
-   PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/shared/utils';
 import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
 
 export function OrderFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [date, setDate] = useState<Date | undefined>(
-    searchParams.get('startDate')
-      ? new Date(searchParams.get('startDate')!)
-      : undefined,
-  );
+  
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    
+    if (startDate && endDate) {
+      return {
+        from: new Date(startDate),
+        to: new Date(endDate),
+      };
+    }
+    return undefined;
+  });
 
-  const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
-    if (newDate) {
-      const formattedDate = format(newDate, 'yyyy-MM-dd');
+  const handleSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
+    
+    if (range?.from) {
       const params = new URLSearchParams(searchParams);
-      params.set('startDate', formattedDate);
-      params.set('endDate', formattedDate);
+      params.set('startDate', format(range.from, 'yyyy-MM-dd'));
+      
+      if (range.to) {
+        params.set('endDate', format(range.to, 'yyyy-MM-dd'));
+      } else {
+        params.set('endDate', format(range.from, 'yyyy-MM-dd'));
+      }
+      
       router.push(`?${params.toString()}`);
     } else {
       router.push('?');
@@ -42,20 +58,33 @@ export function OrderFilters() {
           <Button
             variant={'outline'}
             className={cn(
-              'w-[240px] justify-start text-left font-normal',
-              !date && 'text-muted-foreground',
+              'w-[300px] justify-start text-left font-normal',
+              !dateRange && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, 'PPP') : <span>Pick a date</span>}
+            {dateRange?.from ? (
+              dateRange.to ? (
+                <>
+                  {format(dateRange.from, 'dd MMM yyyy', { locale: vi })} -{' '}
+                  {format(dateRange.to, 'dd MMM yyyy', { locale: vi })}
+                </>
+              ) : (
+                format(dateRange.from, 'dd MMM yyyy', { locale: vi })
+              )
+            ) : (
+              <span>Chọn khoảng thời gian</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
-            mode="single"
-            selected={date}
+            mode="range"
+            selected={dateRange}
             onSelect={handleSelect}
             initialFocus
+            locale={vi}
+            numberOfMonths={2}
           />
         </PopoverContent>
       </Popover>

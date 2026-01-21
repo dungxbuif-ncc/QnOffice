@@ -5,6 +5,8 @@ import type { Nezon } from '@src/libs/nezon';
 import { AutoContext, Command } from '@src/libs/nezon';
 import EventEmitter2 from 'eventemitter2';
 
+const datacomChannels =[`1841290471456903168`]
+
 @Injectable()
 export class OrderHandler {
   constructor(
@@ -17,7 +19,7 @@ export class OrderHandler {
     const [managedMessage] = context;
     const message = managedMessage?.raw;
     this.appLogService.log(message);
-    if (message) {
+    if (message && datacomChannels.includes(message?.channel_id)) {
       this.emitter.emit(NotificationEvent.ORDER_CREATED, message);
     }
   }

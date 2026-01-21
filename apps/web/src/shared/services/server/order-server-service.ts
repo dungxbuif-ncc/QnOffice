@@ -6,8 +6,13 @@ class OrderServerService extends BaseServerService {
     startDate?: string;
     endDate?: string;
   }): Promise<GroupedOrder[]> {
-    const query = new URLSearchParams(params as Record<string, string>).toString();
-    const response = await this.get<GroupedOrder[]>(`/orders?${query}`);
+    const filteredParams: Record<string, string> = {};
+    if (params?.startDate) filteredParams.startDate = params.startDate;
+    if (params?.endDate) filteredParams.endDate = params.endDate;
+    
+    const query = new URLSearchParams(filteredParams).toString();
+    const url = query ? `/orders?${query}` : '/orders';
+    const response = await this.get<GroupedOrder[]>(url);
     return response.data;
   }
 }
