@@ -3,6 +3,7 @@ export * from './audit-log.types';
 export * from './branch.types';
 export * from './holiday.types';
 export * from './opentalk.types';
+export * from './order.types';
 export * from './pagination.types';
 export * from './pantry-menu.types';
 export * from './pantry-transaction.types';

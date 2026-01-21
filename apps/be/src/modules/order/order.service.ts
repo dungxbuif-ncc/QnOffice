@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SearchOrder } from '@qnoffice/shared';
+import { GroupedOrder, SearchOrder } from '@qnoffice/shared';
 import { NotificationEvent } from '@src/common/events/notification.events';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import {
-  checkMinuteFrom,
   formatDateVn,
   formatVn,
+  isWithinMinutes
 } from '@src/common/utils/time.util';
 import { UserService } from '@src/modules/user/user.service';
 import { ChannelMessage, ChannelMessageContent } from 'mezon-sdk';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { GetOrdersGroupedDto } from './dto/get-orders-grouped.dto';
 import { OrderEntity } from './entities/order.entity';
 
 @Injectable()
@@ -72,10 +73,7 @@ export class OrderService {
     const messageContent = this.trimMessage(content);
     if (
       latestOrder &&
-      checkMinuteFrom({
-        startTime: latestOrder.createdAt,
-        endTime: new Date(),
-      }) <= 30
+      isWithinMinutes(latestOrder.createdAt, new Date())
     ) {
       order = latestOrder;
       order.content = messageContent;
@@ -89,6 +87,71 @@ export class OrderService {
       });
     }
     await this.orderRepository.save(order);
+  }
+
+  async getOrdersGrouped(
+    query?: GetOrdersGroupedDto,
+  ): Promise<GroupedOrder[]> {
+    const startDate = query?.startDate || formatDateVn(new Date());
+    const endDate = query?.endDate || startDate;
+
+    const where: FindOptionsWhere<OrderEntity> = {};
+    if (startDate === endDate) {
+      where.date = startDate;
+    } else {
+      where.date = Between(startDate, endDate);
+    }
+
+    const orders = await this.orderRepository.find({
+      relations: ['user'],
+      where,
+      order: {
+        channelId: SearchOrder.ASC,
+        createdAt: SearchOrder.DESC,
+      },
+    });
+
+    const groupedOrders: GroupedOrder[] = [];
+
+    // Group by channel
+    const ordersByChannel = new Map<string, OrderEntity[]>();
+    for (const order of orders) {
+      if (!order.channelId) continue;
+      if (!ordersByChannel.has(order.channelId)) {
+        ordersByChannel.set(order.channelId, []);
+      }
+      ordersByChannel.get(order.channelId)?.push(order);
+    }
+
+    // Group by session within channel
+    for (const [channelId, channelOrders] of ordersByChannel) {
+      const sessions: { orders: any[] }[] = []; // using any[] to bypass strict check for now, or assume compatibility
+      let currentSession: OrderEntity[] = [];
+
+      for (const order of channelOrders) {
+        if (currentSession.length === 0) {
+          currentSession.push(order);
+          continue;
+        }
+
+        const lastOrderInSession = currentSession[currentSession.length - 1];
+        
+        // Since orders are DESC, lastOrderInSession is NEWER than 'order'.
+        if (isWithinMinutes(order.createdAt, lastOrderInSession.createdAt)) {
+          currentSession.push(order);
+        } else {
+          sessions.push({ orders: currentSession });
+          currentSession = [order];
+        }
+      }
+      if (currentSession.length > 0) {
+        sessions.push({ orders: currentSession });
+      }
+
+      groupedOrders.push({ channelId, sessions: sessions as any });
+    }
+
+    return groupedOrders;
   }
 
   private trimMessage(message: ChannelMessageContent): string {

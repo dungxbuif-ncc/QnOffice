@@ -50,3 +50,11 @@ export function checkMinuteFrom({
 }): number {
   return Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 }
+
+export const isWithinMinutes = (
+  date1: Date,
+  date2: Date,
+  minutes = 30,
+): boolean => {
+  return Math.abs(checkMinuteFrom({ startTime: date1, endTime: date2 })) <= minutes;
+};
