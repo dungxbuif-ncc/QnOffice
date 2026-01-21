@@ -10,7 +10,6 @@ import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import { CleaningModule } from '@src/modules/cleaning/cleaning.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
 import { MezonClient } from 'mezon-sdk';
-import { OrderHandler } from './handler/order.handler';
 import { CleaningScheduleHandler } from './handler/schedule.handler';
 
 @Module({
@@ -25,7 +24,7 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     StaffModule,
     CleaningModule
   ],
-  providers: [ChannelMessageHandler, BotNotiDeliveryService, CleaningScheduleHandler, OrderHandler],
+  providers: [ChannelMessageHandler, BotNotiDeliveryService, CleaningScheduleHandler],
 })
 export class BotModule {
   private readonly logger = new Logger('BotModule');

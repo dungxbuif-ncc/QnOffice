@@ -22,7 +22,6 @@ import { CalendarModule } from './modules/calendar/calendar.module';
 import { ChannelConfigModule } from './modules/channel/channel-config.module';
 import { CleaningModule } from './modules/cleaning/cleaning.module';
 import { OpentalkModule } from './modules/opentalk/opentalk.module';
-import { OrderModule } from './modules/order/order.module';
 import { PenaltyTypeModule } from './modules/penalty-type/penalty-type.module';
 import { PenaltyModule } from './modules/penalty/penalty.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
@@ -60,7 +59,6 @@ import { UserModule } from './modules/user/user.module';
     PantryMenuModule,
     PantryTransactionModule,
     FeedbackModule,
-    OrderModule,
     BotModule
   ],
   providers: [NotificationListener],

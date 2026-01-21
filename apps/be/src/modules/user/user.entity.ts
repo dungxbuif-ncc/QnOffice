@@ -1,6 +1,5 @@
 import { AbstractAuditEntity } from '@src/common/database/abstract.entity';
-import { OrderEntity } from '@src/modules/order/entities/order.entity';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 
 @Entity('users')
 export default class UserEntity extends AbstractAuditEntity {
@@ -15,7 +14,4 @@ export default class UserEntity extends AbstractAuditEntity {
 
   @Column({ nullable: true })
   avatar?: string;
-
-  @OneToMany(() => OrderEntity, (order) => order.user)
-  orders: OrderEntity[];
 }
