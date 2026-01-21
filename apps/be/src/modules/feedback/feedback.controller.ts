@@ -1,7 +1,7 @@
 import { FeedbackService } from '@src/modules/feedback/feedback.service';
 import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
-import { FeedbackDto } from '@src/modules/feedback/Feedback.dto';
+import { FeedbackDto } from '@src/modules/feedback/feedback.dto';
 
 @Controller('feedback')
 export class FeebackController {

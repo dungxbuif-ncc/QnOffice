@@ -84,10 +84,9 @@ export default function FeedbackWidget() {
         imageKey = key;
       }
 
-      // 2️⃣ Gửi feedback
       const payload = {
         text: input,
-        imageKey, // ✅ chỉ gửi key
+        imageKey, 
       };
 
       const response = await fetch('/api/feedback', {

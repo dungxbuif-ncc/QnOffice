@@ -6,6 +6,7 @@ export enum NotificationEvent {
   OPENTALK_SLIDE_OVERDUE = 'notification.opentalk.slide.overdue',
   STAFF_ONBOARDING = 'notification.staff.onboarding',
   STAFF_OFFBOARDING = 'notification.staff.offboarding',
+  ORDER_CREATED = 'notification.order.created',
 }
 
 export interface EventParticipant {

@@ -127,7 +127,11 @@ const navigationData = [
     href: PATHS.DASHBOARD.AUDIT_LOGS,
     icon: '📋',
   },
-  
+  {
+    title: 'Order',
+    href: PATHS.DASHBOARD.ORDERS,
+    icon: '🛒',
+  },
 ];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

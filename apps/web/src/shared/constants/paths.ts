@@ -39,6 +39,7 @@ export const PATHS = {
     CHANNELS: '/dashboard/channels',
     AUDIT_LOGS: '/dashboard/audit-logs',
     SETTINGS: '/dashboard/settings',
+    ORDERS: '/dashboard/orders',
   },
 
   API: {
