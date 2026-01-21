@@ -7,8 +7,7 @@
   "author": "dungxbuif <dung.buihuu@ncc.asia>",
   "license": "MIT",
   "workspaces": [
-    "apps/*",
-    "libs"
+    "apps/*"
   ],
   "packageManager": "yarn@1.22.19",
   "scripts": {
