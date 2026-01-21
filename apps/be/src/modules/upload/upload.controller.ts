@@ -45,6 +45,11 @@ export class UploadController {
 
   constructor(private readonly s3Service: S3Service) {}
 
+  @Post('presigned-url-feedback')
+  async getPresignedUrlFeedback(@Body() dto: GeneratePresignedUrlDto) {
+    return this.s3Service.getPresignedUploadUrl(dto.fileName, dto.contentType);
+  }
+
   @Post('presigned-url')
   @UseGuards(RolesGuard)
   @Roles([UserRole.HR, UserRole.GDVP])
