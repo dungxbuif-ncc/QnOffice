@@ -84,8 +84,7 @@ export class AppConfigService {
       subscribers: [],
       synchronize: false,
       entities,
-      // ssl: this.isProduction,
-      ssl:false
+      ssl: this.isProduction
     };
   }
 
