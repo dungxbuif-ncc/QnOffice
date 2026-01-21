@@ -3,7 +3,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule';
 import { BotModule } from '@src/bot/bot.module';
 import { DatabaseModule } from '@src/common/database/database.module';
-import { NotificationListener } from '@src/common/listeners/notification.listener';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
 import { NezonModule } from '@src/libs/nezon';
@@ -62,8 +61,7 @@ import { UserModule } from './modules/user/user.module';
     FeedbackModule,
     OrderModule,
     BotModule
-  ],
-  providers: [NotificationListener],
+  ]
 })
 export class AppModule {
   constructor(private mezonClient: MezonClient) {
