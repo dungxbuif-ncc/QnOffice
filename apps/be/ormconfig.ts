@@ -23,5 +23,4 @@ export const dataSource = new DataSource({
       ? 'dist/migrations/*{.ts,.js}'
       : 'migrations/*{.ts,.js}',
   ],
-  ssl: process.env.NODE_ENV === 'production',
 });

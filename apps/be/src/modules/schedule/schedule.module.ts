@@ -27,7 +27,7 @@ import { OpentalkStaffService } from './services/opentalk-staff.schedule.service
       HolidayEntity,
       OpentalkSlideEntity,
       StaffEntity,
-      SwapRequestEntity,
+      SwapRequestEntity
     ]),
     OpentalkModule,
     CleaningModule,
@@ -40,7 +40,7 @@ import { OpentalkStaffService } from './services/opentalk-staff.schedule.service
     OpentalkCronService,
     CleaningCronService,
     OpentalkService,
-    CleaningService,
+    CleaningService
   ],
   exports: [
     ScheduleService,

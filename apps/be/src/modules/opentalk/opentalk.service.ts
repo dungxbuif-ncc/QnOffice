@@ -194,6 +194,9 @@ export class OpentalkService {
         .where('slide.eventId IN (:...eventIds)', { eventIds })
         .getMany();
 
+      console.log('OpentalkService getEvents IDs:', eventIds);
+      console.log('OpentalkService found slides:', slides);
+
       const slideMap = new Map(slides.map((s) => [s.eventId, s]));
       events.forEach((event) => {
         (event as any).slide = slideMap.get(event.id) || null;
