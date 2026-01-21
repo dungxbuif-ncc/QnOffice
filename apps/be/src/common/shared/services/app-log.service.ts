@@ -27,27 +27,46 @@ export class AppLogService extends Logger {
     await this.auditLogService.createLog(logData);
   }
 
+  private formatMessage(message: any): string {
+    if (typeof message === 'string') {
+      return message;
+    }
+    try {
+      return JSON.stringify(message);
+    } catch {
+      return String(message);
+    }
+  }
+
   log(
-    message: string,
+    message: any,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.log(message, context);
-    this.logToDatabase(LogLevel.LOG, message, context, journeyId, metadata);
+    const formattedMessage = this.formatMessage(message);
+    super.log(formattedMessage, context);
+    this.logToDatabase(
+      LogLevel.LOG,
+      formattedMessage,
+      context,
+      journeyId,
+      metadata,
+    );
   }
 
   error(
-    message: string,
+    message: any,
     trace?: string,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.error(message, trace, context);
+    const formattedMessage = this.formatMessage(message);
+    super.error(formattedMessage, trace, context);
     this.logToDatabase(
       LogLevel.ERROR,
-      message,
+      formattedMessage,
       context,
       journeyId,
       metadata ? { ...metadata, trace } : { trace },
@@ -55,43 +74,71 @@ export class AppLogService extends Logger {
   }
 
   warn(
-    message: string,
+    message: any,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.warn(message, context);
-    this.logToDatabase(LogLevel.WARN, message, context, journeyId, metadata);
+    const formattedMessage = this.formatMessage(message);
+    super.warn(formattedMessage, context);
+    this.logToDatabase(
+      LogLevel.WARN,
+      formattedMessage,
+      context,
+      journeyId,
+      metadata,
+    );
   }
 
   debug(
-    message: string,
+    message: any,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.debug(message, context);
-    this.logToDatabase(LogLevel.DEBUG, message, context, journeyId, metadata);
+    const formattedMessage = this.formatMessage(message);
+    super.debug(formattedMessage, context);
+    this.logToDatabase(
+      LogLevel.DEBUG,
+      formattedMessage,
+      context,
+      journeyId,
+      metadata,
+    );
   }
 
   verbose(
-    message: string,
+    message: any,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.verbose(message, context);
-    this.logToDatabase(LogLevel.TRACE, message, context, journeyId, metadata);
+    const formattedMessage = this.formatMessage(message);
+    super.verbose(formattedMessage, context);
+    this.logToDatabase(
+      LogLevel.TRACE,
+      formattedMessage,
+      context,
+      journeyId,
+      metadata,
+    );
   }
 
   fatal(
-    message: string,
+    message: any,
     context?: string,
     journeyId?: string,
     metadata?: Record<string, any>,
   ): void {
-    super.fatal(message, context);
-    this.logToDatabase(LogLevel.FATAL, message, context, journeyId, metadata);
+    const formattedMessage = this.formatMessage(message);
+    super.fatal(formattedMessage, context);
+    this.logToDatabase(
+      LogLevel.FATAL,
+      formattedMessage,
+      context,
+      journeyId,
+      metadata,
+    );
   }
 
   // Convenience methods for journey logging

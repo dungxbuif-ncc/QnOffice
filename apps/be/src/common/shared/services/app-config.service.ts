@@ -82,7 +82,7 @@ export class AppConfigService {
       database: this.getString('DB_DATABASE'),
       namingStrategy: new SnakeNamingStrategy(),
       subscribers: [],
-      synchronize: false,
+      synchronize: true,
       entities,
       ssl: this.isProduction,
     };

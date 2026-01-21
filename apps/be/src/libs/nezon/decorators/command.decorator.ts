@@ -24,6 +24,7 @@ export const NEZON_COMMAND_METADATA = 'nezon:command';
  * }
  * ```
  */
+
 export function Command(
   options: NezonCommandOptions | string,
 ): MethodDecorator {
