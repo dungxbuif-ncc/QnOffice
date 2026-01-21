@@ -3,6 +3,7 @@ import { BranchEntity } from '@src/modules/branch/branch.entity';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import OpentalkSlideEntity from '@src/modules/opentalk/entities/opentalk-slide.entity';
+import { OrderEntity } from '@src/modules/order/entities/order.entity';
 import { PantryMenuItemEntity } from '@src/modules/pantry-menu/entities/pantry-menu-item.entity';
 import { PenaltyType } from '@src/modules/penalty-type/penalty-type.entity';
 import { PenaltyProofEntity } from '@src/modules/penalty/entities/penalty-proof.entity';
@@ -30,5 +31,6 @@ const entities = [
   OpentalkSlideEntity,
   PantryMenuItemEntity,
   PenaltyProofEntity,
+  OrderEntity
 ];
 export default entities;
