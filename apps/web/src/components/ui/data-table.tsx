@@ -50,6 +50,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   showColumnFilter?: boolean;
   maxHeight?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -61,6 +62,7 @@ export function DataTable<TData, TValue>({
   pagination,
   isLoading = false,
   maxHeight = '500px',
+  onSearchChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -109,7 +111,11 @@ export function DataTable<TData, TValue>({
             <Input
               placeholder={searchPlaceholder}
               value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setGlobalFilter(value);
+                onSearchChange?.(value);
+              }}
               className="pl-8 max-w-sm"
             />
           </div>

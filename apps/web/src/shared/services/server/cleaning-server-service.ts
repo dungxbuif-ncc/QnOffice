@@ -4,12 +4,16 @@ import { BaseServerService } from './base-server-service';
 class CleaningServerService extends BaseServerService {
   private readonly baseUrl = '/cleaning';
 
-  async getCycles(status?: string): Promise<ScheduleCycle[]> {
-    const params = status ? { status } : {};
+  async getCycles(status?: string, email?: string): Promise<ScheduleCycle[]> {
+    const params: any = {};
+    if (status) params.status = status;
+    if (email) params.email = email;
+
     const response = await this.get<ScheduleCycle[]>(
       `${this.baseUrl}/cycles`,
       params,
     );
+
     return response?.data || [];
   }
 

@@ -16,6 +16,7 @@ interface BaseDataTableProps<TData> {
   showColumnFilter?: boolean;
   onRowAction?: (row: TData) => void;
   maxHeight?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export function BaseDataTable<TData>({
@@ -28,6 +29,7 @@ export function BaseDataTable<TData>({
   showSearch = true,
   showColumnFilter = false,
   maxHeight = '500px',
+  onSearchChange,
 }: BaseDataTableProps<TData>) {
   const [data, setData] = useState<TData[]>(initialData);
 
@@ -36,10 +38,10 @@ export function BaseDataTable<TData>({
   }, [initialData]);
 
   useEffect(() => {
-    if (!showSearch) return;
+    if (!showSearch || !onSearchChange) return;
 
     const timeoutId = setTimeout(() => {
-      const searchValue = pagination.currentQuery;
+      onSearchChange(pagination.currentQuery);
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -57,6 +59,7 @@ export function BaseDataTable<TData>({
       searchPlaceholder={searchPlaceholder}
       showColumnFilter={showColumnFilter}
       maxHeight={maxHeight}
+      onSearchChange={onSearchChange}
     />
   );
 }
