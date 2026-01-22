@@ -5,23 +5,25 @@ import { Badge } from '@/components/ui/badge';
 import { BaseDataTable } from '@/components/ui/base-data-table';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getRoleLabel, PERMISSIONS, ProtectedComponent } from '@/shared/auth';
+import { useDebouncedValue } from '@/shared/hooks/use-debounce-value';
 import { usePagination } from '@/shared/hooks/use-pagination';
 import {
-    PaginationState,
-    SearchOrder,
-    Staff,
-    StaffStatus,
+  PaginationState,
+  SearchOrder,
+  Staff,
+  StaffStatus,
 } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface StaffDataTableProps {
   initialData: Staff[];
@@ -48,6 +50,26 @@ export function StaffDataTable({
 }: StaffDataTableProps) {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [updateMezonIdModalOpen, setUpdateMezonIdModalOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialQ = searchParams.get('q') || '';
+
+  const [search, setSearch] = useState(initialQ);
+  const debouncedSearch = useDebouncedValue(search, 800);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (debouncedSearch) {
+      params.set('q', debouncedSearch);
+      params.set('page', '1');
+    } else {
+      params.delete('q');
+    }
+
+    router.push(`?${params.toString()}`);
+  }, [debouncedSearch, router]);
 
   // Use the base pagination hook
   const pagination = usePagination({
@@ -135,7 +157,8 @@ export function StaffDataTable({
         initialPagination={initialPagination}
         pagination={pagination}
         searchPlaceholder="Search staff by email..."
-        showSearch={false} // We'll handle search differently for now
+        showSearch={true}
+        onSearchChange={setSearch}
       />
       {selectedStaff && (
         <UpdateMezonIdModal

@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { EventStatus } from '@qnoffice/shared';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto';
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
@@ -45,15 +46,13 @@ export class CleaningController {
   @ApiOperation({
     summary: 'Get all cleaning cycles with events and participants',
   })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filter by cycle status',
-  })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'email', required: false })
   async getCycles(
-    @Query('status') status?: string,
+    @Query('status') status?: EventStatus,
+    @Query('email') email?: string,
   ): Promise<ScheduleCycleEntity[]> {
-    return this.cleaningService.getCyclesWithEvents(status);
+    return this.cleaningService.getCyclesWithEvents({status, email});
   }
 
   @Get('cycles/:id')

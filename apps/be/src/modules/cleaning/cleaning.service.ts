@@ -65,12 +65,27 @@ export class CleaningService {
     });
   }
 
-  async getCyclesWithEvents(status?: string): Promise<ScheduleCycleEntity[]> {
+  async getCyclesWithEvents(
+    filter?: Partial<{
+      status: EventStatus;
+      email: string;
+    }>,
+  ): Promise<ScheduleCycleEntity[]> {
+    const { status, email } = filter || {};
     const queryBuilder = this.cycleRepository
       .createQueryBuilder('cycle')
-      .leftJoinAndSelect('cycle.events', 'events', 'events.type = :eventType', {
-        eventType: 'CLEANING',
-      })
+      .leftJoinAndSelect(
+        'cycle.events',
+        'events',
+        `
+        events.type = :eventType
+        ${status ? 'AND events.status = :status' : ''}
+      `,
+        {
+          eventType: ScheduleType.CLEANING,
+          ...(status ? { status } : {}),
+        },
+      )
       .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
       .leftJoinAndSelect('eventParticipants.staff', 'staff')
       .leftJoinAndSelect('staff.user', 'user')
@@ -78,17 +93,25 @@ export class CleaningService {
       .orderBy('cycle.createdAt', 'DESC')
       .addOrderBy('events.eventDate', 'ASC');
 
-    if (status) {
-      queryBuilder.andWhere('cycle.status = :status', { status });
+    if (email) {
+      queryBuilder.andWhere(
+        `
+      staff.email ILIKE :email
+      OR user.email ILIKE :email
+      `,
+        { email: `%${email}%` },
+      );
     }
 
     const cycles = await queryBuilder.getMany();
     //sort the cycle' ASC by last event date
-    cycles.forEach((cycle) => {
-      cycle.events.sort((a, b) =>
-        a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
-      );
-    });
+    cycles
+      .filter((cycle) => cycle.events.length > 0)
+      .forEach((cycle) => {
+        cycle.events.sort((a, b) =>
+          a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
+        );
+      });
     cycles.sort((a, b) => {
       const aLastEventDate =
         a.events.length > 0 ? a.events[a.events.length - 1].eventDate : '';
