@@ -5,9 +5,10 @@ class CleaningServerService extends BaseServerService {
   private readonly baseUrl = '/cleaning';
 
   async getCycles(status?: string, email?: string): Promise<ScheduleCycle[]> {
-    const params: any = {};
-    if (status) params.status = status;
-    if (email) params.email = email;
+    const params = {
+      ...(status ? { status } : {}),
+      ...(email ? { email } : {}),
+    };
 
     const response = await this.get<ScheduleCycle[]>(
       `${this.baseUrl}/cycles`,

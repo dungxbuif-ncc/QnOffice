@@ -66,10 +66,13 @@ export class CleaningService {
   }
 
   async getCyclesWithEvents(
-    status?: EventStatus,
-    email?: string,
+    filter?: Partial<{
+      status: EventStatus;
+      email: string;
+    }>,
   ): Promise<ScheduleCycleEntity[]> {
-    const qb = this.cycleRepository
+    const { status, email } = filter || {};
+    const queryBuilder = this.cycleRepository
       .createQueryBuilder('cycle')
       .leftJoinAndSelect(
         'cycle.events',
@@ -86,12 +89,12 @@ export class CleaningService {
       .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
       .leftJoinAndSelect('eventParticipants.staff', 'staff')
       .leftJoinAndSelect('staff.user', 'user')
-      .where('cycle.type = :cycleType', {
-        cycleType: ScheduleType.CLEANING,
-      });
+      .where('cycle.type = :type', { type: 'CLEANING' })
+      .orderBy('cycle.createdAt', 'DESC')
+      .addOrderBy('events.eventDate', 'ASC');
 
     if (email) {
-      qb.andWhere(
+      queryBuilder.andWhere(
         `
       staff.email ILIKE :email
       OR user.email ILIKE :email
@@ -100,14 +103,27 @@ export class CleaningService {
       );
     }
 
-    const cycles = await qb.getMany();
-
-    return cycles
-      .map((cycle) => ({
-        ...cycle,
-        events: cycle.events?.filter(Boolean) ?? [],
-      }))
-      .filter((cycle) => cycle.events.length > 0);
+    const cycles = await queryBuilder.getMany();
+    //sort the cycle' ASC by last event date
+    cycles
+      .filter((cycle) => cycle.events.length > 0)
+      .forEach((cycle) => {
+        cycle.events.sort((a, b) =>
+          a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
+        );
+      });
+    cycles.sort((a, b) => {
+      const aLastEventDate =
+        a.events.length > 0 ? a.events[a.events.length - 1].eventDate : '';
+      const bLastEventDate =
+        b.events.length > 0 ? b.events[b.events.length - 1].eventDate : '';
+      return aLastEventDate > bLastEventDate
+        ? 1
+        : bLastEventDate > aLastEventDate
+          ? -1
+          : 0;
+    });
+    return cycles;
   }
 
   async getActiveCycle(): Promise<ScheduleCycleEntity | null> {

@@ -52,7 +52,7 @@ export class CleaningController {
     @Query('status') status?: EventStatus,
     @Query('email') email?: string,
   ): Promise<ScheduleCycleEntity[]> {
-    return this.cleaningService.getCyclesWithEvents(status, email);
+    return this.cleaningService.getCyclesWithEvents({status, email});
   }
 
   @Get('cycles/:id')

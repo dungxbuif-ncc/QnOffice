@@ -34,6 +34,14 @@ export function CleaningFilterBar() {
     [email, status, initialEmail, initialStatus],
   );
 
+  const onChangeStatus = (value: string) => {
+    if (value === 'ALL') {
+      setStatus('');
+    } else {
+      setStatus(value);
+    }
+  }
+
   const handleApply = () => {
     if (!isChanged) return;
 
@@ -71,16 +79,20 @@ export function CleaningFilterBar() {
         <Input
           placeholder="Search email..."
           value={email}
+          type='text'
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
 
       <div className="w-[160px]">
-        <Select value={status} onValueChange={setStatus}>
+        <Select value={status} onValueChange={onChangeStatus}>
           <SelectTrigger>
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={'ALL'}>
+              {'ALL'}
+            </SelectItem>
             <SelectItem value={EventStatus.PENDING}>
               {EventStatus.PENDING}
             </SelectItem>
