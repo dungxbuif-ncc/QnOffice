@@ -8,6 +8,7 @@ import { SharedModule } from '@src/common/shared/shared.module';
 import { BotNotiModule } from '@src/modules/bot-noti/bot-noti.module';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import { CleaningModule } from '@src/modules/cleaning/cleaning.module';
+import { OrderModule } from '@src/modules/order/order.module';
 import { StaffModule } from '@src/modules/staff/staff.module';
 import { MezonClient } from 'mezon-sdk';
 import { OrderHandler } from './handler/order.handler';
@@ -25,6 +26,7 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     StaffModule,
     CleaningModule,
     BotNotiModule,
+    OrderModule,
   ],
   providers: [ChannelMessageHandler, CleaningScheduleHandler, OrderHandler],
 })
