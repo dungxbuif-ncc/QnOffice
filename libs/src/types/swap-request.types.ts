@@ -7,6 +7,7 @@ export interface SwapRequest {
   fromEventId: number;
   toEventId: number;
   requesterId: number;
+  targetStaffId: number;
   reason: string;
   status: SwapRequestStatus;
   type: ScheduleType;
