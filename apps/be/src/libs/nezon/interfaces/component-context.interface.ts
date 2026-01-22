@@ -9,4 +9,3 @@ export interface NezonComponentContext {
   match?: RegExpMatchArray | null;
   cache?: Map<symbol, unknown>;
 }
-

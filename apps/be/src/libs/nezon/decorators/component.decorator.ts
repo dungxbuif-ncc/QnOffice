@@ -28,9 +28,6 @@ export function Component(
   options: NezonComponentOptions | string,
 ): MethodDecorator {
   const payload: NezonComponentOptions =
-    typeof options === 'string'
-      ? { id: options }
-      : options;
+    typeof options === 'string' ? { id: options } : options;
   return SetMetadata(NEZON_COMPONENT_METADATA, payload);
 }
-

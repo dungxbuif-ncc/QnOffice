@@ -131,7 +131,7 @@ export class AuthService {
   async handleOAuthExchange(code: string, state: string): Promise<AuthProfile> {
     const tokenData = await this.exchangeCode(code, state);
     const userInfo = await this.userInfo(tokenData.access_token);
-    
+
     // Logic that was previously in signIn
     const user = await this.userService.upsertByMezonId(userInfo.user_id, {
       name: userInfo.display_name,
@@ -142,14 +142,19 @@ export class AuthService {
     let staff: StaffEntity | null = null;
     try {
       staff = await this.staffService.findByUserId(user.mezonId);
-      
+
       // If no staff found by userId, try to find by email and link
       if (!staff && user.email) {
         const potentialStaff = await this.staffService.findByEmail(user.email);
         if (potentialStaff && !potentialStaff.userId) {
-          Logger.log(`Found unlinked staff for user ${user.email}, linking now...`);
+          Logger.log(
+            `Found unlinked staff for user ${user.email}, linking now...`,
+          );
           potentialStaff.userId = user.mezonId;
-          const savedStaff = await this.staffService.updateStaffUserId(potentialStaff.id, user.mezonId);
+          const savedStaff = await this.staffService.updateStaffUserId(
+            potentialStaff.id,
+            user.mezonId,
+          );
           staff = savedStaff;
         }
       }

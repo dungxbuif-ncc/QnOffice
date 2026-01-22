@@ -29,9 +29,6 @@ export function Command(
   options: NezonCommandOptions | string,
 ): MethodDecorator {
   const payload: NezonCommandOptions =
-    typeof options === 'string'
-      ? { name: options }
-      : options;
+    typeof options === 'string' ? { name: options } : options;
   return SetMetadata(NEZON_COMMAND_METADATA, payload);
 }
-

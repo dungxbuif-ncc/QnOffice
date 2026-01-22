@@ -60,9 +60,9 @@ export class OpentalkService {
       events: {
         ...(status && { status: status }),
         ...(email && { eventParticipants: { staff: { email: email } } }),
-      }
+      },
     };
-    
+
     return this.cycleRepository.find({
       where,
       relations: [

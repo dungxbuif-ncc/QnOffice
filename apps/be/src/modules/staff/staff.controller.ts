@@ -1,19 +1,15 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Post,
-    Put,
-    Query,
-    UseGuards,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-    IPaginationDto,
-    Staff,
-    UserRole,
-} from '@qnoffice/shared';
+import { IPaginationDto, Staff, UserRole } from '@qnoffice/shared';
 import { AppPaginateOptionsDto } from '@src/common/dtos/page-options.dto';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
@@ -28,13 +24,17 @@ export class StaffController {
 
   @Get('by-user/:userId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async getStaffByUserId(@Param('userId') userId: string): Promise<Staff | null> {
+  async getStaffByUserId(
+    @Param('userId') userId: string,
+  ): Promise<Staff | null> {
     return this.staffService.findByUserId(userId) as any;
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  getStaffs(@Query() queries: AppPaginateOptionsDto): Promise<IPaginationDto<Staff>> {
+  getStaffs(
+    @Query() queries: AppPaginateOptionsDto,
+  ): Promise<IPaginationDto<Staff>> {
     return this.staffService.getStaffs(queries) as any;
   }
 

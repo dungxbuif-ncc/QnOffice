@@ -4,4 +4,3 @@ export interface NezonCommandOptions {
   prefixes?: string[];
   description?: string;
 }
-

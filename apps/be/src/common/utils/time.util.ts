@@ -56,5 +56,7 @@ export const isWithinMinutes = (
   date2: Date,
   minutes = 30,
 ): boolean => {
-  return Math.abs(checkMinuteFrom({ startTime: date1, endTime: date2 })) <= minutes;
+  return (
+    Math.abs(checkMinuteFrom({ startTime: date1, endTime: date2 })) <= minutes
+  );
 };

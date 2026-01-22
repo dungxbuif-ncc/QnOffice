@@ -5,10 +5,10 @@ import { S3Service } from '@src/common/shared/services/s3.service';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import { Type } from 'class-transformer';
 import {
-    ArrayMinSize,
-    IsArray,
-    IsString,
-    ValidateNested,
+  ArrayMinSize,
+  IsArray,
+  IsString,
+  ValidateNested,
 } from 'class-validator';
 
 class FileUploadDto {
@@ -50,7 +50,11 @@ export class UploadController {
 
   @Post('presigned-url-public')
   async getPresignedUrlFeedback(@Body() dto: GeneratePresignedUrlDto) {
-    return this.s3Service.getPresignedUploadUrl(dto.fileName, dto.contentType, dto.folder || 'public');
+    return this.s3Service.getPresignedUploadUrl(
+      dto.fileName,
+      dto.contentType,
+      dto.folder || 'public',
+    );
   }
 
   @Post('presigned-url')
@@ -77,7 +81,10 @@ export class UploadController {
       `[getOpentalkPresignedUrls] Generating presigned URLs for ${dto.files.length} files`,
     );
     const result = await this.s3Service.getMultiplePresignedUrls(dto.files);
-    this.logger.log(`[getOpentalkPresignedUrls] Result:`, JSON.stringify(result));
+    this.logger.log(
+      `[getOpentalkPresignedUrls] Result:`,
+      JSON.stringify(result),
+    );
     return result;
   }
 

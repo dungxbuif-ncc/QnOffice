@@ -371,6 +371,6 @@ export function FormData(field?: string): ParameterDecorator {
 
 export function Prefix(): ParameterDecorator {
   return setParamMetadata({
-    type: NezonParamType.PREFIX
+    type: NezonParamType.PREFIX,
   });
 }

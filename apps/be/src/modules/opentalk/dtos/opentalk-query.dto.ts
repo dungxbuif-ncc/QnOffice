@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { EventStatus, IOpentalkQueryDto } from '@qnoffice/shared';
 import { Type } from 'class-transformer';
 import {
-    IsDateString,
-    IsEnum,
-    IsNumber,
-    IsOptional,
-    IsString,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class OpentalkQueryDto implements IOpentalkQueryDto {

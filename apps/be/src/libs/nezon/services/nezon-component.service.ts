@@ -157,9 +157,8 @@ export class NezonComponentService {
       try {
         const handler = registry.getHandler(buttonId);
         if (handler) {
-          const clickContext = await this.createButtonClickContext(
-            componentContext,
-          );
+          const clickContext =
+            await this.createButtonClickContext(componentContext);
           await handler(clickContext);
           return;
         }
@@ -382,7 +381,7 @@ export class NezonComponentService {
         case NezonParamType.ARG:
           value =
             typeof param.data === 'number'
-              ? context.params[param.data] ?? undefined
+              ? (context.params[param.data] ?? undefined)
               : undefined;
           break;
         case NezonParamType.ATTACHMENTS: {
@@ -535,9 +534,8 @@ export class NezonComponentService {
     context: NezonComponentContext,
   ): Promise<[ManagedMessage, DMHelper, ChannelHelper]> {
     return this.getOrSetCache(context, this.cacheKeys.autoContext, async () => {
-      const commandContext = await this.createCommandContextFromComponent(
-        context,
-      );
+      const commandContext =
+        await this.createCommandContextFromComponent(context);
       const helpers = {
         normalize: (input) => this.normalizeSmartMessage(input),
       };
@@ -683,7 +681,7 @@ export class NezonComponentService {
     const pattern =
       typeof options.pattern === 'string'
         ? new RegExp(options.pattern)
-        : options.pattern ?? null;
+        : (options.pattern ?? null);
 
     const hasNamedParams = patternString?.includes(':');
     let namedParamNames: string[] = [];

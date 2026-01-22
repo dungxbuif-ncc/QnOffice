@@ -31,6 +31,6 @@ const entities = [
   OpentalkSlideEntity,
   PantryMenuItemEntity,
   PenaltyProofEntity,
-  OrderEntity
+  OrderEntity,
 ];
 export default entities;

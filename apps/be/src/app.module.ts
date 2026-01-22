@@ -60,8 +60,8 @@ import { UserModule } from './modules/user/user.module';
     PantryTransactionModule,
     FeedbackModule,
     OrderModule,
-    BotModule
-  ]
+    BotModule,
+  ],
 })
 export class AppModule {
   constructor(private mezonClient: MezonClient) {

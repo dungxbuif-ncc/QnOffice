@@ -1,19 +1,19 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    ParseIntPipe,
-    Post,
-    Put,
-    Query,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
-    IPaginationDto,
-    Penalty as IPenalty,
-    UserRole,
+  IPaginationDto,
+  Penalty as IPenalty,
+  UserRole,
 } from '@qnoffice/shared';
 import { AppPaginateOptionsDto } from '@src/common/dtos/page-options.dto';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';

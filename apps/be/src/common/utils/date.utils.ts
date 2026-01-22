@@ -53,7 +53,11 @@ export function isAfterToday(dateString: string): boolean {
 /**
  * Find the next valid date based on schedule type and holidays
  */
-export function getNextValidDate(fromDate: Date, type: ScheduleType, holidays: string[]): Date {
+export function getNextValidDate(
+  fromDate: Date,
+  type: ScheduleType,
+  holidays: string[],
+): Date {
   let checkDate = addDays(fromDate, 1);
   while (true) {
     const dateStr = toDateString(checkDate);
@@ -68,7 +72,8 @@ export function getNextValidDate(fromDate: Date, type: ScheduleType, holidays: s
         continue;
       }
     } else if (type === ScheduleType.OPENTALK) {
-      if (getDay(checkDate) !== 6) { // Saturday
+      if (getDay(checkDate) !== 6) {
+        // Saturday
         checkDate = addDays(checkDate, 1);
         continue;
       }

@@ -6,4 +6,3 @@ export interface NezonComponentOptions {
   event?: Events | string;
   separator?: string | RegExp;
 }
-

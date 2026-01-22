@@ -90,16 +90,11 @@ export class CleaningService {
     }
 
     queryBuilder
-      .leftJoinAndSelect(
-        'cycle.events',
-        'events',
-        eventsCondition,
-        {
-          eventType: ScheduleType.CLEANING,
-          status,
-          email: email ? `%${email}%` : undefined,
-        },
-      )
+      .leftJoinAndSelect('cycle.events', 'events', eventsCondition, {
+        eventType: ScheduleType.CLEANING,
+        status,
+        email: email ? `%${email}%` : undefined,
+      })
       .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
       .leftJoinAndSelect('eventParticipants.staff', 'staff')
       .leftJoinAndSelect('staff.user', 'user')

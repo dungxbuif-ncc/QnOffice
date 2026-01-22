@@ -17,6 +17,8 @@ export interface NezonCommandContext {
   getClan(): Promise<Clan | undefined>;
   getUser(): Promise<User | undefined>;
   getMessage(): Promise<Message | undefined>;
-  getMessageByIds(channelId: string, messageId: string): Promise<Message | undefined>;
+  getMessageByIds(
+    channelId: string,
+    messageId: string,
+  ): Promise<Message | undefined>;
 }
-

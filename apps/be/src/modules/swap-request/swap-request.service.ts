@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { ScheduleType, SwapRequestStatus } from '@qnoffice/shared';
 import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';

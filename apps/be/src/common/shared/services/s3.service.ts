@@ -51,7 +51,7 @@ export class S3Service {
     fileName: string,
     contentType: string,
     folder: string = 'penalties/evidence',
-    expiresIn: number = 3600
+    expiresIn: number = 3600,
   ): Promise<PresignedUrlResponse> {
     // Generate unique file key
     const fileExtension = fileName.split('.').pop();
@@ -91,7 +91,7 @@ export class S3Service {
 
   async getPresignedDownloadUrl(
     key: string,
-    expiresIn:number = 3600
+    expiresIn: number = 3600,
   ): Promise<{ downloadUrl: string; expiresIn: number }> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
@@ -119,4 +119,3 @@ export class S3Service {
     return Promise.all(promises);
   }
 }
-

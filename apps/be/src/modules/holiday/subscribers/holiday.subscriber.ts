@@ -6,9 +6,7 @@ import {
 import HolidayEntity from '../holiday.entity';
 
 @EventSubscriber()
-export class HolidaySubscriber
-  implements EntitySubscriberInterface<HolidayEntity>
-{
+export class HolidaySubscriber implements EntitySubscriberInterface<HolidayEntity> {
   constructor(dataSource: DataSource) {
     if (dataSource?.subscribers) {
       dataSource.subscribers.push(this);

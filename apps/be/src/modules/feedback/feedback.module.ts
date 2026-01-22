@@ -1,5 +1,5 @@
 import { FeedbackService } from '@src/modules/feedback/feedback.service';
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
 import { FeebackController } from '@src/modules/feedback/feedback.controller';
 import { SharedModule } from '@src/common/shared/shared.module';
 

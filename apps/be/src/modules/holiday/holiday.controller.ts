@@ -1,20 +1,16 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Query,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-    Holiday,
-    IPaginationDto,
-    UserRole,
-} from '@qnoffice/shared';
+import { Holiday, IPaginationDto, UserRole } from '@qnoffice/shared';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import CreateHolidayDto from '@src/modules/holiday/dtos/create-holiday.dto';

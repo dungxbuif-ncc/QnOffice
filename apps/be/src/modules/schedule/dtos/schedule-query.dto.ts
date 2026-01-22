@@ -1,14 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EventStatus, IScheduleQueryDto } from '@qnoffice/shared';
 import {
-    EventStatus,
-    IScheduleQueryDto,
-} from '@qnoffice/shared';
-import {
-    IsDateString,
-    IsEnum,
-    IsNumber,
-    IsOptional,
-    IsString,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class ScheduleQueryDto implements IScheduleQueryDto {

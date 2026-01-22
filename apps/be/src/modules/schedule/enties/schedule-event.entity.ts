@@ -1,7 +1,4 @@
-import {
-  EventStatus,
-  ScheduleType
-} from '@qnoffice/shared';
+import { EventStatus, ScheduleType } from '@qnoffice/shared';
 import { AbstractEntity } from '@src/common/database/abstract.entity';
 import ScheduleEventParticipantEntity from '@src/modules/schedule/enties/schedule-event-participant.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';

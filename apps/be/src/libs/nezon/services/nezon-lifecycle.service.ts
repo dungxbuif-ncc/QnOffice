@@ -32,4 +32,3 @@ export class NezonLifecycleService
     await this.clientService.disconnect();
   }
 }
-

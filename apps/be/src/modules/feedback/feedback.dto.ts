@@ -1,9 +1,9 @@
-import { IsString } from "class-validator";
+import { IsString } from 'class-validator';
 
-export class FeedbackDto{
-    @IsString()
-    text: string;
+export class FeedbackDto {
+  @IsString()
+  text: string;
 
-    @IsString()
-    imageKey: string | undefined;
+  @IsString()
+  imageKey: string | undefined;
 }

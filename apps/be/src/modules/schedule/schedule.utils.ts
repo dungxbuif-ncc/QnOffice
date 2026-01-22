@@ -6,7 +6,10 @@ import { addDays, differenceInCalendarDays, startOfMonth } from 'date-fns';
 /**
  * Check if the current date is exactly 7 days before the last event date
  */
-export function isTriggerDay(lastEventDateStr: string, todayStr: string): boolean {
+export function isTriggerDay(
+  lastEventDateStr: string,
+  todayStr: string,
+): boolean {
   const lastEventDate = fromDateString(lastEventDateStr);
   const today = fromDateString(todayStr);
   const daysUntilEnd = differenceInCalendarDays(lastEventDate, today);
@@ -21,11 +24,14 @@ export interface CycleTriggerStatus {
   daysUntilEnd: number;
 }
 
-export function getCycleTriggerStatus(lastEventDateStr: string, todayStr: string): CycleTriggerStatus {
+export function getCycleTriggerStatus(
+  lastEventDateStr: string,
+  todayStr: string,
+): CycleTriggerStatus {
   const lastEventDate = fromDateString(lastEventDateStr);
   const today = fromDateString(todayStr);
   const daysUntilEnd = differenceInCalendarDays(lastEventDate, today);
-  
+
   return {
     shouldTrigger: daysUntilEnd === ONE_WEEK,
     daysUntilEnd,
@@ -39,13 +45,13 @@ export function getNextCycleInfo(lastEventDateStr: string, type: ScheduleType) {
   const lastEventDate = fromDateString(lastEventDateStr);
   const startDate = addDays(lastEventDate, 1);
   const startOfNextMonth = startOfMonth(startDate);
-  
+
   const month = startOfNextMonth.getMonth() + 1;
   const year = startOfNextMonth.getFullYear();
   const nextMonthStr = `${month}/${year}`;
-  
+
   const typeName = type === ScheduleType.CLEANING ? 'Cleaning' : 'OpenTalk';
-  
+
   return {
     startDate,
     startOfNextMonth,

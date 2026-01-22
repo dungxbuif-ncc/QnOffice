@@ -1,20 +1,16 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Query,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-    Branch as IBranch,
-    IPaginationDto,
-    UserRole,
-} from '@qnoffice/shared';
+import { Branch as IBranch, IPaginationDto, UserRole } from '@qnoffice/shared';
 import { AppPaginateOptionsDto } from '@src/common/dtos/page-options.dto';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';

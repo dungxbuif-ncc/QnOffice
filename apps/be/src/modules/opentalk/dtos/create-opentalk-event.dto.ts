@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    EventStatus,
-    ICreateOpentalkEventDto,
-    ScheduleType,
+  EventStatus,
+  ICreateOpentalkEventDto,
+  ScheduleType,
 } from '@qnoffice/shared';
 import {
-    IsArray,
-    IsDate,
-    IsEnum,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    IsString,
+  IsArray,
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CreateOpentalkEventDto implements ICreateOpentalkEventDto {

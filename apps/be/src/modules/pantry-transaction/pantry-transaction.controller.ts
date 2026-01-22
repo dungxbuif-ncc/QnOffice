@@ -26,9 +26,7 @@ export class PantryTransactionController {
   }
 
   @Get('stats')
-  async getStats(
-    @Query() query: GetStatsQueryDto,
-  ): Promise<{
+  async getStats(@Query() query: GetStatsQueryDto): Promise<{
     totalTransactions: number;
     totalAmount: number;
     uniqueContributors: number;

@@ -1,9 +1,5 @@
 import { AbstractEntity } from '@src/common/database/abstract.entity';
-import {
-    Column,
-    Entity,
-    OneToMany,
-} from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Penalty } from '../penalty/penalty.entity';
 
 @Entity('penalty_types')

@@ -51,7 +51,7 @@ export class PantryTransactionService {
       const url = `${this.indexerApiUrl}/${this.chainId}/transactions`;
       this.logger.log(`Fetching transactions from: ${url}`);
       this.logger.log(`Params: ${JSON.stringify(params)}`);
-      
+
       const response = await axios.get<PantryTransactionResponse>(url, {
         params,
       });
@@ -127,7 +127,9 @@ export class PantryTransactionService {
         result: enrichedTransactions,
       };
 
-      this.logger.log(`Returning ${enrichedTransactions.length} transactions, page ${result.page} of ${Math.ceil(result.total / result.pageSize)}`);
+      this.logger.log(
+        `Returning ${enrichedTransactions.length} transactions, page ${result.page} of ${Math.ceil(result.total / result.pageSize)}`,
+      );
       return result;
     } catch (error) {
       this.logger.error('Failed to fetch transactions:', error);
@@ -146,7 +148,7 @@ export class PantryTransactionService {
     try {
       const params: any = {
         page: 0,
-        limit: 1000, 
+        limit: 1000,
         sort_by: 'transaction_timestamp',
         sort_order: 'desc',
         filter_to_address: this.recipientAddress,

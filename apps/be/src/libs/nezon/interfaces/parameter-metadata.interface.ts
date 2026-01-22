@@ -19,7 +19,7 @@ export enum NezonParamType {
   EVENT_PAYLOAD = 'event_payload',
   NEZON_UTILS = 'nezon_utils',
   FORM_DATA = 'form_data',
-  PREFIX = 'prefix'
+  PREFIX = 'prefix',
 }
 
 export interface NezonParameterMetadata {
