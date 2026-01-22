@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/shared/contexts/auth-context';
 import { ScheduleCycle, UserRole } from '@qnoffice/shared';
 
+import { OpentalkFilterBar } from '@/components/opentalk/opentalk-filter';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 interface OpentalkPageClientProps {
   cycles: ScheduleCycle[];
@@ -26,6 +28,7 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
     params.set('tab', value);
     router.push(`${pathname}?${params.toString()}`);
   };
+
   const mode = user?.role === UserRole.STAFF ? 'user' : 'hr';
 
   return (
@@ -41,11 +44,12 @@ export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
         </TabsList>
 
         <TabsContent value="schedules" className="space-y-4">
+          <OpentalkFilterBar />
           <OpentalkSpreadsheetView cycles={cycles} />
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">
-          <SwapRequestManagement  />
+          <SwapRequestManagement />
         </TabsContent>
       </Tabs>
     </div>

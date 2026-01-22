@@ -48,13 +48,21 @@ export class OpentalkService {
     private readonly slideRepository: Repository<OpentalkSlideEntity>,
   ) {}
 
-  async getCycles(status?: string): Promise<ScheduleCycleEntity[]> {
+  async getCycles(
+    filter?: Partial<{
+      status: EventStatus;
+      email: string;
+    }>,
+  ): Promise<ScheduleCycleEntity[]> {
+    const { status, email } = filter || {};
     const where: FindOptionsWhere<ScheduleCycleEntity> = {
       type: ScheduleType.OPENTALK,
+      events: {
+        ...(status && { status: status }),
+        ...(email && { eventParticipants: { staff: { email: email } } }),
+      }
     };
-    if (status) {
-      where.status = status as CycleStatus;
-    }
+    
     return this.cycleRepository.find({
       where,
       relations: [

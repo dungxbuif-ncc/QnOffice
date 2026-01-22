@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { IOpentalkSlide, ScheduleCycle, ScheduleEvent } from '@qnoffice/shared';
 import { ChevronDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface EditingField {
   eventId: number;
@@ -83,6 +83,29 @@ export function CycleCard({
   }, [sortedEvents]);
 
   const [isOpen, setIsOpen] = useState(!isPast);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Find first future or today event
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const targetEvent = sortedEvents.find(
+      (e) => new Date(e.eventDate) >= today,
+    );
+
+    if (targetEvent) {
+      setTimeout(() => {
+        const element = document.getElementById(
+          `opentalk-event-${targetEvent.id}`,
+        );
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [sortedEvents, isOpen]);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
