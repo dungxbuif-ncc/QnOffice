@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  NotificationEvent,
+  UserMessagePayload,
+} from '@src/common/events/notification.events';
 import { isEmpty } from 'lodash';
 import { In, Repository } from 'typeorm';
 import UserEntity from './user.entity';
@@ -13,10 +18,47 @@ type UpsertUserMeta = {
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+  private readonly userCache = new Map<string, UserMessagePayload>();
+
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-  ) {}
+  ) {
+    this.loadUsersIntoCache();
+  }
+
+  private async loadUsersIntoCache() {
+    this.logger.log('Loading users into memory cache...');
+    const users = await this.userRepository.find();
+    users.forEach((user) => {
+      this.userCache.set(user.mezonId, {
+        name: user.name,
+        avatar: user.avatar,
+        mezonId: user.mezonId,
+      });
+    });
+    this.logger.log(`Loaded ${users.length} users into cache`);
+  }
+
+  @OnEvent(NotificationEvent.USER_MESSAGE)
+  async handleUserMessage(payload: UserMessagePayload) {
+    const { mezonId, name, avatar } = payload;
+
+    const cachedUser = this.userCache.get(mezonId);
+
+    const needsUpdate =
+      !cachedUser ||
+      (name && cachedUser.name !== name) ||
+      (avatar && cachedUser.avatar !== avatar);
+
+    if (needsUpdate) {
+      this.logger.log(`Upserting user ${mezonId} from message event`);
+      await this.upsertByMezonId(mezonId, {
+        name,
+        avatar,
+      });
+    }
+  }
 
   private async create(user: Partial<UserEntity>) {
     const newUser = this.userRepository.create(user);
@@ -92,11 +134,19 @@ export class UserService {
     meta?: UpsertUserMeta,
   ): Promise<UserEntity> {
     const existingUser = await this.findByMezonId(mezonId);
-
     if (existingUser) {
+      this.userCache.set(mezonId, {
+        name: existingUser?.name,
+        avatar: existingUser?.avatar,
+        mezonId,
+      });
       return this.userRepository.save(existingUser);
     }
-
+    this.userCache.set(mezonId, {
+      name: meta?.name,
+      avatar: meta?.avatar,
+      mezonId,
+    });
     return this.create({ ...meta, mezonId });
   }
 }

@@ -6,6 +6,6 @@ import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([ChannelConfigEntity])],
   providers: [BotNotiDeliveryService],
-  exports: [],
+  exports: [BotNotiDeliveryService],
 })
 export class BotNotiModule {}

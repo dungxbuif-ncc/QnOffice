@@ -4,6 +4,7 @@ import { APP_TIMEZONE } from '@src/common/constants';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import { nowVn } from '@src/common/utils/time.util';
 import { AuditLogService } from '@src/modules/audit-log/audit-log.service';
+import { OrderService } from '@src/modules/order/order.service';
 import { CleaningCronService } from '@src/modules/schedule/services/cleaning-cron.service';
 import { OpentalkCronService } from '@src/modules/schedule/services/opentalk-cron.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,8 +16,8 @@ export class CronService {
     private readonly opentalkCronService: OpentalkCronService,
     private readonly auditLogService: AuditLogService,
     private readonly appLogService: AppLogService,
-  ) {
-  }
+    private readonly orderService: OrderService,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'mark-events-completed',
@@ -46,6 +47,7 @@ export class CronService {
         executionTime: executionTime.toISOString(),
       },
     );
+    const promises: Promise<any>[] = [];
     if (dayOfWeek >= 2 && dayOfWeek <= 6) {
       this.appLogService.journeyLog(
         journeyId,
@@ -58,7 +60,9 @@ export class CronService {
         },
       );
 
-      await this.cleaningCronService.markPastEventsCompleted(journeyId);
+      promises.push(
+        this.cleaningCronService.markPastEventsCompleted(journeyId),
+      );
     } else if (dayOfWeek === 0) {
       this.appLogService.journeyLog(
         journeyId,
@@ -71,10 +75,17 @@ export class CronService {
         },
       );
 
-      await this.opentalkCronService.markPastEventsCompleted(journeyId);
+      promises.push(
+        this.opentalkCronService.markPastEventsCompleted(journeyId),
+      );
     }
-    await this.cleaningCronService.handleAutomaticCycleCreation(journeyId);
-    await this.opentalkCronService.handleAutomaticCycleCreation(journeyId);
+    promises.push(
+      this.cleaningCronService.handleAutomaticCycleCreation(cleaningJourneyId),
+    );
+    promises.push(
+      this.opentalkCronService.handleAutomaticCycleCreation(opentalkJourneyId),
+    );
+    await Promise.all(promises);
   }
 
   @Cron('0 2 1 * *', {
@@ -118,7 +129,7 @@ export class CronService {
     }
   }
 
-  @Cron('0 8 * * 1-5', {
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_8AM, {
     name: 'cleaning-morning-reminder',
     timeZone: APP_TIMEZONE,
   })
@@ -140,7 +151,7 @@ export class CronService {
     await this.cleaningCronService.sendMorningReminder(journeyId);
   }
 
-  @Cron('0 9 * * *', {
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, {
     name: 'opentalk-slide-check',
     timeZone: APP_TIMEZONE,
   })
@@ -160,12 +171,14 @@ export class CronService {
     await this.opentalkCronService.checkSlideSubmission(journeyId);
   }
 
-  @Cron('0 17 * * 1-5', {
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_5PM, {
     name: 'cleaning-afternoon-reminder',
     timeZone: APP_TIMEZONE,
   })
   async sendCleaningAfternoonReminder(): Promise<void> {
     const afternoonJourneyId = `cleaning-afternoon-reminder-${uuidv4()}`;
+    const nextDayJourneyId = `cleaning-next-day-reminder-${uuidv4()}`;
+    const journeyId = `order-payment-reminder-${uuidv4()}`;
     const executionTime = nowVn();
 
     this.appLogService.journeyLog(
@@ -179,8 +192,6 @@ export class CronService {
       },
     );
 
-    const nextDayJourneyId = `cleaning-next-day-reminder-${uuidv4()}`;
-
     this.appLogService.journeyLog(
       nextDayJourneyId,
       'Starting cleaning next day reminder cron job',
@@ -192,7 +203,20 @@ export class CronService {
       },
     );
 
-    await this.cleaningCronService.sendAfternoonReminder(afternoonJourneyId);
-    await this.cleaningCronService.sendNextDayReminder(nextDayJourneyId);
+    this.appLogService.journeyLog(
+      journeyId,
+      'Starting order payment reminder cron job (Monday-Friday at 5PM)',
+      'CronService',
+      {
+        cronJob: 'order-payment-reminder',
+        dayOfWeek: executionTime.getDay(),
+        executionTime: executionTime.toISOString(),
+      },
+    );
+    await Promise.all([
+      this.cleaningCronService.sendAfternoonReminder(afternoonJourneyId),
+      this.cleaningCronService.sendNextDayReminder(nextDayJourneyId),
+      this.orderService.sendPaymentReminder(journeyId),
+    ]);
   }
 }

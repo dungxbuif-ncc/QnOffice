@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GroupedOrder, SearchOrder } from '@qnoffice/shared';
-import { NotificationEvent } from '@src/common/events/notification.events';
+import { WHITE_LIST_CHANNEL } from '@src/common/constants/mezon';
+import {
+  NotificationEvent,
+  OrderPaymentReminderPayload,
+} from '@src/common/events/notification.events';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import {
   formatDateVn,
   formatVn,
-  isWithinMinutes
+  isWithinMinutes,
 } from '@src/common/utils/time.util';
 import { UserService } from '@src/modules/user/user.service';
 import { ChannelMessage, ChannelMessageContent } from 'mezon-sdk';
@@ -23,6 +27,7 @@ export class OrderService {
     private readonly orderRepository: Repository<OrderEntity>,
     private readonly userService: UserService,
     private readonly appLogService: AppLogService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(dto: CreateOrderDto): Promise<OrderEntity> {
@@ -71,10 +76,7 @@ export class OrderService {
     });
     let order: OrderEntity;
     const messageContent = this.trimMessage(content);
-    if (
-      latestOrder &&
-      isWithinMinutes(latestOrder.createdAt, new Date())
-    ) {
+    if (latestOrder && isWithinMinutes(latestOrder.createdAt, new Date())) {
       order = latestOrder;
       order.content = messageContent;
     } else {
@@ -89,9 +91,7 @@ export class OrderService {
     await this.orderRepository.save(order);
   }
 
-  async getOrdersGrouped(
-    query?: GetOrdersGroupedDto,
-  ): Promise<GroupedOrder[]> {
+  async getOrdersGrouped(query?: GetOrdersGroupedDto): Promise<GroupedOrder[]> {
     const startDate = query?.startDate || formatDateVn(new Date());
     const endDate = query?.endDate || startDate;
 
@@ -135,8 +135,6 @@ export class OrderService {
         }
 
         const lastOrderInSession = currentSession[currentSession.length - 1];
-        
-        // Since orders are DESC, lastOrderInSession is NEWER than 'order'.
         if (isWithinMinutes(order.createdAt, lastOrderInSession.createdAt)) {
           currentSession.push(order);
         } else {
@@ -152,6 +150,97 @@ export class OrderService {
     }
 
     return groupedOrders;
+  }
+
+  async sendPaymentReminder(journeyId: string): Promise<void> {
+    this.appLogService.journeyLog(
+      journeyId,
+      'Starting order payment reminder process',
+      'OrderService',
+      { scheduleType: 'ORDER_PAYMENT' },
+    );
+
+    const today = formatDateVn(new Date());
+
+    try {
+      this.appLogService.stepLog(
+        1,
+        'Finding all orders for today in DATCOM channel',
+        'OrderService',
+        journeyId,
+        { today, channelId: WHITE_LIST_CHANNEL.DATCOM },
+      );
+
+      const todayOrders = await this.orderRepository.find({
+        where: { date: today, channelId: WHITE_LIST_CHANNEL.DATCOM },
+        relations: ['user'],
+      });
+
+      this.appLogService.stepLog(
+        2,
+        `Found ${todayOrders.length} orders for today in DATCOM channel`,
+        'OrderService',
+        journeyId,
+        {
+          count: todayOrders.length,
+          today,
+          channelId: WHITE_LIST_CHANNEL.DATCOM,
+        },
+      );
+
+      if (todayOrders.length === 0) {
+        this.appLogService.journeyLog(
+          journeyId,
+          'No orders found for today in DATCOM channel - skipping payment reminder',
+          'OrderService',
+          { today, channelId: WHITE_LIST_CHANNEL.DATCOM },
+        );
+        return;
+      }
+
+      const payload: OrderPaymentReminderPayload = {
+        date: today,
+        channelId: WHITE_LIST_CHANNEL.DATCOM,
+        orders: todayOrders.map((order) => ({
+          userId: order.userMezonId,
+          username: order.user?.name || 'Unknown',
+          content: order.content,
+        })),
+        journeyId,
+      };
+
+      this.appLogService.stepLog(
+        3,
+        'Emitting payment reminder event',
+        'OrderService',
+        journeyId,
+        {
+          totalOrders: todayOrders.length,
+          channelId: WHITE_LIST_CHANNEL.DATCOM,
+        },
+      );
+
+      this.eventEmitter.emit(NotificationEvent.ORDER_PAYMENT_REMINDER, payload);
+
+      this.appLogService.journeyLog(
+        journeyId,
+        `✅ Successfully sent payment reminder for ${todayOrders.length} orders`,
+        'OrderService',
+        {
+          totalOrders: todayOrders.length,
+          channelId: WHITE_LIST_CHANNEL.DATCOM,
+          today,
+        },
+      );
+    } catch (error) {
+      this.appLogService.journeyError(
+        journeyId,
+        '❌ Error sending payment reminder',
+        error.stack,
+        'OrderService',
+        { error: error.message, today },
+      );
+    }
   }
 
   private trimMessage(message: ChannelMessageContent): string {

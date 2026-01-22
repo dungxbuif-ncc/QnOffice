@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { GroupedOrder } from '@qnoffice/shared';
 import { format } from 'date-fns';
@@ -18,7 +18,7 @@ interface OrdersPageClientProps {
 
 export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
   const [openChannels, setOpenChannels] = useState<Set<string>>(
-    new Set(groupedOrders.map((g) => g.channelId))
+    new Set(groupedOrders.map((g) => g.channelId)),
   );
   const [openSessions, setOpenSessions] = useState<Set<string>>(new Set());
 
@@ -50,7 +50,7 @@ export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
     <div className="space-y-4">
       {groupedOrders.map((group) => {
         const isChannelOpen = openChannels.has(group.channelId);
-        
+
         return (
           <Collapsible
             key={group.channelId}
@@ -65,10 +65,15 @@ export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
                 >
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-foreground">
-                      Kênh: {group.channelId}
+                      Channel Đặt Cơm
                     </h2>
                     <span className="text-sm text-muted-foreground">
-                      ({group.sessions.reduce((acc, s) => acc + s.orders.length, 0)} đơn)
+                      (
+                      {group.sessions.reduce(
+                        (acc, s) => acc + s.orders.length,
+                        0,
+                      )}{' '}
+                      đơn)
                     </span>
                   </div>
                   <ChevronDown
@@ -107,18 +112,24 @@ export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
                                 </span>
                                 {session.orders.length > 0 && (
                                   <>
-                                    <span className="text-muted-foreground">•</span>
+                                    <span className="text-muted-foreground">
+                                      •
+                                    </span>
                                     <span className="text-xs text-muted-foreground">
                                       {format(
-                                        new Date(session.orders[session.orders.length - 1].createdAt),
+                                        new Date(
+                                          session.orders[
+                                            session.orders.length - 1
+                                          ].createdAt,
+                                        ),
                                         'HH:mm',
-                                        { locale: vi }
+                                        { locale: vi },
                                       )}
                                       {' - '}
                                       {format(
                                         new Date(session.orders[0].createdAt),
                                         'HH:mm',
-                                        { locale: vi }
+                                        { locale: vi },
                                       )}
                                     </span>
                                   </>
@@ -145,16 +156,26 @@ export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
                                       {order.user?.name || order.userMezonId}
                                     </span>
                                   </div>
-                                  <span className="text-muted-foreground">•</span>
-                                  <span className="text-foreground">{order.content}</span>
-                                  <span className="text-muted-foreground">•</span>
+                                  <span className="text-muted-foreground">
+                                    •
+                                  </span>
+                                  <span className="text-foreground">
+                                    {order.content}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    •
+                                  </span>
                                   <div className="flex items-center gap-1 text-muted-foreground">
                                     <Clock className="h-3.5 w-3.5" />
                                     <span className="text-xs">
                                       {order.createdAt
-                                        ? format(new Date(order.createdAt), 'HH:mm', {
-                                            locale: vi,
-                                          })
+                                        ? format(
+                                            new Date(order.createdAt),
+                                            'HH:mm',
+                                            {
+                                              locale: vi,
+                                            },
+                                          )
                                         : ''}
                                     </span>
                                   </div>
@@ -174,9 +195,7 @@ export function OrdersPageClient({ groupedOrders }: OrdersPageClientProps) {
       })}
       {groupedOrders.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-muted-foreground">
-            Không tìm thấy đơn hàng nào.
-          </p>
+          <p className="text-muted-foreground">Không tìm thấy đơn hàng nào.</p>
         </div>
       )}
     </div>

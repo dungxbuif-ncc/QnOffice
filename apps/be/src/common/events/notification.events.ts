@@ -7,6 +7,8 @@ export enum NotificationEvent {
   STAFF_ONBOARDING = 'notification.staff.onboarding',
   STAFF_OFFBOARDING = 'notification.staff.offboarding',
   ORDER_CREATED = 'notification.order.created',
+  ORDER_PAYMENT_REMINDER = 'notification.order.payment.reminder',
+  USER_MESSAGE = 'notification.user.message',
 }
 
 export interface EventParticipant {
@@ -40,4 +42,21 @@ export interface StaffChangePayload {
     changes: string[];
   }[];
   journeyId: string;
+}
+
+export interface OrderPaymentReminderPayload {
+  date: string;
+  channelId: string;
+  orders: {
+    userId: string;
+    username: string;
+    content: string;
+  }[];
+  journeyId: string;
+}
+
+export interface UserMessagePayload {
+  mezonId: string;
+  name?: string;
+  avatar?: string;
 }

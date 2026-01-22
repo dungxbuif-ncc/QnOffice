@@ -8,6 +8,7 @@ import {
   EventParticipant,
   NotificationEvent,
   OpentalkSlideReminderPayload,
+  OrderPaymentReminderPayload,
 } from '@src/common/events/notification.events';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
@@ -187,6 +188,75 @@ export class BotNotiDeliveryService {
     }
   }
 
+  @OnEvent(NotificationEvent.ORDER_PAYMENT_REMINDER)
+  async handleOrderPaymentReminder(
+    payload: OrderPaymentReminderPayload,
+  ): Promise<void> {
+    const { journeyId } = payload;
+
+    this.appLogService.journeyLog(
+      journeyId,
+      'Processing order payment reminder',
+      'BotNotiDeliveryService',
+      {
+        date: payload.date,
+        channelId: payload.channelId,
+        totalOrders: payload.orders.length,
+      },
+    );
+
+    try {
+      this.appLogService.stepLog(
+        1,
+        `Formatting payment reminder for ${payload.orders.length} orders`,
+        'BotNotiDeliveryService',
+        journeyId,
+        {
+          channelId: payload.channelId,
+          orderCount: payload.orders.length,
+        },
+      );
+
+      const message = this.formatOrderPaymentMessage(
+        payload.date,
+        payload.orders,
+      );
+
+      this.appLogService.stepLog(
+        2,
+        `Sending payment reminder to channel ${payload.channelId}`,
+        'BotNotiDeliveryService',
+        journeyId,
+        { channelId: payload.channelId },
+      );
+
+      await this.sendToSpecificChannel(payload.channelId, message, journeyId);
+
+      this.appLogService.journeyLog(
+        journeyId,
+        `✅ Successfully sent payment reminder for ${payload.orders.length} orders`,
+        'BotNotiDeliveryService',
+        {
+          orderCount: payload.orders.length,
+          channelId: payload.channelId,
+          date: payload.date,
+        },
+      );
+    } catch (error) {
+      this.appLogService.journeyError(
+        journeyId,
+        '❌ Failed to send order payment reminder',
+        error.stack,
+        'BotNotiDeliveryService',
+        {
+          error: error.message,
+          date: payload.date,
+          channelId: payload.channelId,
+        },
+      );
+    }
+  }
+
   private async sendToChannel(
     channelType: MezonChannelType,
     message: Nezon.SmartMessage,
@@ -232,6 +302,46 @@ export class BotNotiDeliveryService {
       {
         channelId,
         channelType,
+        contentLength: (payload.content as string | undefined)?.length || 0,
+        mentionCount: Array.isArray(payload.mentions)
+          ? payload.mentions.length
+          : 0,
+        attachmentCount: Array.isArray(payload.attachments)
+          ? payload.attachments.length
+          : 0,
+      },
+    );
+
+    await channel.send(payload.content, payload.mentions, payload.attachments);
+  }
+
+  private async sendToSpecificChannel(
+    channelId: string,
+    message: Nezon.SmartMessage,
+    journeyId?: string,
+  ): Promise<void> {
+    this.appLogService.stepLog(
+      1,
+      'Fetching specific channel from Mezon',
+      'BotNotiDeliveryService',
+      journeyId,
+      { channelId },
+    );
+
+    const channel = await this.mezonService.channels.fetch(channelId);
+    if (!channel) {
+      throw new Error(`Channel ${channelId} not found`);
+    }
+
+    const payload = message.toJSON();
+
+    this.appLogService.stepLog(
+      2,
+      'Sending message to specific channel',
+      'BotNotiDeliveryService',
+      journeyId,
+      {
+        channelId,
         contentLength: (payload.content as string | undefined)?.length || 0,
         mentionCount: Array.isArray(payload.mentions)
           ? payload.mentions.length
@@ -298,5 +408,32 @@ export class BotNotiDeliveryService {
     ).addMention({
       recipient,
     });
+  }
+
+  private formatOrderPaymentMessage(
+    date: string,
+    orders: { userId: string; username: string; content: string }[],
+  ): Nezon.SmartMessage {
+    const userMentions = orders.reduce(
+      (acc, order) => {
+        acc[order.username] = {
+          userId: order.userId,
+          username: order.username,
+        };
+        return acc;
+      },
+      {} as Record<string, { userId: string; username: string }>,
+    );
+
+    const orderList = orders
+      .map(
+        (order, index) =>
+          `${index + 1}. {{${order.username}}}: ${order.content}`,
+      )
+      .join('\n');
+
+    return Nezon.SmartMessage.text(
+      `🍽️ Đừng quên thanh toán orders - 📅 Ngày ${date}\n\n${orderList}\n\n💰 Vui lòng thanh toán cho người đặt hàng!`,
+    ).addMention(userMentions);
   }
 }
