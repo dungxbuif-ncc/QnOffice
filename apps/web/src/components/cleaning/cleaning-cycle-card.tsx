@@ -21,7 +21,7 @@ import { hasPermission, PERMISSIONS } from '@/shared/auth';
 import { useAuth } from '@/shared/contexts/auth-context';
 import { getStatusBadgeProps } from '@/shared/utils';
 import { ChevronDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface CleaningCycleCardProps {
   cycleId: number;
@@ -60,6 +60,33 @@ export function CleaningCycleCard({
     user?.role,
     PERMISSIONS.MANAGE_CLEANING,
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Find first future or today event
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const targetEvent = cycleEvents
+      .sort(
+        (a, b) =>
+          new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+      )
+      .find((e) => new Date(e.eventDate) >= today);
+
+    if (targetEvent) {
+      // Use setTimeout to ensure DOM is ready/expanded
+      setTimeout(() => {
+        const element = document.getElementById(
+          `cleaning-event-${targetEvent.id}`,
+        );
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [cycleEvents, isOpen]);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -118,6 +145,7 @@ export function CleaningCycleCard({
                     return (
                       <TableRow
                         key={event.id}
+                        id={`cleaning-event-${event.id}`}
                         className={isDisabled ? 'opacity-60 bg-gray-50' : ''}
                       >
                         <TableCell className="font-medium">

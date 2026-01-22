@@ -9,11 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/shared/contexts/auth-context';
 import { EventStatus } from '@qnoffice/shared';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export function CleaningFilterBar() {
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -73,6 +75,17 @@ export function CleaningFilterBar() {
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const handleMySchedule = () => {
+    if (!user?.email) return;
+    
+    setEmail(user.email);
+    
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('email', user.email);
+    
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="flex flex-wrap gap-2 items-end">
       <div className="w-[220px]">
@@ -102,6 +115,10 @@ export function CleaningFilterBar() {
           </SelectContent>
         </Select>
       </div>
+
+      <Button variant="secondary" onClick={handleMySchedule}>
+        Lịch của tôi
+      </Button>
 
       <Button onClick={handleApply} disabled={!isChanged}>
         Áp dụng

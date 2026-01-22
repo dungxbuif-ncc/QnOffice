@@ -72,18 +72,32 @@ export class CleaningService {
     }>,
   ): Promise<ScheduleCycleEntity[]> {
     const { status, email } = filter || {};
-    const queryBuilder = this.cycleRepository
-      .createQueryBuilder('cycle')
+    const queryBuilder = this.cycleRepository.createQueryBuilder('cycle');
+
+    let eventsCondition = 'events.type = :eventType';
+    if (status) {
+      eventsCondition += ' AND events.status = :status';
+    }
+
+    if (email) {
+      eventsCondition += ` AND EXISTS (
+        SELECT 1 FROM schedule_event_participants sep
+        INNER JOIN staffs s ON sep.staff_id = s.id
+        LEFT JOIN users u ON s.user_id = u.mezon_id
+        WHERE sep.event_id = events.id
+        AND (s.email ILIKE :email OR u.email ILIKE :email)
+      )`;
+    }
+
+    queryBuilder
       .leftJoinAndSelect(
         'cycle.events',
         'events',
-        `
-        events.type = :eventType
-        ${status ? 'AND events.status = :status' : ''}
-      `,
+        eventsCondition,
         {
           eventType: ScheduleType.CLEANING,
-          ...(status ? { status } : {}),
+          status,
+          email: email ? `%${email}%` : undefined,
         },
       )
       .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
@@ -92,16 +106,6 @@ export class CleaningService {
       .where('cycle.type = :type', { type: 'CLEANING' })
       .orderBy('cycle.createdAt', 'DESC')
       .addOrderBy('events.eventDate', 'ASC');
-
-    if (email) {
-      queryBuilder.andWhere(
-        `
-      staff.email ILIKE :email
-      OR user.email ILIKE :email
-      `,
-        { email: `%${email}%` },
-      );
-    }
 
     const cycles = await queryBuilder.getMany();
     //sort the cycle' ASC by last event date
