@@ -79,6 +79,7 @@ export function EventTableRow({
 
   return (
     <TableRow
+      id={`opentalk-event-${event.id}`}
       className={`hover:bg-muted/50 ${isSelected ? 'bg-muted/50' : ''} ${
         isCheckboxDisabled ? 'opacity-60 bg-gray-50' : ''
       }`}

@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { CleaningFilterBar } from '@/components/cleaning/cleaning-filter';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface CleaningPageClientProps {
@@ -33,7 +34,6 @@ export function CleaningPageClient({ cycles, error }: CleaningPageClientProps) {
 
   const events = cycles.flatMap((cycle) => cycle.events || []);
 
-
   return (
     <div className="space-y-6">
       <Tabs
@@ -47,11 +47,12 @@ export function CleaningPageClient({ cycles, error }: CleaningPageClientProps) {
         </TabsList>
 
         <TabsContent value="schedules" className="space-y-4">
+          <CleaningFilterBar />
           <CleaningSpreadsheetView events={events} cycles={cycles} />
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-4">
-          <SwapRequestManagement  />
+          <SwapRequestManagement />
         </TabsContent>
       </Tabs>
     </div>

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ScheduleCycle, ScheduleEvent, UserRole } from '@qnoffice/shared';
+import { EventStatus, ScheduleCycle, ScheduleEvent, UserRole } from '@qnoffice/shared';
 import { Roles, RolesGuard } from '@src/common/gaurds/role.gaurd';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import { SubmitSlideDto } from '@src/modules/opentalk/dtos/submit-slide.dto';
@@ -29,8 +29,11 @@ export class OpentalkController {
   constructor(private readonly opentalkService: OpentalkService) {}
 
   @Get('cycles')
-  async getCycles(@Query('status') status?: string): Promise<ScheduleCycle[]> {
-    return this.opentalkService.getCycles(status) as any;
+  async getCycles(
+    @Query('status') status?: EventStatus,
+    @Query('email') email?: string,
+  ): Promise<ScheduleCycle[]> {
+    return this.opentalkService.getCycles({status, email}) as any;
   }
 
   @Post('slides/submit')

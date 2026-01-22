@@ -21,8 +21,15 @@ export class OpentalkServerService extends BaseServerService {
     return this.post<ScheduleCycle>(`${this.baseUrl}/cycles`, data);
   }
 
-  async getCycles() {
-    const response = await this.get<ScheduleCycle[]>(`${this.baseUrl}/cycles`);
+  async getCycles(status?: string, email?: string) {
+    const params: Record<string, string> = {};
+    if (status) params.status = status;
+    if (email) params.email = email;
+
+    const response = await this.get<ScheduleCycle[]>(
+      `${this.baseUrl}/cycles`,
+      params,
+    );
     return response.data || [];
   }
 

@@ -1,8 +1,21 @@
 import { OpentalkPageClient } from '@/components/opentalk/page-client';
 import { opentalkServerService } from '@/shared/services/server/opentalk-server-service';
 
-export default async function OpentalkPage() {
+interface OpentalkPageProps {
+  searchParams?: Promise<{
+    status?: string;
+    email?: string;
+  }>;
+}
+
+export default async function OpentalkPage({
+  searchParams,
+}: OpentalkPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status;
+  const email = resolvedSearchParams?.email;
+
   const error: string | null = null;
-  const cyclesData = await opentalkServerService.getCycles();
+  const cyclesData = await opentalkServerService.getCycles(status, email);
   return <OpentalkPageClient cycles={cyclesData ?? []} error={error} />;
 }

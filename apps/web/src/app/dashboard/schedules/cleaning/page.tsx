@@ -1,19 +1,22 @@
-import { CleaningPageClient } from '@/app/dashboard/schedules/cleaning/page-client';
 import { cleaningServerService } from '@/shared/services/server/cleaning-server-service';
-import { ScheduleCycle } from '@qnoffice/shared';
+import { CleaningPageClient } from './page-client';
 
-export default async function CleaningPage() {
-  let cycles: ScheduleCycle[] = [];
-  let error: string | null = null;
+interface CleaningPageProps {
+  searchParams?: Promise<{
+    status?: string;
+    email?: string;
+  }>;
+}
 
-  try {
-    const cyclesData = await cleaningServerService.getCycles();
+export default async function CleaningPage({
+  searchParams,
+}: CleaningPageProps) {
+  const resolvedSearchParams = await searchParams;
 
-    cycles = Array.isArray(cyclesData) ? cyclesData : [];
-  } catch (err) {
-    console.error('Failed to load cleaning data:', err);
-    error = 'Failed to load cleaning data';
-  }
+  const status = resolvedSearchParams?.status;
+  const email = resolvedSearchParams?.email;
 
-  return <CleaningPageClient cycles={cycles} error={error} />;
+  const cycles = await cleaningServerService.getCycles(status, email);
+
+  return <CleaningPageClient cycles={cycles} />;
 }

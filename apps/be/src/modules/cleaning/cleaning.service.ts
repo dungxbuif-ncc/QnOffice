@@ -65,12 +65,41 @@ export class CleaningService {
     });
   }
 
-  async getCyclesWithEvents(status?: string): Promise<ScheduleCycleEntity[]> {
-    const queryBuilder = this.cycleRepository
-      .createQueryBuilder('cycle')
-      .leftJoinAndSelect('cycle.events', 'events', 'events.type = :eventType', {
-        eventType: 'CLEANING',
-      })
+  async getCyclesWithEvents(
+    filter?: Partial<{
+      status: EventStatus;
+      email: string;
+    }>,
+  ): Promise<ScheduleCycleEntity[]> {
+    const { status, email } = filter || {};
+    const queryBuilder = this.cycleRepository.createQueryBuilder('cycle');
+
+    let eventsCondition = 'events.type = :eventType';
+    if (status) {
+      eventsCondition += ' AND events.status = :status';
+    }
+
+    if (email) {
+      eventsCondition += ` AND EXISTS (
+        SELECT 1 FROM schedule_event_participants sep
+        INNER JOIN staffs s ON sep.staff_id = s.id
+        LEFT JOIN users u ON s.user_id = u.mezon_id
+        WHERE sep.event_id = events.id
+        AND (s.email ILIKE :email OR u.email ILIKE :email)
+      )`;
+    }
+
+    queryBuilder
+      .leftJoinAndSelect(
+        'cycle.events',
+        'events',
+        eventsCondition,
+        {
+          eventType: ScheduleType.CLEANING,
+          status,
+          email: email ? `%${email}%` : undefined,
+        },
+      )
       .leftJoinAndSelect('events.eventParticipants', 'eventParticipants')
       .leftJoinAndSelect('eventParticipants.staff', 'staff')
       .leftJoinAndSelect('staff.user', 'user')
@@ -78,17 +107,15 @@ export class CleaningService {
       .orderBy('cycle.createdAt', 'DESC')
       .addOrderBy('events.eventDate', 'ASC');
 
-    if (status) {
-      queryBuilder.andWhere('cycle.status = :status', { status });
-    }
-
     const cycles = await queryBuilder.getMany();
     //sort the cycle' ASC by last event date
-    cycles.forEach((cycle) => {
-      cycle.events.sort((a, b) =>
-        a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
-      );
-    });
+    cycles
+      .filter((cycle) => cycle.events.length > 0)
+      .forEach((cycle) => {
+        cycle.events.sort((a, b) =>
+          a.eventDate > b.eventDate ? 1 : b.eventDate > a.eventDate ? -1 : 0,
+        );
+      });
     cycles.sort((a, b) => {
       const aLastEventDate =
         a.events.length > 0 ? a.events[a.events.length - 1].eventDate : '';
