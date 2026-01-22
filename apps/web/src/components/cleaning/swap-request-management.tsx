@@ -103,9 +103,7 @@ export function SwapRequestManagement() {
     }
   };
 
-  const filteredRequests = swapRequests.filter(
-    (req) => req.requesterId === user?.staffId,
-  );
+  const filteredRequests = swapRequests;
 
   if (isLoading) {
     return (
@@ -123,7 +121,7 @@ export function SwapRequestManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Yêu cầu đổi lịch của tôi</h2>
+        <h2 className="text-xl font-semibold">Danh sách yêu cầu đổi lịch</h2>
         {
           <>
             {isLoading ? (
@@ -194,85 +192,154 @@ export function SwapRequestManagement() {
             <CardContent className="pt-6">
               <div className="text-center py-8 text-muted-foreground">
                 <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Bạn chưa gửi yêu cầu đổi lịch nào</p>
+                <p>Chưa có yêu cầu đổi lịch nào</p>
               </div>
             </CardContent>
           </Card>
         ) : (
-          filteredRequests.map((request) => (
-            <Card key={request.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-center space-x-4">
-                      <Badge className={getStatusColor(request.status)}>
-                        {request.status}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDateVN(request.createdAt)}
-                      </span>
-                    </div>
+          filteredRequests.map((request) => {
+            const isApproved = request.status === SwapRequestStatus.APPROVED;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Calendar className="h-4 w-4 text-blue-600" />
-                          <span className="font-medium text-blue-900">
-                            Lịch hiện tại của bạn
+            const getParticipantNames = (event: any) => {
+              return (
+                event?.eventParticipants
+                  ?.map((p: any) => p.staff?.user?.name || p.staff?.email)
+                  .join(', ') || 'N/A'
+              );
+            };
+
+            const requesterName =
+              request.requester?.user?.name ||
+              request.requester?.email ||
+              'Unknown';
+
+            // Find the specific person who swapped with the requester
+            const targetStaff = request.fromEvent?.eventParticipants?.find(
+              (p: any) => p.staffId === request.targetStaffId,
+            )?.staff;
+            const targetName =
+              targetStaff?.user?.name || targetStaff?.email || 'Unknown';
+
+            return (
+              <Card key={request.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-3 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Badge className={getStatusColor(request.status)}>
+                            {request.status}
+                          </Badge>
+                          <span className="text-sm font-medium">
+                            Yêu cầu bởi: {requesterName}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {formatDateVN(request.createdAt)}
                           </span>
                         </div>
-                        <p className="text-sm text-blue-800">
-                          Ngày: {formatDateVN(request?.fromEvent?.eventDate)}
-                        </p>
-                        <p className="text-sm text-blue-700 mt-1">
-                          Người tham gia:{' '}
-                          {request?.fromEvent?.eventParticipants
-                            ?.map((p) => p.staff?.user?.name || p.staff?.email)
-                            .join(', ') || 'N/A'}
-                        </p>
                       </div>
 
-                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Calendar className="h-4 w-4 text-purple-600" />
-                          <span className="font-medium text-purple-900">
-                            Lịch muốn đổi
-                          </span>
+                      {isApproved ? (
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <h4 className="font-semibold text-green-900 mb-3 flex items-center">
+                            <ArrowRightLeft className="h-4 w-4 mr-2" />
+                            Đã đổi thành công
+                          </h4>
+                          <div className="space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-green-200 last:border-0 last:pb-0">
+                              <div>
+                                <span className="font-medium text-green-900 block">
+                                  Ngày: {formatDateVN(request.fromEvent?.eventDate)}
+                                </span>
+                                <div className="text-sm text-green-800 mt-1">
+                                  <span className="font-medium">
+                                    Người tham gia:
+                                  </span>{' '}
+                                  {getParticipantNames(request.fromEvent)}{' '}
+                                  <span className="text-muted-foreground whitespace-nowrap">
+                                    (<span className="line-through decoration-slate-500 decoration-1">{requesterName}</span>)
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div>
+                                <span className="font-medium text-green-900 block">
+                                  Ngày: {formatDateVN(request.toEvent?.eventDate)}
+                                </span>
+                                <div className="text-sm text-green-800 mt-1">
+                                  <span className="font-medium">
+                                    Người tham gia:
+                                  </span>{' '}
+                                  {getParticipantNames(request.toEvent)}{' '}
+                                  <span className="text-muted-foreground whitespace-nowrap">
+                                    (<span className="line-through decoration-slate-500 decoration-1">{targetName}</span>)
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-purple-800">
-                          Ngày: {formatDateVN(request?.toEvent?.eventDate)}
-                        </p>
-                        <p className="text-sm text-purple-700 mt-1">
-                          Người tham gia:{' '}
-                          {request?.toEvent?.eventParticipants
-                            ?.map((p) => p.staff?.user?.name || p.staff?.email)
-                            .join(', ') || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Calendar className="h-4 w-4 text-blue-600" />
+                              <span className="font-medium text-blue-900">
+                                Lịch hiện tại
+                              </span>
+                            </div>
+                            <p className="text-sm text-blue-800">
+                              Ngày: {formatDateVN(request?.fromEvent?.eventDate)}
+                            </p>
+                            <p className="text-sm text-blue-700 mt-1">
+                              Người tham gia:{' '}
+                              {getParticipantNames(request.fromEvent)}
+                            </p>
+                          </div>
 
-                    <div>
-                      <p className="text-sm font-medium mb-1">Lý do:</p>
-                      <p className="text-sm text-muted-foreground">
-                        {request.reason}
-                      </p>
-                    </div>
+                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Calendar className="h-4 w-4 text-purple-600" />
+                              <span className="font-medium text-purple-900">
+                                Lịch muốn đổi
+                              </span>
+                            </div>
+                            <p className="text-sm text-purple-800">
+                              Ngày: {formatDateVN(request?.toEvent?.eventDate)}
+                            </p>
+                            <p className="text-sm text-purple-700 mt-1">
+                              Người tham gia:{' '}
+                              {getParticipantNames(request.toEvent)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
-                    {request.reviewNote && (
                       <div>
-                        <p className="text-sm font-medium mb-1">
-                          Ghi chú duyệt:
-                        </p>
+                        <p className="text-sm font-medium mb-1">Lý do:</p>
                         <p className="text-sm text-muted-foreground">
-                          {request.reviewNote}
+                          {request.reason}
                         </p>
                       </div>
-                    )}
+
+                      {request.reviewNote && (
+                        <div>
+                          <p className="text-sm font-medium mb-1">
+                            Ghi chú duyệt:
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {request.reviewNote}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>
