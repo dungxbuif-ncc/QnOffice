@@ -26,7 +26,7 @@ export class OrderHandler {
     }
   }
 
-  @Command({ name: 'report', prefixes: ['qn'] })
+  @Command({ name: 'report', prefixes: ['*qn'] })
   async onQnReport(@AutoContext() context: Nezon.AutoContext) {
     const [managedMessage] = context;
     const message = managedMessage?.raw;
