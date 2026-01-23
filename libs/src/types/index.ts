@@ -1,5 +1,6 @@
 export * from './api.types';
 export * from './audit-log.types';
+export * from './billing.types';
 export * from './branch.types';
 export * from './holiday.types';
 export * from './opentalk.types';
@@ -12,4 +13,3 @@ export * from './schedule.types';
 export * from './staff.types';
 export * from './swap-request.types';
 export * from './upload.types';
-

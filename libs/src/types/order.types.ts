@@ -8,10 +8,16 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   user?: any;
+  billingId?: number;
+  isPaid?: boolean;
+  amount?: number;
 }
 
 export interface OrderSession {
   orders: Order[];
+  billingId?: number;
+  billingOwner?: string;
+  billingDate?: string;
 }
 
 export interface GroupedOrder {

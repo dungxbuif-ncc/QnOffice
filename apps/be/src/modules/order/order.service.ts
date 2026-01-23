@@ -103,11 +103,10 @@ export class OrderService {
     }
 
     const orders = await this.orderRepository.find({
-      relations: ['user'],
+      relations: ['user', 'billing', 'billing.user'],
       where,
       order: {
-        channelId: SearchOrder.ASC,
-        createdAt: SearchOrder.DESC,
+        createdAt: SearchOrder.ASC,
       },
     });
 
@@ -123,33 +122,76 @@ export class OrderService {
       ordersByChannel.get(order.channelId)?.push(order);
     }
 
-    // Group by session within channel
     for (const [channelId, channelOrders] of ordersByChannel) {
-      const sessions: { orders: any[] }[] = []; // using any[] to bypass strict check for now, or assume compatibility
-      let currentSession: OrderEntity[] = [];
+      const sessions: {
+        orders: any[];
+        billingId?: number;
+        billingOwner?: string;
+        billingDate?: string;
+      }[] = [];
+
+      const billedOrders = new Map<number, OrderEntity[]>();
+      const unbilledOrders: OrderEntity[] = [];
 
       for (const order of channelOrders) {
-        if (currentSession.length === 0) {
-          currentSession.push(order);
-          continue;
-        }
-
-        const lastOrderInSession = currentSession[currentSession.length - 1];
-        if (isWithinMinutes(order.createdAt, lastOrderInSession.createdAt)) {
-          currentSession.push(order);
+        if (order.billingId) {
+          if (!billedOrders.has(order.billingId)) {
+            billedOrders.set(order.billingId, []);
+          }
+          billedOrders.get(order.billingId)?.push(order);
         } else {
-          sessions.push({ orders: currentSession });
-          currentSession = [order];
+          unbilledOrders.push(order);
         }
       }
-      if (currentSession.length > 0) {
-        sessions.push({ orders: currentSession });
+
+      for (const [billingId, orders] of billedOrders) {
+        const firstOrder = orders[0];
+        const billing = firstOrder.billing;
+        const billingOwner =
+          billing?.user?.name ||
+          billing?.user?.email ||
+          billing?.userMezonId ||
+          'Unknown';
+
+        sessions.push({
+          orders,
+          billingId,
+          billingOwner,
+          billingDate: billing?.date ? (billing.date as any) : firstOrder.date,
+        });
+      }
+
+      for (const order of unbilledOrders) {
+        sessions.push({
+          orders: [order],
+        });
       }
 
       groupedOrders.push({ channelId, sessions: sessions as any });
     }
 
     return groupedOrders;
+  }
+
+  async findMostRecentOrder(
+    userMezonId: string,
+    channelId: string,
+    date: string,
+  ): Promise<OrderEntity | null> {
+    return this.orderRepository.findOne({
+      where: {
+        userMezonId,
+        channelId,
+        date,
+      },
+      order: {
+        createdAt: SearchOrder.DESC,
+      },
+    });
+  }
+
+  async deleteOrder(orderId: number): Promise<void> {
+    await this.orderRepository.delete(orderId);
   }
 
   async sendPaymentReminder(journeyId: string): Promise<void> {

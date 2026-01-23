@@ -3,9 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule';
 import { BotModule } from '@src/bot/bot.module';
 import { DatabaseModule } from '@src/common/database/database.module';
-import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
-import { NezonModule } from '@src/libs/nezon';
 import { BotNotiModule } from '@src/modules/bot-noti/bot-noti.module';
 import { CronModule } from '@src/modules/cron/cron.module';
 import { FeedbackModule } from '@src/modules/feedback/feedback.module';
@@ -16,6 +14,7 @@ import { StaffModule } from '@src/modules/staff/staff.module';
 import { MezonClient } from 'mezon-sdk';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { ChannelConfigModule } from './modules/channel/channel-config.module';
@@ -33,10 +32,6 @@ import { UserModule } from './modules/user/user.module';
   imports: [
     SharedModule,
     DatabaseModule,
-    NezonModule.forRootAsync({
-      inject: [AppConfigService],
-      useFactory: async (config: AppConfigService) => config.botConfig,
-    }),
     EventEmitterModule.forRoot(),
     NestScheduleModule.forRoot(),
     UserModule,
@@ -60,6 +55,7 @@ import { UserModule } from './modules/user/user.module';
     PantryTransactionModule,
     FeedbackModule,
     OrderModule,
+    BillingModule,
     BotModule,
   ],
 })

@@ -40,6 +40,7 @@ export const PATHS = {
     AUDIT_LOGS: '/dashboard/audit-logs',
     SETTINGS: '/dashboard/settings',
     ORDERS: '/dashboard/orders',
+    BILLINGS: '/dashboard/my-bills',
   },
 
   API: {
@@ -49,7 +50,7 @@ export const PATHS = {
       ME: '/auth/me',
       LOGOUT: '/api/auth/logout',
       OAUTH_URL: '/auth/oauth/url',
-      LOGIN_REDIRECT: '/auth/login', // BFF endpoint for server-side OAuth redirect
+      LOGIN_REDIRECT: '/auth/login', 
     },
     BRANCHES: '/branches',
     USERS: '/users',

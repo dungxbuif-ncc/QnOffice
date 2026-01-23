@@ -6,11 +6,11 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarRail,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import { PERMISSIONS } from '@/shared/auth';
 import { PATHS } from '@/shared/constants/paths';
@@ -131,6 +131,11 @@ const navigationData = [
     title: 'Order',
     href: PATHS.DASHBOARD.ORDERS,
     icon: '🛒',
+  },
+  {
+    title: 'My Bills',
+    href: PATHS.DASHBOARD.BILLINGS,
+    icon: '🧾',
   },
 ];
 

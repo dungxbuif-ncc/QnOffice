@@ -1,4 +1,5 @@
 import AuditLogEntity from '@src/modules/audit-log/audit-log.entity';
+import { BillingEntity } from '@src/modules/billing/entities/billing.entity';
 import { BranchEntity } from '@src/modules/branch/branch.entity';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
@@ -32,5 +33,6 @@ const entities = [
   PantryMenuItemEntity,
   PenaltyProofEntity,
   OrderEntity,
+  BillingEntity,
 ];
 export default entities;

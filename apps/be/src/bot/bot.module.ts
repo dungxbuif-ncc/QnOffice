@@ -5,6 +5,7 @@ import { ChannelMessageHandler } from '@src/bot/handler/channel-message.handler'
 import { DatabaseModule } from '@src/common/database/database.module';
 import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { SharedModule } from '@src/common/shared/shared.module';
+import { BillingModule } from '@src/modules/billing/billing.module';
 import { BotNotiModule } from '@src/modules/bot-noti/bot-noti.module';
 import ChannelConfigEntity from '@src/modules/channel/channel-config.entity';
 import { CleaningModule } from '@src/modules/cleaning/cleaning.module';
@@ -27,6 +28,7 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     CleaningModule,
     BotNotiModule,
     OrderModule,
+    BillingModule,
   ],
   providers: [ChannelMessageHandler, CleaningScheduleHandler, OrderHandler],
 })
