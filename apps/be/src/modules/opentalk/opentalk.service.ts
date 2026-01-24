@@ -94,7 +94,7 @@ export class OpentalkService {
     }
     const cycle = await this.cycleRepository.findOne({
       where: { id: recentEvent.cycleId },
-      relations: ['events'],
+      relations: ['events', 'events.eventParticipants'],
     });
     if (!cycle) {
       return null;

@@ -141,7 +141,7 @@ export class CleaningService {
     }
     const cycle = await this.cycleRepository.findOne({
       where: { id: recentEvent.cycleId },
-      relations: ['events'],
+      relations: ['events', 'events.eventParticipants'],
     });
     if (!cycle) {
       return null;
