@@ -32,7 +32,7 @@ export class NezonLifecycleService
       await this.clientService.login();
       this.eventsService.initialize();
       await this.commandService.initialize();
-      this.componentService.initialize();
+    this.componentService.initialize();
       this.logger.log('Bot connected and initialized successfully.');
     } catch (error) {
       this.logger.error(

@@ -214,7 +214,9 @@ export class OrderService {
       );
 
       const todayOrders = await this.orderRepository.find({
-        where: { date: today, channelId: WHITE_LIST_CHANNEL.DATCOM },
+        where: { date: today, channelId: WHITE_LIST_CHANNEL.DATCOM,
+          isPaid: false
+         },
         relations: ['user'],
       });
 

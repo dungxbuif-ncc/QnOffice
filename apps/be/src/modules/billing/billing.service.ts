@@ -40,7 +40,6 @@ export class BillingService {
 
     const orders = await this.orderRepository.find({
       where: {
-        userMezonId,
         channelId,
         date,
       },
