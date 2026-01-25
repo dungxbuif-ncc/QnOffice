@@ -4,36 +4,45 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/shared/contexts/auth-context';
-import {
-  opentalkClientService,
-  OpentalkEvent,
-} from '@/shared/services/client/opentalk-client-service';
-import { swapRequestClientService } from '@/shared/services/client/swap-request-client-service';
+import { useSwapRequests } from '@/shared/hooks/use-swap-requests';
+import { useOpentalkUserSchedules } from '@/shared/hooks/use-user-schedules';
 import { formatDateVN } from '@/shared/utils';
-import { ScheduleType, SwapRequest, SwapRequestStatus } from '@qnoffice/shared';
+import { ScheduleType, SwapRequestStatus } from '@qnoffice/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightLeft, Calendar, Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useMemo, useState } from 'react';
 import { CreateSwapRequestModal } from './create-swap-request-modal';
 
 export function SwapRequestManagement() {
   const { user } = useAuth();
-  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
     null,
   );
-  const [userSchedules, setUserSchedules] = useState<OpentalkEvent[]>([]);
 
   const userStaffId = user?.staffId;
+
+  const {
+    data: swapRequests = [],
+    isLoading: isRequestsLoading,
+  } = useSwapRequests({
+    type: ScheduleType.OPENTALK,
+  });
+
+  const {
+    data: userSchedules = [],
+    isLoading: isSchedulesLoading,
+  } = useOpentalkUserSchedules(userStaffId);
+
+  const isLoading = isRequestsLoading;
 
   const lockedEventIds = useMemo(() => {
     return swapRequests
@@ -41,43 +50,10 @@ export function SwapRequestManagement() {
       .flatMap((req) => [req.fromEventId, req.toEventId]);
   }, [swapRequests]);
 
-  const loadSwapRequests = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      const response = await swapRequestClientService.getSwapRequests({
-        type: ScheduleType.OPENTALK,
-      });
-      setSwapRequests(response?.data?.data || []);
-
-      if (userStaffId) {
-        try {
-          const schedules =
-            await opentalkClientService.getUserSchedules(userStaffId);
-          console.log('Loaded schedules:', schedules);
-          setUserSchedules(schedules);
-        } catch (error) {
-          console.error('Failed to load user schedules:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load swap requests:', error);
-      toast.error('Không thể tải danh sách yêu cầu đổi lịch');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userStaffId]);
-
-  useEffect(() => {
-    if (user?.staffId) {
-      loadSwapRequests();
-    }
-  }, [user?.staffId, loadSwapRequests]);
-
   const handleCreateSuccess = async () => {
     setCreateModalOpen(false);
     setSelectedScheduleId(null);
-    await loadSwapRequests();
+    queryClient.invalidateQueries({ queryKey: ['swap-requests'] });
   };
 
   const getStatusColor = (status: string) => {

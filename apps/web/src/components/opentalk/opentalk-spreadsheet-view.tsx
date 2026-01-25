@@ -4,8 +4,8 @@ import { CycleCard } from '@/components/opentalk/cycle-card';
 import { SlideDialog } from '@/components/opentalk/slide-dialog';
 import { hasPermission, PERMISSIONS } from '@/shared/auth/permissions';
 import { useAuth } from '@/shared/contexts/auth-context';
+import { useSwapRequests } from '@/shared/hooks/use-swap-requests';
 import { opentalkClientService } from '@/shared/services/client/opentalk-client-service';
-import { swapRequestClientService } from '@/shared/services/client/swap-request-client-service';
 import {
   IOpentalkSlide,
   ScheduleCycle,
@@ -13,7 +13,8 @@ import {
   ScheduleType,
   SwapRequestStatus,
 } from '@qnoffice/shared';
-import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { SwapControls } from './swap-controls';
 
@@ -30,6 +31,7 @@ export function OpentalkSpreadsheetView({
   cycles = [],
 }: OpentalkSpreadsheetViewProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const userStaffId = user?.staffId;
 
   const [editingField, setEditingField] = useState<EditingField>(null);
@@ -39,32 +41,19 @@ export function OpentalkSpreadsheetView({
     useState<ScheduleEvent<IOpentalkSlide> | null>(null);
 
   const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
-  const [lockedEvents, setLockedEvents] = useState<number[]>([]);
   const [isSwapping, setIsSwapping] = useState(false);
   const [slideReadonly, setSlideReadonly] = useState(false);
 
-  useEffect(() => {
-    const fetchPendingRequests = async () => {
-      try {
-        const response = await swapRequestClientService.getSwapRequests({
-          type: ScheduleType.OPENTALK,
-          status: SwapRequestStatus.PENDING,
-        });
+  const { data: swapRequests } = useSwapRequests({
+    type: ScheduleType.OPENTALK,
+    status: SwapRequestStatus.PENDING,
+  });
 
-        const locked =
-          response?.data?.data?.flatMap((req) => [
-            req.fromEventId,
-            req.toEventId,
-          ]) || [];
-
-        setLockedEvents(locked);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchPendingRequests();
-  }, []);
+  const lockedEvents = useMemo(() => {
+    return (
+      swapRequests?.flatMap((req) => [req.fromEventId, req.toEventId]) || []
+    );
+  }, [swapRequests]);
 
   const canManageOpentalk = hasPermission(
     user?.role,
@@ -95,7 +84,7 @@ export function OpentalkSpreadsheetView({
       });
       toast.success('Đã cập nhật chủ đề');
       setEditingField(null);
-      window.location.reload();
+      router.refresh();
     } catch {
       toast.error('Cập nhật chủ đề thất bại');
     }
@@ -185,7 +174,7 @@ export function OpentalkSpreadsheetView({
         event2Id: selectedEvents[1],
       });
       toast.success('Đổi lịch thành công');
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       console.error('Swap failed:', error);
       toast.error('Đổi lịch thất bại');
@@ -205,9 +194,10 @@ export function OpentalkSpreadsheetView({
       // Helper to get latest event timestamp
       const getLatestEventTime = (cycle: typeof a) => {
         if (!cycle.events?.length) return new Date(cycle.createdAt).getTime();
-        return Math.max(
-          ...cycle.events.map((e) => new Date(e.eventDate).getTime()),
-        );
+        return cycle.events.reduce((max, e) => {
+          const time = new Date(e.eventDate).getTime();
+          return time > max ? time : max;
+        }, 0);
       };
 
       const timeA = getLatestEventTime(a);
@@ -230,7 +220,7 @@ export function OpentalkSpreadsheetView({
       });
       toast.success('Đã cập nhật ngày');
       setEditingField(null);
-      window.location.reload();
+      router.refresh();
     } catch {
       toast.error('Cập nhật ngày thất bại');
     }
@@ -284,7 +274,7 @@ export function OpentalkSpreadsheetView({
           event={selectedEventForSlide}
           open={slideDialogOpen}
           onOpenChange={setSlideDialogOpen}
-          onSuccess={() => window.location.reload()}
+          onSuccess={() => router.refresh()}
         />
       )}
     </div>

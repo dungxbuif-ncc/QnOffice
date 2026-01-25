@@ -3,13 +3,18 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { channelConfigClientService } from '@/shared/services/client/channel-config-client-service';
+import {
+    useChannelConfigs,
+    useConfigureChannels,
+} from '@/shared/hooks/use-channel-configs';
 import { MEZON_CHANNELS, MezonChannelType } from '@qnoffice/shared';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 export function ChannelManagement() {
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: configs } = useChannelConfigs();
+  const { mutate: configureChannels, isPending: isSaving } =
+    useConfigureChannels();
+
   const [channelIds, setChannelIds] = useState<
     Record<MezonChannelType, string>
   >({
@@ -19,13 +24,7 @@ export function ChannelManagement() {
   });
 
   useEffect(() => {
-    loadChannels();
-  }, []);
-
-  const loadChannels = async () => {
-    try {
-      const response = await channelConfigClientService.getAllConfigs();
-      const configs = response.data || [];
+    if (configs) {
       const newChannelIds: Record<MezonChannelType, string> = {
         CLEANING: '',
         OPENTALK: '',
@@ -36,11 +35,12 @@ export function ChannelManagement() {
         newChannelIds[config.channelType] = config.channelId;
       });
 
-      setChannelIds(newChannelIds);
-    } catch {
-      toast.error('Không thể tải cấu hình kênh');
+      setChannelIds((prev) => ({
+        ...prev,
+        ...newChannelIds,
+      }));
     }
-  };
+  }, [configs]);
 
   const handleChannelIdChange = (
     channelType: MezonChannelType,
@@ -52,29 +52,9 @@ export function ChannelManagement() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const promises = Object.entries(channelIds)
-        .filter(([, id]) => id.trim())
-        .map(([channelType, channelId]) =>
-          channelConfigClientService.configureChannel({
-            channelType: channelType as MezonChannelType,
-            channelId,
-            isActive: true,
-          }),
-        );
-
-      await Promise.all(promises);
-      toast.success('Lưu cấu hình kênh thành công');
-      loadChannels();
-    } catch {
-      toast.error('Lưu cấu hình kênh thất bại');
-    } finally {
-      setIsLoading(false);
-    }
+    configureChannels(channelIds);
   };
 
   return (
@@ -106,8 +86,8 @@ export function ChannelManagement() {
           ))}
         </div>
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Đang lưu...' : 'Lưu'}
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? 'Đang lưu...' : 'Lưu'}
         </Button>
       </form>
     </div>

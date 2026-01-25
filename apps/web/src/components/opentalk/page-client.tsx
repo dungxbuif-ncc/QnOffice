@@ -8,14 +8,12 @@ import { ScheduleCycle, UserRole } from '@qnoffice/shared';
 
 import { OpentalkFilterBar } from '@/components/opentalk/opentalk-filter';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
 
 interface OpentalkPageClientProps {
   cycles: ScheduleCycle[];
-  error?: string | null;
 }
 
-export function OpentalkPageClient({ cycles, error }: OpentalkPageClientProps) {
+export function OpentalkPageClient({ cycles }: OpentalkPageClientProps) {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

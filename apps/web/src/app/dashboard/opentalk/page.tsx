@@ -17,5 +17,5 @@ export default async function OpentalkPage({
 
   const error: string | null = null;
   const cyclesData = await opentalkServerService.getCycles(status, email);
-  return <OpentalkPageClient cycles={cyclesData ?? []} error={error} />;
+  return <OpentalkPageClient cycles={cyclesData ?? []} />;
 }
