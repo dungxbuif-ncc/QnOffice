@@ -14,6 +14,7 @@ import { StaffModule } from '@src/modules/staff/staff.module';
 import { MezonClient } from 'mezon-sdk';
 import { OrderHandler } from './handler/order.handler';
 import { CleaningScheduleHandler } from './handler/schedule.handler';
+import { SwapRequestModule } from '@src/modules/swap-request/swap-request.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CleaningScheduleHandler } from './handler/schedule.handler';
     BotNotiModule,
     OrderModule,
     BillingModule,
+    SwapRequestModule
   ],
   providers: [ChannelMessageHandler, CleaningScheduleHandler, OrderHandler],
 })
