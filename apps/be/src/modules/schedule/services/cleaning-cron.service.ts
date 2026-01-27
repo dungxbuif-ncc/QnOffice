@@ -22,8 +22,8 @@ import { formatVn, nowVn } from '@src/common/utils/time.util';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import { addDays, addMonths } from 'date-fns';
-import { Between, EntityManager, In, LessThan, Not, Repository } from 'typeorm';
+import { addDays } from 'date-fns';
+import { EntityManager, In, LessThan, Not, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../enties/schedule-event.entity';
@@ -561,19 +561,7 @@ export class CleaningCronService {
       previousEvents[previousEvents.length - 1].eventDate;
     const lastEventDate = fromDateString(lastEventDateStr);
 
-    const { startDate, cycleName, description } = getNextCycleInfo(
-      lastEventDateStr,
-      ScheduleType.CLEANING,
-    );
-
-    const holidays = await this.holidayRepository.find({
-      where: {
-        date: Between(
-          toDateString(startDate),
-          toDateString(addMonths(startDate, 12)),
-        ),
-      },
-    });
+    const holidays = await this.holidayRepository.find();
 
     const holidaysStr = holidays.map((h) =>
       typeof h.date === 'string' ? h.date : toDateString(h.date),
@@ -590,7 +578,7 @@ export class CleaningCronService {
 
     this.appLogService.stepLog(
       1,
-      `Generating cleaning schedule for ${toDateString(startDate)}`,
+      `Generating cleaning schedule for ${toDateString(nextValidStartDate)}`,
       'CleaningCronService',
       journeyId,
       { config },
@@ -600,6 +588,12 @@ export class CleaningCronService {
       algorithmStaff,
       previousCycleData,
       config,
+    );
+
+    const { cycleName, description } = getNextCycleInfo(
+      schedule[0].date,
+      schedule[schedule.length - 1].date,
+      ScheduleType.CLEANING,
     );
 
     await this.entityManager.transaction(async (manager) => {
