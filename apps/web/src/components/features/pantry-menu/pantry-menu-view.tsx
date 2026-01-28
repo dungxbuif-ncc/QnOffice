@@ -5,10 +5,11 @@ import { useAuth } from '@/shared/contexts/auth-context';
 import pantryMenuService from '@/shared/services/client/pantry-menu.service';
 import { PantryMenuItem, UserRole } from '@qnoffice/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Download, Heart, Settings, Video } from 'lucide-react';
+import { Download, Heart, Settings, ShoppingCart, Video } from 'lucide-react';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { PantryMenuManagementModal } from './pantry-menu-management-modal';
+import { PantryMenuCart } from './pantry-menu-cart';
 
 // const inter = Inter({
 //   subsets: ['latin', 'vietnamese'],
@@ -23,6 +24,7 @@ export default function PantryMenuView({ initialData }: Props) {
   const { user } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isManagementOpen, setIsManagementOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<PantryMenuItem[]>([]);
 
   const { data: menuItems } = useQuery({
     queryKey: ['pantry-menu'],
@@ -54,8 +56,6 @@ export default function PantryMenuView({ initialData }: Props) {
     }
   };
 
-
-
   const activeItems = safeMenuItems;
   const midPoint = Math.ceil(activeItems.length / 2);
   const menuItemsLeft = activeItems.slice(0, midPoint);
@@ -63,13 +63,46 @@ export default function PantryMenuView({ initialData }: Props) {
 
   const isHR = user?.role === UserRole.HR;
 
+  const handleAddToCart = (item: PantryMenuItem) => {
+    setCartItems((prev) => [...prev, item]);
+  };
+
+  const handleIncrementCartItem = (itemId: number) => {
+    const item = activeItems.find((x: PantryMenuItem) => x.id === itemId);
+    if (!item) return;
+    setCartItems((prev) => [...prev, item]);
+  };
+
+  const handleDecrementCartItem = (itemId: number) => {
+    setCartItems((prev) => {
+      let idx = -1;
+      for (let i = prev.length - 1; i >= 0; i -= 1) {
+        if (prev[i]?.id === itemId) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx === -1) return prev;
+      return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
+    });
+  };
+
   const renderMenuItem = (item: PantryMenuItem) => (
     <div key={item.id} className="flex items-center justify-between gap-2">
       <div className="bg-[#FFCC00] px-2 py-1 rounded-sm font-bold text-[#3D3D3D] text-xs shadow-sm">
         {item.name}
       </div>
-      <div className="font-black text-[#3D3D3D] text-sm whitespace-nowrap">
-        {item.price}
+      <div className="flex gap-2 items-center">
+        <div className="font-black text-[#3D3D3D] text-sm whitespace-nowrap">
+          {item.price}
+        </div>
+        <Button
+          variant="outline"
+          className="p-1 bg-[#FFD700] hover:bg-[#FFC700] hover:scale-110 active:scale-95 transition-all"
+          onClick={() => handleAddToCart(item)}
+        >
+          <ShoppingCart />
+        </Button>
       </div>
     </div>
   );
@@ -90,140 +123,147 @@ export default function PantryMenuView({ initialData }: Props) {
         )}
       </div>
 
-      <div
-        ref={menuRef}
-        data-export
-        className="w-full max-w-[210mm] aspect-[210/297] bg-[#FDF8E4] relative p-8 pt-10 flex flex-col shadow-2xl rounded-sm"
-      >
-        {/* Header Section */}
-        <div className="flex flex-row gap-4 mb-6">
-          {/* QR Code Card */}
-          <div className="shrink-0">
-            <div className="bg-[#FFCC00] p-3 rounded-2xl text-center shadow-sm relative aspect-square flex flex-col justify-center">
-              <div className="bg-white p-2 rounded-lg inline-block mb-1 border border-black/5 relative mx-auto">
-                <div className="w-32 h-32 bg-white flex items-center justify-center relative">
-                  <Image
-                    src="/pantry-qr.svg"
-                    alt="QR Code"
-                    width={128}
-                    height={128}
-                    className="w-full h-full"
-                  />
-                  <div className="absolute top-1/2 -left-6 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-black border-b-[8px] border-b-transparent"></div>
-                  <div className="absolute top-1/2 -right-6 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-r-[12px] border-r-black border-b-[8px] border-b-transparent"></div>
+      <div className="flex gap-4">
+        <div
+          ref={menuRef}
+          data-export
+          className="w-full max-w-[210mm] aspect-[210/297] bg-[#FDF8E4] relative p-8 pt-10 flex flex-col shadow-2xl rounded-sm"
+        >
+          {/* Header Section */}
+          <div className="flex flex-row gap-4 mb-6">
+            {/* QR Code Card */}
+            <div className="shrink-0">
+              <div className="bg-[#FFCC00] p-3 rounded-2xl text-center shadow-sm relative aspect-square flex flex-col justify-center">
+                <div className="bg-white p-2 rounded-lg inline-block mb-1 border border-black/5 relative mx-auto">
+                  <div className="w-32 h-32 bg-white flex items-center justify-center relative">
+                    <Image
+                      src="/pantry-qr.svg"
+                      alt="QR Code"
+                      width={128}
+                      height={128}
+                      className="w-full h-full"
+                    />
+                    <div className="absolute top-1/2 -left-6 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-black border-b-[8px] border-b-transparent"></div>
+                    <div className="absolute top-1/2 -right-6 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-r-[12px] border-r-black border-b-[8px] border-b-transparent"></div>
+                  </div>
                 </div>
+                <h2 className="text-lg font-bold mt-1 font-mono tracking-wider">
+                  SCAN HERE!
+                </h2>
               </div>
-              <h2 className="text-lg font-bold mt-1 font-mono tracking-wider">
-                SCAN HERE!
-              </h2>
             </div>
-          </div>
 
-          {/* Title Section */}
-          <div className="flex-1 flex flex-col justify-center py-2">
-            <div className="border-b-2 border-black/80 pb-1 mb-2">
-              <h1 className="text-5xl font-extrabold text-[#3D3D3D] tracking-tight uppercase leading-none">
-                QUYNHONCORNER
-              </h1>
-            </div>
-            <div className="relative flex-1 flex flex-col justify-center">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-5xl md:text-6xl font-semibold text-[#3D3D3D] leading-none tracking-[0.2em]">
-                  REFUEL
+            {/* Title Section */}
+            <div className="flex-1 flex flex-col justify-center py-2">
+              <div className="border-b-2 border-black/80 pb-1 mb-2">
+                <h1 className="text-5xl font-extrabold text-[#3D3D3D] tracking-tight uppercase leading-none">
+                  QUYNHONCORNER
                 </h1>
-                <div className="flex gap-1">
-                  <Heart className="w-10 h-10 fill-[#DC2626] text-[#DC2626] rotate-12" />
-                  <Heart className="w-8 h-8 fill-[#DC2626] text-[#DC2626] -rotate-12" />
-                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-5xl md:text-6xl font-semibold text-[#3D3D3D] leading-none tracking-[0.2em]">
-                  ZONE
-                </h1>
-                <div className="flex gap-1">
-                  <Heart className="w-12 h-12 fill-[#DC2626] text-[#DC2626] rotate-12" />
-                  <Heart className="w-10 h-10 fill-[#DC2626] text-[#DC2626] -rotate-12" />
+              <div className="relative flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-5xl md:text-6xl font-semibold text-[#3D3D3D] leading-none tracking-[0.2em]">
+                    REFUEL
+                  </h1>
+                  <div className="flex gap-1">
+                    <Heart className="w-10 h-10 fill-[#DC2626] text-[#DC2626] rotate-12" />
+                    <Heart className="w-8 h-8 fill-[#DC2626] text-[#DC2626] -rotate-12" />
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-5xl md:text-6xl font-semibold text-[#3D3D3D] leading-none tracking-[0.2em]">
+                    ZONE
+                  </h1>
+                  <div className="flex gap-1">
+                    <Heart className="w-12 h-12 fill-[#DC2626] text-[#DC2626] rotate-12" />
+                    <Heart className="w-10 h-10 fill-[#DC2626] text-[#DC2626] -rotate-12" />
+                  </div>
+                </div>
+                <div className="w-full h-1 bg-[#3D3D3D] mt-3 rounded-full"></div>
               </div>
-              <div className="w-full h-1 bg-[#3D3D3D] mt-3 rounded-full"></div>
             </div>
           </div>
-        </div>
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-2 gap-x-6 flex-1 mb-6 px-12">
-          {/* Left Column */}
-          <div className="flex flex-col justify-between">
-            {menuItemsLeft.map(renderMenuItem)}
+          {/* Menu Grid */}
+          <div className="grid grid-cols-2 gap-x-6 flex-1 mb-6 px-12">
+            {/* Left Column */}
+            <div className="flex flex-col justify-between">
+              {menuItemsLeft.map(renderMenuItem)}
+            </div>
+
+            {/* Right Column */}
+            <div className="flex flex-col justify-between">
+              {menuItemsRight.map(renderMenuItem)}
+            </div>
           </div>
 
-          {/* Right Column */}
-          <div className="flex flex-col justify-between">
-            {menuItemsRight.map(renderMenuItem)}
+          {/* Footer Section */}
+          <div className="grid grid-cols-[200px_1fr] gap-4 items-center mb-4">
+            {/* Warning Box */}
+            <div className="bg-[#FFCC00] rounded-xl p-2 relative overflow-hidden flex flex-col items-center justify-center aspect-square w-full">
+                <div className="border-4 border-black rounded-lg w-full h-full flex flex-col items-center justify-center bg-[#FFCC00] p-3">
+                  <div className="flex-1 flex items-center justify-center">
+                    <Video className="w-16 h-16 text-black stroke-[2.5]" />
+                  </div>
+                  <div className="bg-black text-[#FFCC00] px-4 py-1.5 font-black text-xl w-full text-center tracking-wide">
+                    WARNING
+                  </div>
+                  <div className="text-black text-[0.5rem] font-bold tracking-widest mt-1">
+                    CCTV IN OPERATION
+                  </div>
+                </div>
+            </div>
+
+            {/* Payment Instructions */}
+            <div className="bg-[#FFCC00] rounded-3xl p-4 flex flex-col justify-center shadow-sm">
+              <h3
+                className={`text-xl font-black text-[#3D3D3D] text-center mb-3 uppercase tracking-tight`}
+                style={{ fontWeight: 900 }}
+              >
+                HƯỚNG DẪN THANH TOÁN:
+              </h3>
+              <ul
+                className={`space-y-1.5 text-[#3D3D3D] font-black text-base list-none pl-0 leading-relaxed`}
+                style={{ fontWeight: 800 }}
+              >
+                <li>Quét mã QR trên bằng Mezon</li>
+                <li>Nhập đúng số tiền cần thanh toán</li>
+                <li>
+                  Note:{' '}
+                  <span className="text-[#3D3D3D]/80 font-extrabold text-sm">
+                    ten.hovatendem + món ăn
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
 
-        {/* Footer Section */}
-        <div className="grid grid-cols-[200px_1fr] gap-4 items-center mb-4">
-           {/* Warning Box */}
-           <div className="bg-[#FFCC00] rounded-xl p-2 relative overflow-hidden flex flex-col items-center justify-center aspect-square w-full">
-              <div className="border-4 border-black rounded-lg w-full h-full flex flex-col items-center justify-center bg-[#FFCC00] p-3">
-                 <div className="flex-1 flex items-center justify-center">
-                   <Video className="w-16 h-16 text-black stroke-[2.5]" />
-                 </div>
-                 <div className="bg-black text-[#FFCC00] px-4 py-1.5 font-black text-xl w-full text-center tracking-wide">
-                   WARNING
-                 </div>
-                 <div className="text-black text-[0.5rem] font-bold tracking-widest mt-1">
-                   CCTV IN OPERATION
-                 </div>
-              </div>
-           </div>
-
-          {/* Payment Instructions */}
-          <div className="bg-[#FFCC00] rounded-3xl p-4 flex flex-col justify-center shadow-sm">
-            <h3
-              className={`text-xl font-black text-[#3D3D3D] text-center mb-3 uppercase tracking-tight`}
-              style={{ fontWeight: 900 }}
-            >
-              HƯỚNG DẪN THANH TOÁN:
+          {/* Bottom Logo */}
+          <div className="flex items-center justify-center gap-3 text-[#3D3D3D]">
+            <Image
+              src="/ncc-logo.png"
+              alt="NCC Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+            <h3 className="font-black text-base tracking-wide uppercase">
+              HÃY LÀ KHÁCH HÀNG VĂN MINH
             </h3>
-            <ul
-              className={`space-y-1.5 text-[#3D3D3D] font-black text-base list-none pl-0 leading-relaxed`}
-              style={{ fontWeight: 800 }}
-            >
-              <li>Quét mã QR trên bằng Mezon</li>
-              <li>Nhập đúng số tiền cần thanh toán</li>
-              <li>
-                Note:{' '}
-                <span className="text-[#3D3D3D]/80 font-extrabold text-sm">
-                  ten.hovatendem + món ăn
-                </span>
-              </li>
-            </ul>
+            <Image
+              src="/ncc-logo.png"
+              alt="NCC Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
           </div>
         </div>
-
-        {/* Bottom Logo */}
-        <div className="flex items-center justify-center gap-3 text-[#3D3D3D]">
-          <Image
-            src="/ncc-logo.png"
-            alt="NCC Logo"
-            width={40}
-            height={40}
-            className="object-contain"
-          />
-          <h3 className="font-black text-base tracking-wide uppercase">
-            HÃY LÀ KHÁCH HÀNG VĂN MINH
-          </h3>
-          <Image
-            src="/ncc-logo.png"
-            alt="NCC Logo"
-            width={40}
-            height={40}
-            className="object-contain"
-          />
-        </div>
+        <PantryMenuCart
+          items={cartItems}
+          onIncrementItem={handleIncrementCartItem}
+          onDecrementItem={handleDecrementCartItem}
+        />
       </div>
 
       <PantryMenuManagementModal
