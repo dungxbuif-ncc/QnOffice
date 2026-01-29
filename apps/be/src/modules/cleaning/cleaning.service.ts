@@ -6,6 +6,7 @@ import { CleaningQueryDto } from '@src/modules/cleaning/dtos/cleaning-query.dto'
 import { CreateCleaningCycleDto } from '@src/modules/cleaning/dtos/create-cleaning-cycle.dto';
 import { CreateCleaningEventDto } from '@src/modules/cleaning/dtos/create-cleaning-event.dto';
 import {
+  Between,
   EntityManager,
   In,
   LessThanOrEqual,
@@ -16,6 +17,7 @@ import ScheduleCycleEntity from '../schedule/enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../schedule/enties/schedule-event-participant.entity';
 import ScheduleEventEntity from '../schedule/enties/schedule-event.entity';
 import { findActiveCycle } from '../schedule/schedule.utils';
+import { getWeekRange, toDateString } from '@src/common/utils/date.utils';
 @Injectable()
 export class CleaningService {
   constructor(
@@ -27,7 +29,7 @@ export class CleaningService {
     private readonly participantRepository: Repository<ScheduleEventParticipantEntity>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async createCycle(
     createCycleDto: CreateCleaningCycleDto,
@@ -140,12 +142,12 @@ export class CleaningService {
       return null;
     }
     const cycle = await this.cycleRepository
-    .createQueryBuilder('cycle')
-    .leftJoinAndSelect('cycle.events', 'event')
-    .leftJoinAndSelect('event.eventParticipants', 'participant')
-    .where('cycle.id = :id', { id: recentEvent.cycleId })
-    .orderBy('event.eventDate', 'ASC')
-    .getOne();
+      .createQueryBuilder('cycle')
+      .leftJoinAndSelect('cycle.events', 'event')
+      .leftJoinAndSelect('event.eventParticipants', 'participant')
+      .where('cycle.id = :id', { id: recentEvent.cycleId })
+      .orderBy('event.eventDate', 'ASC')
+      .getOne();
 
     if (!cycle) {
       return null;
@@ -510,5 +512,70 @@ export class CleaningService {
         },
       ]);
     });
+  }
+
+  async getEventsCurrentWeek() {
+    const { monday, sunday } = getWeekRange();
+    const ScheduleCurrentWeek = await this.eventRepository.find({
+      where: {
+        eventDate: Between(toDateString(monday), toDateString(sunday))
+      }
+    })
+    return ScheduleCurrentWeek;
+  }
+
+  async getEventByDay(day: Date): Promise<ScheduleEventEntity | null> {
+    return await this.eventRepository.findOne({
+      where: { eventDate: toDateString(day) }
+    })
+  }
+
+  async getEvent(query: CleaningQueryDto): Promise<ScheduleEventEntity | null> {
+    // Use QueryBuilder for better relation loading with composite keys
+    const queryBuilder = this.eventRepository
+      .createQueryBuilder('event')
+      .leftJoinAndSelect('event.cycle', 'cycle')
+      .leftJoinAndSelect('event.eventParticipants', 'eventParticipants')
+      .leftJoinAndSelect('eventParticipants.staff', 'staff')
+      .leftJoinAndSelect('staff.user', 'user')
+      .where('event.type = :type', { type: 'CLEANING' });
+
+    if (query.status) {
+      queryBuilder.andWhere('event.status = :status', { status: query.status });
+    }
+    if (query.cycleId) {
+      queryBuilder.andWhere('event.cycleId = :cycleId', {
+        cycleId: query.cycleId,
+      });
+    }
+    if (query.participantId) {
+      queryBuilder.andWhere('eventParticipants.staffId = :participantId', {
+        participantId: query.participantId,
+      });
+    }
+    if (query.id) {
+      queryBuilder.andWhere('event.id = :id', {
+        id: query.id
+      })
+    }
+
+    // Date range filter
+    if (query.startDate && !isNaN(Date.parse(query.startDate))) {
+      queryBuilder.andWhere('event.eventDate >= :startDate', {
+        startDate: new Date(query.startDate),
+      });
+    }
+
+    if (query.endDate && !isNaN(Date.parse(query.endDate))) {
+      queryBuilder.andWhere('event.eventDate <= :endDate', {
+        endDate: new Date(query.endDate),
+      });
+    }
+
+    const events = await queryBuilder
+      .orderBy('event.eventDate', 'ASC')
+      .getOne();
+
+    return events;
   }
 }

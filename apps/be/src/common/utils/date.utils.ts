@@ -1,7 +1,7 @@
 import { TZDate } from '@date-fns/tz';
 import { ScheduleType } from '@qnoffice/shared';
 import { APP_TIMEZONE } from '@src/common/constants';
-import { addDays, format, getDay, isWeekend } from 'date-fns';
+import { addDays, format, getDay, isWeekend, parse, isValid } from 'date-fns';
 
 /**
  * Get current date in UTC+7 timezone as YYYY-MM-DD string
@@ -94,4 +94,32 @@ export function getNextCleaningDate(fromDate: Date, holidays: string[]): Date {
  */
 export function getNextOpentalkDate(fromDate: Date, holidays: string[]): Date {
   return getNextValidDate(fromDate, ScheduleType.OPENTALK, holidays);
+}
+
+
+/**
+ * Get Monday and Sunday on current week
+ */
+
+export function getWeekRange(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay(); 
+
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMonday);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  return { monday, sunday };
+}
+
+/**
+ * Parse Date from String to Date dd/MM/yyyy
+ */
+export function parseDate(input: string): Date | null {
+  const date = parse(input, 'd/M/yyyy', new Date());
+  return isValid(date) ? date : null;
 }

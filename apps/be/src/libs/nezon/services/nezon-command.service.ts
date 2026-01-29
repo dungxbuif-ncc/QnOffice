@@ -575,6 +575,15 @@ export class NezonCommandService {
         }
         return await entity.reply(...replyArgs);
       },
+      replyEphemeral: async (replyArgs) => {
+        const channel = await context.getChannel();
+        if(!channel) throw new Error("Reply ephemeral fail: Channel not found");
+        const user = await context.getUser();
+         if(!user) throw new Error("Reply ephemeral fail: User not found");
+        const message = await context.getMessage();
+        if(!message) throw new Error("Reply ephemeral fail: Message not found");
+        return await channel.sendEphemeral(user.id, replyArgs, message.id);
+      },
       getChannel: () => this.getChannel(context),
       getClan: () => this.getClan(context),
       getUser: () => this.getUser(context),

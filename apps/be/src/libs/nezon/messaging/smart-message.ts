@@ -645,7 +645,7 @@ export class SmartMessage {
       const allHaveLabels = Object.values(placeholders).every(
         (p) => p.kind === 'user' && p.label !== undefined,
       );
-
+      
       console.log('[DEBUG toJSON] allHaveLabels:', allHaveLabels);
 
       if (allHaveLabels) {
@@ -944,6 +944,15 @@ export class ManagedMessage {
     );
   }
 
+  async replyEphemeral(message: SmartMessageLike) {
+    const payload = await this.preparePayload(message);
+    return this.context.replyEphemeral!(
+      payload.content,
+      payload.mentions,
+      payload.attachments,
+    );
+  }
+
   async update(message: SmartMessageLike) {
     const entity = await this.context.getMessage();
     if (!entity) {
@@ -961,14 +970,31 @@ export class ManagedMessage {
   }
 
   async delete() {
-    const entity = await this.context.getMessage();
-    if (!entity) {
+    let message = await this.context.getMessage();
+
+    if (!message) {
       throw new Error('Cannot delete message: message entity not found');
     }
-    if (typeof entity.delete === 'function') {
-      return entity.delete();
+    if (typeof message.delete === 'function') {
+      return message.delete();
     }
     throw new Error('Cannot delete message: delete method not available');
+  }
+
+  async deleteEphemeral() {
+    const channel = await this.context.getChannel();
+    
+    if(!channel) {
+      throw new Error('Cannot delete message: channel not found');
+    }
+
+    const user = await this.context.getUser();
+
+    if(!user) {
+      throw new Error('Cannot delete message: user not found');
+    }
+  
+    return channel.deleteEphemeral( user.id, this.context.message.message_id!);
   }
 
   async react(emoji: string, emojiId?: string, actionDelete = false) {

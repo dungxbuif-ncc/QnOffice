@@ -33,4 +33,10 @@ export class CleaningQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by event ID' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  id?: number;
 }
