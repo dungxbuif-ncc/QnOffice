@@ -33,6 +33,11 @@ class BillingClientService {
     });
     return response.data.data;
   }
+
+  async sendBill(billingId: number) {
+    const response = await baseApi.post(`/billings/${billingId}/send`);
+    return response.data.data;
+  }
 }
 
 export const billingClientService = new BillingClientService();

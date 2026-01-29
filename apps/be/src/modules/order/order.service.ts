@@ -194,6 +194,32 @@ export class OrderService {
     await this.orderRepository.delete(orderId);
   }
 
+  async getMyOrders(
+    userMezonId: string,
+    query?: GetOrdersGroupedDto,
+  ): Promise<OrderEntity[]> {
+    const startDate = query?.startDate || formatDateVn(new Date());
+    const endDate = query?.endDate || startDate;
+
+    const where: FindOptionsWhere<OrderEntity> = {
+      userMezonId,
+    };
+
+    if (startDate === endDate) {
+      where.date = startDate;
+    } else {
+      where.date = Between(startDate, endDate);
+    }
+
+    return this.orderRepository.find({
+      where,
+      relations: ['user'],
+      order: {
+        createdAt: SearchOrder.DESC,
+      },
+    });
+  }
+
   async sendPaymentReminder(journeyId: string): Promise<void> {
     this.appLogService.journeyLog(
       journeyId,
@@ -214,9 +240,11 @@ export class OrderService {
       );
 
       const todayOrders = await this.orderRepository.find({
-        where: { date: today, channelId: WHITE_LIST_CHANNEL.DATCOM,
-          isPaid: false
-         },
+        where: {
+          date: today,
+          channelId: WHITE_LIST_CHANNEL.DATCOM,
+          isPaid: false,
+        },
         relations: ['user'],
       });
 

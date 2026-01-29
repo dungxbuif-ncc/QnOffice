@@ -11,10 +11,16 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const startDate = resolvedParams?.startDate as string | undefined;
   const endDate = resolvedParams?.endDate as string | undefined;
 
-  const groupedOrders = await orderServerService.getGrouped({
-    startDate,
-    endDate,
-  });
+  const [groupedOrders, myOrders] = await Promise.all([
+    orderServerService.getGrouped({
+      startDate,
+      endDate,
+    }),
+    orderServerService.getMyOrders({
+      startDate,
+      endDate,
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -23,7 +29,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         <OrderFilters />
       </div>
 
-      <OrdersPageClient groupedOrders={groupedOrders} />
+      <OrdersPageClient groupedOrders={groupedOrders} myOrders={myOrders} />
     </div>
   );
 }

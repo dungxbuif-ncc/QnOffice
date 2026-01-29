@@ -23,7 +23,9 @@ export function getStatusBadgeProps(status: string) {
   };
 }
 
-export function formatDateVN(dateString: string | Date | undefined | null): string {
+export function formatDateVN(
+  dateString: string | Date | undefined | null,
+): string {
   if (!dateString) return '';
 
   let dateToParse = '';
@@ -62,4 +64,11 @@ export function formatDateTimeVN(
     hour: '2-digit',
     minute: '2-digit',
   }).format(d);
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(amount);
 }

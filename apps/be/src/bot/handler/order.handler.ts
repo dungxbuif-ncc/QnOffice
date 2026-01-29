@@ -143,7 +143,10 @@ export class OrderHandler {
         channelId,
         today,
       );
-      const myBillUrl = joinUrlPaths(this.appConfigService.frontendUrl,'dashboard/my-bills')
+      const myBillUrl = joinUrlPaths(
+        this.appConfigService.frontendUrl,
+        'dashboard/my-bills',
+      );
       if (result.isEmpty) {
         await managedMessage.reply(
           SmartMessage.system(`❌ Không có đơn hàng nào trong ngày hôm nay.`),

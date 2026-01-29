@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Nezon from '@nezon';
 import { MezonChannelType } from '@qnoffice/shared';
 import {
+  BillSendPayload,
   CleaningReminderPayload,
   EventParticipant,
   NotificationEvent,
@@ -410,6 +411,72 @@ export class BotNotiDeliveryService {
     });
   }
 
+  @OnEvent(NotificationEvent.BILL_SEND)
+  async handleBillSend(payload: BillSendPayload): Promise<void> {
+    const { journeyId } = payload;
+
+    this.appLogService.journeyLog(
+      journeyId,
+      'Processing bill send notification',
+      'BotNotiDeliveryService',
+      {
+        billingId: payload.billingId,
+        date: payload.date,
+        channelId: payload.channelId,
+        totalOrders: payload.orders.length,
+      },
+    );
+
+    try {
+      this.appLogService.stepLog(
+        1,
+        `Formatting bill send message for ${payload.orders.length} orders`,
+        'BotNotiDeliveryService',
+        journeyId,
+        {
+          billingId: payload.billingId,
+          orderCount: payload.orders.length,
+        },
+      );
+
+      const message = this.formatBillSendMessage(payload);
+
+      this.appLogService.stepLog(
+        2,
+        `Sending bill message to channel ${payload.channelId}`,
+        'BotNotiDeliveryService',
+        journeyId,
+        { channelId: payload.channelId },
+      );
+
+      await this.sendToSpecificChannel(payload.channelId, message, journeyId);
+
+      this.appLogService.journeyLog(
+        journeyId,
+        `✅ Successfully sent bill #${payload.billingId} to channel`,
+        'BotNotiDeliveryService',
+        {
+          billingId: payload.billingId,
+          orderCount: payload.orders.length,
+          channelId: payload.channelId,
+          owner: payload.owner.username,
+        },
+      );
+    } catch (error) {
+      this.appLogService.journeyError(
+        journeyId,
+        '❌ Failed to send bill notification',
+        error.stack,
+        'BotNotiDeliveryService',
+        {
+          error: error.message,
+          billingId: payload.billingId,
+          channelId: payload.channelId,
+        },
+      );
+    }
+  }
+
   private formatOrderPaymentMessage(
     date: string,
     orders: { userId: string; username: string; content: string }[],
@@ -435,5 +502,36 @@ export class BotNotiDeliveryService {
     return Nezon.SmartMessage.text(
       `🍽️ Đừng quên thanh toán orders - 📅 Ngày ${date}\n\n${orderList}\n\n💰 Vui lòng thanh toán cho người đặt hàng!`,
     ).addMention(userMentions);
+  }
+
+  private formatBillSendMessage(payload: BillSendPayload): Nezon.SmartMessage {
+    const { owner, orders, date } = payload;
+
+    const allMentions: Record<string, { userId: string; username: string }> = {
+      owner: {
+        userId: owner.userId,
+        username: owner.username,
+      },
+    };
+
+    // Add all order users to mentions
+    orders.forEach((order) => {
+      allMentions[order.username] = {
+        userId: order.userId,
+        username: order.username,
+      };
+    });
+
+    // Format order list with mentions and amounts
+    const orderList = orders
+      .map(
+        (order, index) =>
+          `${index + 1}. {{${order.username}}}: ${order.content} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.amount)}`,
+      )
+      .join('\n');
+
+    return Nezon.SmartMessage.text(
+      `Em ${owner.username} sshin phép gửi bill hôm nay (${date}):\n${orderList}`,
+    ).addMention(allMentions);
   }
 }

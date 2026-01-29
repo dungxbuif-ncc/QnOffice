@@ -1,16 +1,28 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AppRequest } from '@src/common/types';
 import { JwtAuthGuard } from '@src/modules/auth/guards/jwt-auth.guard';
 import { BillingService } from './billing.service';
 import { BillingEntity } from './entities/billing.entity';
 
 @Controller('billings')
 @ApiTags('Billings')
+@UseGuards(JwtAuthGuard)
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
   @Get('my-billings')
-  @UseGuards(JwtAuthGuard)
   async getMyBillings(
     @Req() req: any,
     @Query('month') month?: string,
@@ -20,7 +32,6 @@ export class BillingController {
   }
 
   @Patch(':id/orders/:orderId')
-  @UseGuards(JwtAuthGuard)
   async updateOrder(
     @Param('id') id: string,
     @Param('orderId') orderId: string,
@@ -37,7 +48,6 @@ export class BillingController {
   }
 
   @Delete(':id/orders/:orderId')
-  @UseGuards(JwtAuthGuard)
   async removeOrderFromBilling(
     @Param('id') id: string,
     @Param('orderId') orderId: string,
@@ -52,21 +62,16 @@ export class BillingController {
   }
 
   @Get(':id/unbilled-orders')
-  @UseGuards(JwtAuthGuard)
-  async getUnbilledOrders(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
+  async getUnbilledOrders(@Param('id') id: string, @Req() req: any) {
     const user = req.user;
     return this.billingService.getUnbilledOrders(user.mezonId, parseInt(id));
   }
 
   @Post(':id/orders')
-  @UseGuards(JwtAuthGuard)
   async addOrdersToBilling(
     @Param('id') id: string,
     @Body() body: { orderIds: string[] },
-    @Req() req: any,
+    @Req() req: AppRequest,
   ) {
     const user = req.user;
     return this.billingService.addOrdersToBilling(
@@ -74,5 +79,11 @@ export class BillingController {
       parseInt(id),
       body.orderIds,
     );
+  }
+
+  @Post(':id/send')
+  async sendBill(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
+    return this.billingService.sendBill(user.mezonId, parseInt(id));
   }
 }

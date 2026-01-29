@@ -8,6 +8,7 @@ export enum NotificationEvent {
   STAFF_OFFBOARDING = 'notification.staff.offboarding',
   ORDER_CREATED = 'notification.order.created',
   ORDER_PAYMENT_REMINDER = 'notification.order.payment.reminder',
+  BILL_SEND = 'notification.bill.send',
   USER_MESSAGE = 'notification.user.message',
 }
 
@@ -51,6 +52,23 @@ export interface OrderPaymentReminderPayload {
     userId: string;
     username: string;
     content: string;
+  }[];
+  journeyId: string;
+}
+
+export interface BillSendPayload {
+  billingId: number;
+  date: string;
+  channelId: string;
+  owner: {
+    userId: string;
+    username: string;
+  };
+  orders: {
+    userId: string;
+    username: string;
+    content: string;
+    amount: number;
   }[];
   journeyId: string;
 }

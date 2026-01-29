@@ -1,5 +1,24 @@
 # Release Note
 
+**Version:** 1.1.1
+**Date:** 29/01/2026
+
+## Tính năng mới (New Features)
+
+### 1. Quản lý Đơn hàng (Orders Management)
+- **My Orders Tab**:
+  - Thêm tab "My Orders" giúp người dùng xem riêng danh sách các đơn hàng của mình.
+  - Hiển thị chi tiết: Tên món, thời gian đặt, trạng thái thanh toán và giá tiền.
+  - Tự động ẩn thông tin billing để giao diện gọn gàng hơn.
+
+### 2. Gửi Bill (Send Bill)
+- **Tính năng Gửi Bill**:
+  - Cho phép người dùng gửi thông báo bill trực tiếp từ trang "My Bills" vào channel DATCOM.
+  - Bot sẽ tag tên những người có đơn hàng và hiển thị tổng tiền cần thanh toán.
+  - **Thông minh hơn**: Hệ thống tự động lọc chỉ gửi các đơn chưa thanh toán. Nếu tất cả đã thanh toán, sẽ không spam channel.
+
+---
+
 **Version:** 1.1.0  
 **Date:** 29/01/2026
 

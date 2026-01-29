@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { billingClientService } from '@/shared/services/client/billing-client-service';
 import { Billing, Order } from '@qnoffice/shared';
 import { format } from 'date-fns';
-import { ChevronDown, Plus, Receipt, Trash2, X } from 'lucide-react';
+import { ChevronDown, Plus, Receipt, Send, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -49,6 +49,7 @@ export function BillingsPageClient({
     new Set(),
   );
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [isSendingBill, setIsSendingBill] = useState<number | null>(null);
 
   // Month & Stats
   const currentMonthStr = initialMonth || format(new Date(), 'yyyy-MM');
@@ -254,6 +255,19 @@ export function BillingsPageClient({
     }
   };
 
+  const handleSendBill = async (billingId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSendingBill(billingId);
+    try {
+      await billingClientService.sendBill(billingId);
+      toast.success('Đã gửi bill thành công!');
+    } catch (error) {
+      toast.error('Gửi bill thất bại');
+    } finally {
+      setIsSendingBill(null);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-20">
       {/* Stats Header */}
@@ -350,11 +364,25 @@ export function BillingsPageClient({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-primary ml-2"
                             onClick={(e) => handleOpenAddDialog(billing.id, e)}
                             title="Thêm đơn hàng vào bill này"
                           >
                             <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-green-600 ml-1"
+                            onClick={(e) => handleSendBill(billing.id, e)}
+                            title="Gửi bill lên kênh Datcom"
+                            disabled={isSendingBill === billing.id}
+                          >
+                            {isSendingBill === billing.id ? (
+                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
                           </Button>
                         </div>
 
