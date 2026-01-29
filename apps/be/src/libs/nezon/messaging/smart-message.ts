@@ -970,13 +970,13 @@ export class ManagedMessage {
   }
 
   async delete() {
-    let entity = await this.context.getMessage();
+    let message = await this.context.getMessage();
 
-    if (!entity) {
+    if (!message) {
       throw new Error('Cannot delete message: message entity not found');
     }
-    if (typeof entity.delete === 'function') {
-      return entity.delete();
+    if (typeof message.delete === 'function') {
+      return message.delete();
     }
     throw new Error('Cannot delete message: delete method not available');
   }

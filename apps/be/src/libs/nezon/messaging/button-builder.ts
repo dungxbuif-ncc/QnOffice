@@ -82,11 +82,11 @@ export class ButtonBuilder {
    * ```
    */
   onClick(handler: ButtonClickHandler): this {
-    if (this.id) {
-      throw new Error(
-        'Cannot use onClick() when setCustomId() is already set. Use either setCustomId() or onClick(), not both.',
-      );
-    }
+    // if (this.id) {
+    //   throw new Error(
+    //     'Cannot use onClick() when setCustomId() is already set. Use either setCustomId() or onClick(), not both.',
+    //   );
+    // }
     this.onClickHandler = handler;
     return this;
   }

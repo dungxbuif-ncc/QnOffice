@@ -17,7 +17,7 @@ import type { Nezon } from '@src/libs/nezon';
 import { CleaningService } from '@src/modules/cleaning/cleaning.service';
 import { StaffService } from '@src/modules/staff/staff.service';
 import { SwapRequestService } from '@src/modules/swap-request/swap-request.service';
-import { startOfToday, format } from 'date-fns';
+import { startOfToday, format, endOfDay, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 @Injectable()
@@ -137,25 +137,41 @@ export class CleaningScheduleHandler {
   async onChangeSchedule(
     @AutoContext() [managedMessage]: Nezon.AutoContext,
   ) {
+    const endTomorrowISO = endOfDay(addDays(startOfToday(), 1)).toISOString();
+    const staff = await this.staffService.findByUserId(managedMessage.senderId);
+
+    if (!staff) {
+      managedMessage.reply(SmartMessage.system("Bạn không phải staff"));
+      return;
+    }
+
+    const myEvents = await this.cleaningService.getEvents({ startDate: endTomorrowISO, participantId: staff.id });
+    const myEventInputs = await Promise.all(myEvents.map(s => {
+      return {
+        label: `(${s.eventDate})${s.title}`,
+        value: s.id.toString()
+      }
+    }))
+
+    let listEvents = await this.cleaningService.getEvents({ startDate: endTomorrowISO, status: "PENDING" });
+    listEvents = listEvents.filter(e => !myEvents.includes(e))
+    const selectInputs = await Promise.all(listEvents.map(s => {
+      return {
+        label: `(${s.eventDate})${s.title}`,
+        value: s.id.toString()
+      }
+    }))
+
     await managedMessage.replyEphemeral(
       SmartMessage.build()
         .addEmbed(
           new EmbedBuilder()
             .setColor('#E91E63')
-            .setTitle('Form đổi lịch trực nhật')
-            .addTextField('Người muốn đổi', 'name', {
-              placeholder: 'ten.hodem',
-              defaultValue: '',
-            })
-            .addTextField('Ngày của bạn muốn đổi', 'fromDay', {
-              placeholder: 'dd/MM/yyyy',
-            })
-            .addTextField('Ngày của người khác mà bạn muốn đổi', 'toDay', {
-              placeholder: 'dd/MM/yyyy',
-            })
-            .addTextField('Lý do', 'reason', {
-              placeholder: '...',
-            })
+            .setTitle('Đổi lịch trực nhật')
+            .addSelectField("Lịch trực của bạn", "fromEventId", myEventInputs)
+            .addSelectField("Lịch trực", 'toEventId', selectInputs)
+            .addTextField("Người bị đổi", "target")
+            .addTextField("Lý do", 'reason')
             .setTimestamp()
             .setFooter('Powered by QNOffice', 'https://example.com/icon.jpg')
         )
@@ -173,57 +189,31 @@ export class CleaningScheduleHandler {
             .setLabel('Create')
             .setStyle(ButtonStyle.Success)
             .onClick(async (context) => {
-              const { name, fromDay, toDay, reason } = context.formData ?? {};
-              if (!name || !fromDay || !toDay || !reason) {
-                await managedMessage.replyEphemeral(SmartMessage.text('Yêu cầu nhập đầy đủ thông tin!'));
+              const { fromEventId, toEventId, target, reason } = context.formData ?? {};;
+
+              if (!fromEventId || !toEventId || !target || !reason) {
+                managedMessage.replyEphemeral(SmartMessage.system("Vui lòng chọn và điền đầy đủ thông tin"));
                 return;
               }
 
-              if (!parseDate(fromDay) || !parseDate(toDay)) {
-                await managedMessage.replyEphemeral(SmartMessage.text('Ngày tháng không hợp lệ!'));
-                return
-              }
-
-              const staff = await this.staffService.findByName(name);
-              if (!staff) {
-                await managedMessage.replyEphemeral(SmartMessage.text('Không có nhân viên này!'));
+              const targetStaff = await this.staffService.findByName(target);
+              if (!targetStaff) {
+                managedMessage.replyEphemeral(SmartMessage.system("Người bị đổi không tồn tại"));
                 return;
               }
 
-              const sender = await this.staffService.findByUserId(managedMessage.senderId);
-
-              if (!sender) {
-                await managedMessage.replyEphemeral(SmartMessage.text('Không có nhân viên này!'));
-                return;
-              }
-
-              // const today = startOfToday().toISOString();
-              const fromEvent = await this.cleaningService.getEvent({
-                // startDate: today,
-                participantId: sender.id,
-              });
-
-              if (!fromEvent) {
-                await managedMessage.reply(SmartMessage.text('Bạn không có lịch trực vào ngày này!'));
-                return;
-              }
-
-              const toEvent = await this.cleaningService.getEvent({
-                // startDate: today,
-                participantId: staff.id,
-              })
-
+              const toEvent = await this.cleaningService.getEvent({ participantId: targetStaff.id, id: Number(toEventId) });
               if (!toEvent) {
-                await managedMessage.reply(SmartMessage.text('Người bị yêu cầu không có lịch trực vào ngày này!'));
+                managedMessage.replyEphemeral(SmartMessage.system("Người bị đổi không có lịch trực vào ngày này"));
                 return;
               }
 
-              await this.swapRequestService.create({ fromEventId: fromEvent.id, toEventId: toEvent.id, reason: reason, type: ScheduleType.CLEANING, targetStaffId: staff.id }, sender.id);
+              await this.swapRequestService.create({ fromEventId: Number(fromEventId), toEventId: Number(toEventId), reason: reason, type: ScheduleType.CLEANING, targetStaffId: targetStaff.id }, staff.id);
               await managedMessage.reply(SmartMessage.text(`Tạo yêu cầu đổi lịch trực nhật thành công với {{recipient}}.`)
                 .addMention({
                   recipient: {
-                    username: staff.user.name,
-                    userId: staff.userId!,
+                    username: targetStaff.user.name,
+                    userId: targetStaff.userId!,
                   }
                 })
               );
@@ -234,10 +224,8 @@ export class CleaningScheduleHandler {
     );
   }
 
-  @Component({ pattern: "cancel" })
-  async onConfirm(@AutoContext() [managedMessage]: Nezon.AutoContext) {
-    await managedMessage.reply(SmartMessage.text('Confirmed!'));
-  }
+  @Component({})
+  async onConfirm() { }
 
   @Command({ name: "huy_doilich" })
   async onCancel(@AutoContext() [managedMessage]: Nezon.AutoContext) {

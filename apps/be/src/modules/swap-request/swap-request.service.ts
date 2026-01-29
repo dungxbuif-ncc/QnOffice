@@ -20,7 +20,7 @@ export class SwapRequestService {
     private readonly swapRequestRepository: Repository<SwapRequestEntity>,
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async create(
     dto: CreateSwapRequestDto,
@@ -119,22 +119,23 @@ export class SwapRequestService {
     return swapRequest;
   }
 
-  async findByUserId(userId: number): Promise<SwapRequestEntity[]>{
-    return  await this.swapRequestRepository.find({
+  async findByUserId(userId: number): Promise<SwapRequestEntity[]> {
+    return await this.swapRequestRepository.find({
       where: { requesterId: userId },
-      relations: [
-        'fromEvent',
-        'toEvent',
-        'requester',
-        'requester.user',
-        'fromEvent.eventParticipants',
-        'fromEvent.eventParticipants.staff',
-        'fromEvent.eventParticipants.staff.user',
-        'toEvent.eventParticipants',
-        'toEvent.eventParticipants.staff',
-        'toEvent.eventParticipants.staff.user',
-      ],
-    });;
+      relations: {
+        requester: { user: true },
+        fromEvent: {
+          eventParticipants: {
+            staff: { user: true }
+          }
+        },
+        toEvent: {
+          eventParticipants: {
+            staff: { user: true }
+          }
+        }
+      }
+    });
   }
 
   async review(id: number, dto: ReviewSwapRequestDto) {
