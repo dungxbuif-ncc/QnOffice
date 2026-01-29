@@ -5,17 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { BaseDataTable } from '@/components/ui/base-data-table';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
 import { usePagination } from '@/shared/hooks/use-pagination';
+import { formatDateVN } from '@/shared/utils';
 import { Holiday, PaginationState, SearchOrder } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { Calendar, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
@@ -65,7 +65,7 @@ export function HolidayDataTable({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className={isPast ? 'text-muted-foreground' : ''}>
-              {format(date, 'dd/MM/yyyy')}
+              {formatDateVN(row.original.date)}
             </span>
             {isPast && (
               <Badge variant="secondary" className="ml-2">

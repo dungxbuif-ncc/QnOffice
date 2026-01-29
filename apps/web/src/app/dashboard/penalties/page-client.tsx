@@ -5,12 +5,12 @@ import { PenaltiesDataTable } from '@/components/penalties/penalties-data-table'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
-import { PaginationState, Penalty } from '@qnoffice/shared';
+import { PaginationState } from '@qnoffice/shared';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface PenaltiesPageClientProps {
-  initialData: Penalty[];
+  initialData: any[];
   initialPagination: PaginationState;
 }
 

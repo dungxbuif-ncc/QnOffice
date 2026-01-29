@@ -137,4 +137,51 @@ export class PenaltyService {
 
     return { total, unpaid };
   }
+
+  async findAllGroupedByUser(
+    queries: AppPaginateOptionsDto,
+  ): Promise<AppPaginationDto<any>> {
+    const { skip, take } = queries;
+    const [allPenalties] = await this.penaltyRepository.findAndCount({
+      relations: ['penaltyType', 'staff', 'staff.user', 'proofs'],
+      order: { createdAt: SearchOrder.DESC },
+    });
+
+    // Group by staffId
+    const groupedMap = new Map<number, any>();
+
+    for (const penalty of allPenalties) {
+      const staffId = penalty.staffId;
+      if (!groupedMap.has(staffId)) {
+        groupedMap.set(staffId, {
+          staff: penalty.staff,
+          totalAmount: 0,
+          penaltyCount: 0,
+          penalties: [],
+        });
+      }
+
+      const group = groupedMap.get(staffId);
+      group.totalAmount += Number(penalty.amount);
+      group.penaltyCount += 1;
+      group.penalties.push(penalty);
+    }
+
+    const groupedResult = Array.from(groupedMap.values());
+
+    // Manual application of pagination to the grouped result
+    // Note: 'total' from findAndCount is total penalties, not total groups. 
+    // We should probably return total groups for pagination context if needed, 
+    // but preserving the interface signature for now.
+    
+    // Slicing the grouped result for pagination
+    const paginatedResult = groupedResult.slice(skip, skip + take);
+
+    return {
+      page: queries.page,
+      pageSize: queries.take,
+      total: groupedResult.length,
+      result: paginatedResult,
+    };
+  }
 }

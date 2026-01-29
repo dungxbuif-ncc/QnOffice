@@ -21,8 +21,7 @@ export default async function PenaltiesPage({
     order: (resolvedSearchParams?.order as SearchOrder) || SearchOrder.DESC,
   };
 
-  const penaltiesResponse = await penaltyServerService.getAll(params);
-
+  const penaltiesResponse = await penaltyServerService.getGroupedByUser(params);
   const penalties = penaltiesResponse?.result || [];
   const pagination = {
     page: penaltiesResponse?.page || 1,

@@ -15,7 +15,6 @@ export default async function OpentalkPage({
   const status = resolvedSearchParams?.status;
   const email = resolvedSearchParams?.email;
 
-  const error: string | null = null;
   const cyclesData = await opentalkServerService.getCycles(status, email);
   return <OpentalkPageClient cycles={cyclesData ?? []} />;
 }

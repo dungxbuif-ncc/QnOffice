@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { formatDateTimeVN, getStatusBadgeProps } from '@/shared/utils';
+import { formatDateVN, getStatusBadgeProps } from '@/shared/utils';
 import { IOpentalkSlide, ScheduleEvent } from '@qnoffice/shared';
 import { Calendar, FileText, User } from 'lucide-react';
 
@@ -59,7 +59,7 @@ export function EventTableRow({
           if (ep.staff?.user?.email) return ep.staff.user.email;
           if (ep.staff?.id) return `Staff ${ep.staff.id}`;
           if (ep.staffId) return `Staff ${ep.staffId}`;
-          return 'Unknown Staff';
+          return 'Không xác định';
         })
         .filter(Boolean);
 
@@ -68,7 +68,7 @@ export function EventTableRow({
       }
     }
 
-    return 'Unassigned';
+    return 'Chưa phân công';
   };
 
   const isPast = new Date(event.eventDate).getTime() < new Date().getTime();
@@ -117,12 +117,12 @@ export function EventTableRow({
             <div className="flex gap-1 items-center">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">
-                {formatDateTimeVN(event.eventDate)}
+                {formatDateVN(event.eventDate)}
               </span>
             </div>
             {canManageOpentalk && !isCheckboxDisabled && (
               <span className="ml-1 text-xs text-muted-foreground">
-                (click to edit)
+                (nhấn để sửa)
               </span>
             )}
           </div>
@@ -149,10 +149,10 @@ export function EventTableRow({
               }
             }}
           >
-            <span className="font-medium">{event.title || 'No topic set'}</span>
+            <span className="font-medium">{event.title || 'Chưa có chủ đề'}</span>
             {canEditTopic && !isCheckboxDisabled && (
               <span className="ml-1 text-xs text-muted-foreground">
-                (click to edit)
+                (nhấn để sửa)
               </span>
             )}
           </div>
@@ -170,7 +170,7 @@ export function EventTableRow({
       <TableCell>
         <Button size="sm" variant="outline" onClick={onSlideClick}>
           <FileText className="h-4 w-4 mr-1" />
-          {canEditTopic && !isCheckboxDisabled ? 'Update' : 'View'}
+          {canEditTopic && !isCheckboxDisabled ? 'Cập nhật' : 'Xem'}
         </Button>
       </TableCell>
     </TableRow>

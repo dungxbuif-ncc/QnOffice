@@ -52,19 +52,14 @@ export function CycleCard({
   cycle,
   editingField,
   editedValue,
-
   selectedEvents,
   canManageOpentalk,
-
   canEditTopic,
-
   onTopicEdit,
   onDateEdit,
-
   onEditSave,
   onEditCancel,
   onEditChange,
-
   onSlideClick,
   onSelectEvent,
   lockedEvents = [],
@@ -124,19 +119,19 @@ export function CycleCard({
                   />
                 </Button>
               </CollapsibleTrigger>
-              <CardTitle
+                  <CardTitle
                 className="flex items-center space-x-2 cursor-pointer"
                 onClick={() => setIsOpen(!isOpen)}
               >
                 <span>{cycle.name}</span>
                 <Badge variant={isPast ? 'secondary' : 'default'}>
-                  {isPast ? 'Past' : 'Active'}
+                  {isPast ? 'Đã qua' : 'Đang mở'}
                 </Badge>
               </CardTitle>
             </div>
 
             <div className="text-sm text-muted-foreground">
-              {cycle.events?.length || 0} events
+              {cycle.events?.length || 0} sự kiện
             </div>
           </div>
         </CardHeader>
@@ -145,18 +140,18 @@ export function CycleCard({
           <CardContent>
             {!cycle.events?.length ? (
               <div className="py-8 text-center text-muted-foreground">
-                No events scheduled for this cycle
+                Chưa có sự kiện nào trong chu kỳ này
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     {canManageOpentalk && <TableHead className="w-[50px]" />}
-                    <TableHead className="w-[140px]">Date</TableHead>
-                    <TableHead className="w-[250px]">Topic</TableHead>
-                    <TableHead className="w-[200px]">Presenter</TableHead>
-                    <TableHead className="w-[100px]">Status</TableHead>
-                    <TableHead className="w-[120px]">Actions</TableHead>
+                    <TableHead className="w-[140px]">Ngày</TableHead>
+                    <TableHead className="w-[250px]">Chủ đề</TableHead>
+                    <TableHead className="w-[200px]">Người trình bày</TableHead>
+                    <TableHead className="w-[100px]">Trạng thái</TableHead>
+                    <TableHead className="w-[120px]">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
 

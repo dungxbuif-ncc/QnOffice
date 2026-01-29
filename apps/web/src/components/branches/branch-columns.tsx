@@ -5,13 +5,14 @@ import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { formatDateVN } from '@/shared/utils';
 import { Branch } from '@qnoffice/shared';
 
 interface BranchActionsProps {
@@ -130,7 +131,7 @@ export const createBranchColumns = (
     },
     cell: ({ row }) => (
       <div className="text-sm">
-        {new Date(row.getValue('createdAt')).toLocaleDateString('vi-VN')}
+        {formatDateVN(row.getValue('createdAt'))}
       </div>
     ),
   },

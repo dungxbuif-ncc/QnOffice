@@ -3,13 +3,14 @@
 import { ActionPanel } from '@/components/ui/action-panel';
 import { Button } from '@/components/ui/button';
 import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import { useAuth } from '@/shared/contexts/auth-context';
 import { cleaningClientService } from '@/shared/services/client/cleaning-client-service';
+import { formatDateVN } from '@/shared/utils';
 import { ArrowRightLeft, Download, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -31,21 +32,7 @@ export function CleaningSpreadsheetView({
   >([]);
   const [isSwapping, setIsSwapping] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    // Parse YYYY-MM-DD components directly to create local date
-    // This avoids UTC conversions that might shift the date (+1/-1)
-    const cleanDateString = dateString.includes('T') ? dateString.split('T')[0] : dateString;
-    const [year, month, day] = cleanDateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-
-    return new Intl.DateTimeFormat('vi-VN', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      weekday: 'long',
-      month: 'numeric',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(date);
-  };
+  // Removed local formatDate in favor of shared/utils/formatDateVN
 
   const getParticipantNames = (eventParticipants: any[]) => {
     if (!eventParticipants?.length) return 'Không có người trực';
@@ -68,7 +55,7 @@ export function CleaningSpreadsheetView({
       ...events
         .map((event) => [
           event.eventDate,
-          formatDate(event.eventDate),
+          formatDateVN(event.eventDate),
           `"${getParticipantNames(event.eventParticipants)}"`,
           event.status,
           `"${event.notes || ''}"`,
@@ -281,7 +268,6 @@ export function CleaningSpreadsheetView({
                   cycleEvents={cycleEvents}
                   selectedParticipants={selectedParticipants}
                   onParticipantToggle={handleParticipantToggle}
-                  formatDate={formatDate}
                 />
               );
             })}

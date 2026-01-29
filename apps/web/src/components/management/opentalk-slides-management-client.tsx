@@ -4,14 +4,15 @@ import { SlideDialog } from '@/components/opentalk/slide-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table';
 import { PERMISSIONS, ProtectedComponent } from '@/shared/auth';
+import { formatDateVN } from '@/shared/utils';
 import { OpentalkSlideStatus, OpentalkSlideType, type IOpentalkSlide, type ScheduleEvent } from '@qnoffice/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { Eye } from 'lucide-react';
@@ -111,7 +112,7 @@ export function OpentalkSlidesManagementClient({ events }: OpentalkSlidesManagem
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">{event.title}</TableCell>
                     <TableCell>
-                      {new Date(event.eventDate).toLocaleDateString('vi-VN')}
+                      {formatDateVN(event.eventDate)}
                     </TableCell>
                     <TableCell>
                       {event.slide?.type === OpentalkSlideType.FILE ? '📄 File' : '🔗 Link'}
@@ -121,7 +122,7 @@ export function OpentalkSlidesManagementClient({ events }: OpentalkSlidesManagem
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {event.slide?.createdAt && 
-                        new Date(event.slide.createdAt).toLocaleDateString('vi-VN')}
+                        formatDateVN(event.slide.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

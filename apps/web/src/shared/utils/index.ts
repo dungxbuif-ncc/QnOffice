@@ -23,15 +23,30 @@ export function getStatusBadgeProps(status: string) {
   };
 }
 
-export function formatDateVN(date: string | Date | undefined | null): string {
-  if (!date) return '';
-  const d = new Date(date);
+export function formatDateVN(dateString: string | Date | undefined | null): string {
+  if (!dateString) return '';
+
+  let dateToParse = '';
+
+  if (dateString instanceof Date) {
+    dateToParse = dateString.toISOString().split('T')[0];
+  } else {
+    dateToParse = dateString.includes('T')
+      ? dateString.split('T')[0]
+      : dateString;
+  }
+
+  const [year, month, day] = dateToParse.split('-').map(Number);
+  // Note: Month is 0-indexed in JS Date
+  const date = new Date(year, month - 1, day);
+
   return new Intl.DateTimeFormat('vi-VN', {
     timeZone: 'Asia/Ho_Chi_Minh',
+    weekday: 'long',
+    month: 'numeric',
+    day: 'numeric',
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
+  }).format(date);
 }
 
 export function formatDateTimeVN(

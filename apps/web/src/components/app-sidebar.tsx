@@ -18,7 +18,7 @@ import { UserAuth } from '@qnoffice/shared';
 
 const navigationData = [
   {
-    title: 'Bảng điều khiển',
+    title: 'Trang chủ',
     href: PATHS.DASHBOARD.BASE,
     icon: '📊',
   },

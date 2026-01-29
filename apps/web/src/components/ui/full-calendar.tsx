@@ -30,6 +30,7 @@ interface CalendarEvent {
   date: Date;
   type: 'cleaning' | 'opentalk' | 'holiday';
   color?: string;
+  isMine?: boolean;
 }
 
 interface FullCalendarProps {
@@ -291,7 +292,9 @@ export function FullCalendar({
                         onEventClick?.(event);
                       }}
                       className={cn(
-                        'text-xs p-1.5 rounded-md truncate cursor-pointer font-medium transition-colors hover:opacity-80',
+                        'text-xs p-1.5 rounded-md truncate cursor-pointer font-medium transition-all hover:opacity-80',
+                        event.isMine &&
+                          'ring-2 ring-offset-1 ring-yellow-500 font-bold shadow-sm z-10',
                         event.type === 'cleaning'
                           ? 'bg-blue-200 text-blue-800 dark:bg-blue-300 dark:text-blue-900'
                           : event.type === 'opentalk'

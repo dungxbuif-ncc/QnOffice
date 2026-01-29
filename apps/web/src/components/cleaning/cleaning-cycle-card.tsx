@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { hasPermission, PERMISSIONS } from '@/shared/auth';
 import { useAuth } from '@/shared/contexts/auth-context';
-import { getStatusBadgeProps } from '@/shared/utils';
+import { cn, formatDateVN, getStatusBadgeProps } from '@/shared/utils';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -34,7 +34,6 @@ interface CleaningCycleCardProps {
     email: string,
     cycleId: number,
   ) => void;
-  formatDate: (date: string) => string;
 }
 
 export function CleaningCycleCard({
@@ -43,7 +42,6 @@ export function CleaningCycleCard({
   cycleEvents,
   selectedParticipants,
   onParticipantToggle,
-  formatDate,
 }: CleaningCycleCardProps) {
   const { user } = useAuth();
   // Determine if past based on latest event
@@ -127,7 +125,6 @@ export function CleaningCycleCard({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ngày</TableHead>
-                    <TableHead>Thứ</TableHead>
                     <TableHead>Người trực</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Ghi chú</TableHead>
@@ -142,16 +139,26 @@ export function CleaningCycleCard({
                       event.status === 'CANCELLED';
                     const isDisabled = isPast || isCompleted;
 
+                    const isCurrentUser =
+                      user?.email &&
+                      event.eventParticipants?.some(
+                        (p: any) =>
+                          p.staff?.user?.email === user.email ||
+                          p.staff?.email === user.email,
+                      );
+
                     return (
                       <TableRow
                         key={event.id}
                         id={`cleaning-event-${event.id}`}
-                        className={isDisabled ? 'opacity-60 bg-gray-50' : ''}
+                        className={cn(
+                          isDisabled ? 'opacity-60 bg-gray-50' : '',
+                          isCurrentUser
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-l-yellow-500'
+                            : '',
+                        )}
                       >
-                        <TableCell className="font-medium">
-                          {event.eventDate}
-                        </TableCell>
-                        <TableCell>{formatDate(event.eventDate)}</TableCell>
+                        <TableCell>{formatDateVN(event.eventDate)}</TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             {event.eventParticipants?.length > 0 ? (

@@ -25,6 +25,8 @@ interface CalendarWrapperProps {
   showControls?: boolean;
 }
 
+import { useAuth } from '@/shared/contexts/auth-context';
+
 export function CalendarWrapper({
   events,
   holidays,
@@ -32,6 +34,7 @@ export function CalendarWrapper({
   currentMonthString,
   showControls = true,
 }: CalendarWrapperProps) {
+  const { user } = useAuth();
   const [selectedEvent, setSelectedEvent] = useState<{
     id: string;
     title: string;
@@ -45,18 +48,27 @@ export function CalendarWrapper({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Convert events to match FullCalendar's interface
-  const calendarEvents = events.map((event) => ({
-    id: event.id,
-    title: event.title,
-    date: new Date(event.date),
-    type: event.type,
-    color:
-      event.type === 'cleaning'
-        ? '#bfdbfe'
-        : event.type === 'opentalk'
-          ? '#ddd6fe'
-          : '#fef3c7', // Holiday color
-  }));
+  const calendarEvents = events.map((event) => {
+    const isMine =
+      user?.email &&
+      event.participants?.some(
+        (p) => p.toLowerCase() === user.email.toLowerCase(),
+      );
+
+    return {
+      id: event.id,
+      title: event.title,
+      date: new Date(event.date),
+      type: event.type,
+      isMine: !!isMine,
+      color:
+        event.type === 'cleaning'
+          ? '#bfdbfe'
+          : event.type === 'opentalk'
+            ? '#ddd6fe'
+            : '#fef3c7', // Holiday color
+    };
+  });
 
   const handleEventClick = (event: {
     id: string | number;

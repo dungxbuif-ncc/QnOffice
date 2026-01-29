@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { BaseDataTable } from '@/components/ui/base-data-table';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import { usePagination } from '@/shared/hooks/use-pagination';
 import { uploadClientService } from '@/shared/services/client/upload-client-service';
@@ -16,17 +16,29 @@ import { PaginationState, Penalty, PenaltyStatus } from '@qnoffice/shared';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import {
-  AlertCircle,
-  CheckCircle2,
-  Eye,
-  FileText,
-  ImageIcon,
+    AlertCircle,
+    CheckCircle2,
+    ImageIcon
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+interface GroupedPenaltyData {
+  staff: {
+    id: number;
+    email: string;
+    user?: {
+      name: string;
+      email: string;
+    };
+  };
+  totalAmount: number;
+  penaltyCount: number;
+  penalties: Penalty[];
+}
+
 interface PenaltiesDataTableProps {
-  initialData: Penalty[];
+  initialData: GroupedPenaltyData[];
   initialPagination: PaginationState;
 }
 
@@ -34,7 +46,9 @@ export function PenaltiesDataTable({
   initialData,
   initialPagination,
 }: PenaltiesDataTableProps) {
-  const [selectedPenalty, setSelectedPenalty] = useState<Penalty | null>(null);
+  const [selectedUserGroup, setSelectedUserGroup] = useState<GroupedPenaltyData | null>(
+    null,
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const previewCache = useRef<Map<string, string>>(new Map());
@@ -125,48 +139,37 @@ export function PenaltiesDataTable({
     }
   };
 
-  const columns: ColumnDef<Penalty>[] = [
+  const columns: ColumnDef<GroupedPenaltyData>[] = [
     {
-      accessorKey: 'staffId',
+      accessorKey: 'staff',
       header: 'Nhân viên',
       cell: ({ row }) => {
         const staff = row.original.staff;
-        return staff?.email;
+        return (
+          <div>
+            <div className="font-medium">{staff?.user?.name || 'N/A'}</div>
+            <div className="text-sm text-muted-foreground">
+              {staff?.user?.email || staff?.email}
+            </div>
+          </div>
+        );
       },
     },
     {
-      accessorKey: 'penaltyTypeId',
-      header: 'Loại phạt',
-      cell: ({ row }) => {
-        const penaltyType = row.original.penaltyType;
-        return penaltyType?.name || `Loại ${row.original.penaltyTypeId}`;
-      },
-    },
-    {
-      accessorKey: 'date',
-      header: 'Ngày',
-      cell: ({ row }) => format(new Date(row.original.date), 'PP'),
-    },
-    {
-      accessorKey: 'reason',
-      header: 'Lý do',
+      accessorKey: 'penaltyCount',
+      header: 'Số lượng vi phạm',
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.original.reason}</div>
+        <div className="font-medium">{row.original.penaltyCount}</div>
       ),
     },
     {
-      accessorKey: 'amount',
-      header: 'Số tiền',
+      accessorKey: 'totalAmount',
+      header: 'Tổng tiền phạt',
       cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {formatCurrency(Number(row.original.amount))}
+        <div className="font-medium text-red-600">
+          {formatCurrency(row.original.totalAmount)}
         </div>
       ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Trạng thái',
-      cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
       id: 'actions',
@@ -174,7 +177,7 @@ export function PenaltiesDataTable({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setSelectedPenalty(row.original)}
+          onClick={() => setSelectedUserGroup(row.original)}
         >
           Xem chi tiết
         </Button>
@@ -193,109 +196,74 @@ export function PenaltiesDataTable({
         showSearch={false}
       />
 
-      {/* Penalty Detail Modal */}
-      {selectedPenalty && (
+      {/* Group Detail Modal */}
+      {selectedUserGroup && (
         <Dialog
-          open={!!selectedPenalty}
-          onOpenChange={() => setSelectedPenalty(null)}
+          open={!!selectedUserGroup}
+          onOpenChange={() => setSelectedUserGroup(null)}
         >
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Chi tiết phạt</DialogTitle>
+              <DialogTitle>
+                Chi tiết vi phạm -{' '}
+                {selectedUserGroup.staff?.user?.name ||
+                  selectedUserGroup.staff?.email}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="flex gap-4 p-4 bg-muted/20 rounded-lg">
                 <div>
-                  <p className="text-sm text-muted-foreground">Nhân viên</p>
-                  <p className="font-medium">
-                    {selectedPenalty.staff?.user?.name ||
-                      selectedPenalty.staff?.email ||
-                      selectedPenalty.staffId}
+                  <p className="text-sm text-muted-foreground">Tổng vi phạm</p>
+                  <p className="text-xl font-bold">
+                    {selectedUserGroup.penaltyCount}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Loại phạt</p>
-                  <p className="font-medium">
-                    {selectedPenalty.penaltyType?.name ||
-                      `Loại ${selectedPenalty.penaltyTypeId}`}
+                  <p className="text-sm text-muted-foreground">Tổng tiền phạt</p>
+                  <p className="text-xl font-bold text-red-600">
+                    {formatCurrency(selectedUserGroup.totalAmount)}
                   </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Số tiền</p>
-                  <p className="font-medium">
-                    {formatCurrency(Number(selectedPenalty.amount))}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Ngày</p>
-                  <p className="font-medium">
-                    {format(new Date(selectedPenalty.date), 'PPP')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Trạng thái</p>
-                  <div>{getStatusBadge(selectedPenalty.status)}</div>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Lý do</p>
-                <p className="text-sm bg-muted p-3 rounded-md">
-                  {selectedPenalty.reason}
-                </p>
-              </div>
-              {selectedPenalty.proofs && selectedPenalty.proofs.length > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Bằng chứng
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {selectedPenalty.proofs.map((url, index) => {
-                      const isImage =
-                        url.imageKey.match(/\.(jpeg|jpg|gif|png)$/i) != null;
-                      const fileName =
-                        url.imageKey.split('/').pop() ||
-                        `Evidence ${index + 1}`;
 
-                      return (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 border rounded-lg bg-muted/20"
-                        >
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="h-10 w-10 flex items-center justify-center bg-primary/10 rounded-lg text-xl text-primary">
-                              {isImage ? (
-                                <ImageIcon className="h-5 w-5" />
-                              ) : (
-                                <FileText className="h-5 w-5" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p
-                                className="text-sm font-medium truncate"
-                                title={fileName}
-                              >
-                                {fileName}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {isImage ? 'Hình ảnh' : 'Tài liệu'}
-                              </p>
-                            </div>
-                          </div>
+              <div className="space-y-4">
+                {selectedUserGroup.penalties.map((penalty, idx) => (
+                  <div key={penalty.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold">
+                          {format(new Date(penalty.date), 'PPP')}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {penalty.penaltyType?.name}
+                        </p>
+                      </div>
+                      <div className="font-bold">
+                        {formatCurrency(Number(penalty.amount))}
+                      </div>
+                    </div>
+                    <div className="bg-muted p-2 rounded text-sm mb-3">
+                      {penalty.reason}
+                    </div>
+                    {penalty.proofs && penalty.proofs.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {penalty.proofs.map((proof, pIdx) => (
                           <Button
-                            variant="ghost"
+                            key={pIdx}
+                            variant="outline"
                             size="sm"
-                            className="gap-2"
-                            onClick={() => handlePreview(url)}
+                            className="w-full text-xs"
+                            onClick={() => handlePreview(proof)}
                           >
-                            <Eye className="h-4 w-4" />
-                            Xem
+                            <ImageIcon className="h-3 w-3 mr-2" />
+                            Xem bằng chứng
                           </Button>
-                        </div>
-                      );
-                    })}
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </DialogContent>
         </Dialog>

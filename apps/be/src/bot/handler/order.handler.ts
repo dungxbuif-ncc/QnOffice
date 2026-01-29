@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { WHITE_LIST_CHANNEL } from '@src/common/constants/mezon';
 import { NotificationEvent } from '@src/common/events/notification.events';
+import { AppConfigService } from '@src/common/shared/services/app-config.service';
 import { AppLogService } from '@src/common/shared/services/app-log.service';
+import joinUrlPaths from '@src/common/utils/joinUrlPaths';
 import { formatDateVn } from '@src/common/utils/time.util';
 import type { Nezon } from '@src/libs/nezon';
 import { AutoContext, Command } from '@src/libs/nezon';
@@ -17,6 +19,7 @@ export class OrderHandler {
     private readonly emitter: EventEmitter2,
     private readonly orderService: OrderService,
     private readonly billingService: BillingService,
+    private readonly appConfigService: AppConfigService,
   ) {}
 
   @Command({ name: 'order' })
@@ -140,7 +143,7 @@ export class OrderHandler {
         channelId,
         today,
       );
-
+      const myBillUrl = joinUrlPaths(this.appConfigService.frontendUrl,'dashboard/my-bills')
       if (result.isEmpty) {
         await managedMessage.reply(
           SmartMessage.system(`❌ Không có đơn hàng nào trong ngày hôm nay.`),
@@ -156,7 +159,7 @@ export class OrderHandler {
           SmartMessage.system(
             `ℹ️ Đã cập nhật chủ sở hữu cho đơn hàng!\n\n` +
               `Chi tiết:\n${orderList}\n` +
-              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/my-bills`,
+              `💡 Bạn có thể xem và quản lý billing tại:\n${myBillUrl}`,
           ),
         );
         return;
@@ -172,7 +175,7 @@ export class OrderHandler {
           SmartMessage.system(
             `✅ Đã tạo billing thành công!\n\n` +
               `Chi tiết:\n${orderList}\n\n` +
-              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/my-bills`,
+              `💡 Bạn có thể xem và quản lý billing tại:\n${myBillUrl}`,
           ),
         );
         return;
