@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ScheduleType } from '@qnoffice/shared';
+import { ScheduleType, SwapRequestStatus } from '@qnoffice/shared';
 import { formatOfficeCode } from '@src/common/utils';
 import { parseDate } from '@src/common/utils/date.utils';
 import {
@@ -134,8 +134,8 @@ export class CleaningScheduleHandler {
   }
 
   @Command('doilich')
-  async onPoll(@AutoContext() [managedMessage]: Nezon.AutoContext) {
-    await managedMessage.reply(
+  async onChangeSchedule(@AutoContext() [managedMessage]: Nezon.AutoContext) {
+    await managedMessage.replyEphemeral(
       SmartMessage.build()
         .addEmbed(
           new EmbedBuilder()
@@ -162,7 +162,7 @@ export class CleaningScheduleHandler {
             .setLabel('Cancel')
             .setStyle(ButtonStyle.Danger)
             .onClick(async (context) => {
-              await managedMessage.reply(SmartMessage.text('Bạn đã hủy yêu cầu đổi lịch trực nhật'));
+              await managedMessage.replyEphemeral(SmartMessage.text('Bạn đã hủy yêu cầu đổi lịch trực nhật'));
               await context.message.delete();
             })
         )
@@ -171,28 +171,27 @@ export class CleaningScheduleHandler {
             .setLabel('Create')
             .setStyle(ButtonStyle.Success)
             .onClick(async (context) => {
-              console.log(context.formData);
-              const {name, fromDay, toDay, reason} = context.formData ?? {};
-              if(!name || !fromDay || !toDay || !reason){
-                await managedMessage.reply(SmartMessage.text('Yêu cầu nhập đầy đủ thông tin!'));
+              const { name, fromDay, toDay, reason } = context.formData ?? {};
+              if (!name || !fromDay || !toDay || !reason) {
+                await managedMessage.replyEphemeral(SmartMessage.text('Yêu cầu nhập đầy đủ thông tin!'));
                 return;
               }
 
-              if(!parseDate(fromDay) || !parseDate(toDay)){
-                await managedMessage.reply(SmartMessage.text('Ngày tháng không hợp lệ!'));
+              if (!parseDate(fromDay) || !parseDate(toDay)) {
+                await managedMessage.replyEphemeral(SmartMessage.text('Ngày tháng không hợp lệ!'));
                 return
               }
 
               const staff = await this.staffService.findByName(name);
-              if(!staff){
-                await managedMessage.reply(SmartMessage.text('Không có nhân viên này!'));
+              if (!staff) {
+                await managedMessage.replyEphemeral(SmartMessage.text('Không có nhân viên này!'));
                 return;
               }
 
               const sender = await this.staffService.findByUserId(managedMessage.senderId);
-              
-              if(!sender){
-                await managedMessage.reply(SmartMessage.text('Không có nhân viên này!'));
+
+              if (!sender) {
+                await managedMessage.replyEphemeral(SmartMessage.text('Không có nhân viên này!'));
                 return;
               }
 
@@ -202,32 +201,102 @@ export class CleaningScheduleHandler {
                 participantId: sender.id,
               });
 
-              if(!fromEvent){
+              if (!fromEvent) {
                 await managedMessage.reply(SmartMessage.text('Bạn không có lịch trực vào ngày này!'));
                 return;
               }
-              
+
               const toEvent = await this.cleaningService.getEvent({
                 // startDate: today,
                 participantId: staff.id,
               })
 
-              if(!toEvent){
+              if (!toEvent) {
                 await managedMessage.reply(SmartMessage.text('Người bị yêu cầu không có lịch trực vào ngày này!'));
                 return;
               }
 
-              await this.swapRequestService.create({fromEventId: fromEvent.id, toEventId: toEvent.id, reason: reason, type: ScheduleType.CLEANING, targetStaffId: staff.id}, sender.id);
+              await this.swapRequestService.create({ fromEventId: fromEvent.id, toEventId: toEvent.id, reason: reason, type: ScheduleType.CLEANING, targetStaffId: staff.id }, sender.id);
+              await managedMessage.reply(SmartMessage.text(`Tạo yêu cầu đổi lịch trực nhật thành công với ${staff.user.name}.`)
+                .addMention({
+                  recipient: {
+                    username: staff.user.name,
+                    userId: staff.userId!,
+                  }
+                })
+              );
 
-              await managedMessage.reply(SmartMessage.text('Tạo yêu cầu đổi lịch trực nhật thành công!'));
               await context.message.delete();
             })
         )
     );
   }
+
   @Component({ pattern: "cancel" })
   async onConfirm(@AutoContext() [managedMessage]: Nezon.AutoContext) {
     await managedMessage.reply(SmartMessage.text('Confirmed!'));
+  }
+
+  @Command({ name: "huy_doilich" })
+  async onCancel(@AutoContext() [managedMessage]: Nezon.AutoContext) {
+    try {
+      const requester = await this.staffService.findByUserId(managedMessage.senderId);
+      if (!requester) {
+        await managedMessage.reply(SmartMessage.text('Không có nhân viên này!'));
+        return;
+      }
+      const listSwap = await this.swapRequestService.findByUserId(requester.id);
+      if (!listSwap) {
+        await managedMessage.reply(SmartMessage.text('Bạn không có yêu cầu đổi lịch nào!'));
+        return;
+      }
+      const lastRequest = listSwap.pop();
+      await this.swapRequestService.delete(lastRequest!.id);
+      await managedMessage.reply(SmartMessage.text('Xóa yêu cầu đổi lịch thành công!'));
+    } catch (error) {
+      await managedMessage.reply(SmartMessage.text('Xóa yêu cầu đổi lịch thất bại!'));
+      return;
+    }
+  }
+
+  @Command({ name: "yc_doilich" })
+  async onGetListRequestSwap(@AutoContext() [managedMessage]: Nezon.AutoContext) {
+    const requester = await this.staffService.findByUserId(managedMessage.senderId);
+    if (!requester) {
+      await managedMessage.reply(SmartMessage.text('Không có nhân viên này!'));
+      return;
+    }
+    const list = await this.swapRequestService.findAll({ requesterId: requester.id, status: SwapRequestStatus.PENDING });
+    const listRequest = list.map(async (s) => {
+      const target = await this.staffService.findById(s.targetStaffId!);
+      return {label: `- ${s.requester.user.name}(${s.fromEvent.eventDate}) 🔁 ${target?.user.name}(${s.toEvent.eventDate})`, value: s.id.toString()}
+    })
+    const resolvedStrings = await Promise.all(listRequest);
+
+    await managedMessage.reply(
+      SmartMessage.system("").addEmbed(
+        new EmbedBuilder()
+          .setTitle("Danh sách yêu cầu đổi lịch")
+          .setColor("#FFA500")
+          .addSelectField("Yêu cầu", "id", resolvedStrings)
+      ).addButton(
+        new ButtonBuilder().setLabel("Approve").setStyle(ButtonStyle.Success).onClick(async (context) => {
+              if(!context.formData){
+                await managedMessage.replyEphemeral(SmartMessage.text('Bạn chưa chọn yêu cầu đổi lịch nào!'));
+                return;
+              }                
+              await this.swapRequestService.review(Number(context.formData.id), {status: SwapRequestStatus.APPROVED})
+              await managedMessage.reply(SmartMessage.text('Yêu cầu đổi lịch trực nhật đã được duyệt'));
+              await context.message.delete();
+            })
+      )
+        .addButton(
+          new ButtonBuilder().setLabel("Reject").setStyle(ButtonStyle.Danger).onClick(async (context) => {
+              await managedMessage.replyEphemeral(SmartMessage.text('Bạn đã hủy yêu cầu đổi lịch trực nhật'));
+              await context.message.delete();
+            })
+        )
+    )
   }
 }
 

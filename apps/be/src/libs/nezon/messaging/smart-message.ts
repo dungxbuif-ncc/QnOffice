@@ -645,7 +645,7 @@ export class SmartMessage {
       const allHaveLabels = Object.values(placeholders).every(
         (p) => p.kind === 'user' && p.label !== undefined,
       );
-
+      
       console.log('[DEBUG toJSON] allHaveLabels:', allHaveLabels);
 
       if (allHaveLabels) {
@@ -944,6 +944,15 @@ export class ManagedMessage {
     );
   }
 
+  async replyEphemeral(message: SmartMessageLike) {
+    const payload = await this.preparePayload(message);
+    return this.context.replyEphemeral!(
+      payload.content,
+      payload.mentions,
+      payload.attachments,
+    );
+  }
+
   async update(message: SmartMessageLike) {
     const entity = await this.context.getMessage();
     if (!entity) {
@@ -961,7 +970,8 @@ export class ManagedMessage {
   }
 
   async delete() {
-    const entity = await this.context.getMessage();
+    let entity = await this.context.getMessage();
+
     if (!entity) {
       throw new Error('Cannot delete message: message entity not found');
     }

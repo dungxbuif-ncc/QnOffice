@@ -23,7 +23,7 @@ import HolidayEntity from '@src/modules/holiday/holiday.entity';
 import OpentalkSlideEntity from '@src/modules/opentalk/entities/opentalk-slide.entity';
 import { OpentalkService } from '@src/modules/opentalk/opentalk.service';
 import StaffEntity from '@src/modules/staff/staff.entity';
-import { addDays, addMonths, differenceInCalendarDays } from 'date-fns';
+import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Between, EntityManager, In, LessThan, Not, Repository } from 'typeorm';
 import ScheduleCycleEntity from '../enties/schedule-cycle.entity';
 import ScheduleEventParticipantEntity from '../enties/schedule-event-participant.entity';
@@ -364,19 +364,7 @@ export class OpentalkCronService {
       previousEvents[previousEvents.length - 1].eventDate;
     const lastEventDate = fromDateString(lastEventDateStr);
 
-    const { startDate, cycleName, description } = getNextCycleInfo(
-      lastEventDateStr,
-      ScheduleType.OPENTALK,
-    );
-
-    const holidays = await this.holidayRepository.find({
-      where: {
-        date: Between(
-          toDateString(startDate),
-          toDateString(addMonths(startDate, 12)),
-        ),
-      },
-    });
+    const holidays = await this.holidayRepository.find();
 
     const holidaysStr = holidays.map((h) =>
       typeof h.date === 'string' ? h.date : toDateString(h.date),
@@ -406,11 +394,18 @@ export class OpentalkCronService {
     );
     this.appLogService.stepLog(
       2,
-      `Generated opentalk schedule for ${toDateString(startDate)}`,
+      `Generated opentalk schedule for ${toDateString(nextValidStartDate)}`,
       'OpentalkCronService',
       journeyId,
       { schedule },
     );
+    
+    const { cycleName, description } = getNextCycleInfo(
+      schedule[0].date,
+      schedule[schedule.length - 1].date,
+      ScheduleType.OPENTALK,
+    );
+
     await this.entityManager.transaction(async (manager) => {
       const newCycle = manager.create(ScheduleCycleEntity, {
         name: cycleName,

@@ -13,6 +13,9 @@ export interface NezonCommandContext {
   reply(
     ...args: Parameters<Message['reply']>
   ): Promise<Awaited<ReturnType<Message['reply']>> | undefined>;
+  replyEphemeral?(
+    ...args: Parameters<Message['reply']>
+  ): Promise<Awaited<ReturnType<Message['reply']>> | undefined>;
   getChannel(): Promise<TextChannel | undefined>;
   getClan(): Promise<Clan | undefined>;
   getUser(): Promise<User | undefined>;

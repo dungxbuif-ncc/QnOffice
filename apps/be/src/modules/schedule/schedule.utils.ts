@@ -1,7 +1,7 @@
 import { ScheduleType } from '@qnoffice/shared';
 import { ONE_WEEK } from '@src/common/constants';
 import { fromDateString } from '@src/common/utils/date.utils';
-import { addDays, differenceInCalendarDays, startOfMonth } from 'date-fns';
+import { differenceInCalendarDays } from 'date-fns';
 
 /**
  * Check if the current date is exactly 7 days before the last event date
@@ -41,23 +41,11 @@ export function getCycleTriggerStatus(
 /**
  * Get next cycle info based on last event date
  */
-export function getNextCycleInfo(lastEventDateStr: string, type: ScheduleType) {
-  const lastEventDate = fromDateString(lastEventDateStr);
-  const startDate = addDays(lastEventDate, 1);
-  const startOfNextMonth = startOfMonth(startDate);
-
-  const month = startOfNextMonth.getMonth() + 1;
-  const year = startOfNextMonth.getFullYear();
-  const nextMonthStr = `${month}/${year}`;
-
+export function getNextCycleInfo(startEventDateStr: string, endEventDateStr: string, type: ScheduleType) {
   const typeName = type === ScheduleType.CLEANING ? 'Cleaning' : 'OpenTalk';
-
   return {
-    startDate,
-    startOfNextMonth,
-    nextMonthStr,
-    cycleName: `${typeName} tháng ${nextMonthStr}`,
-    description: `Auto-generated ${typeName.toLowerCase()} schedule for ${nextMonthStr}`,
+    cycleName: `${typeName}: ${startEventDateStr} - ${endEventDateStr}`,
+    description: `Auto-generated`,
   };
 }
 

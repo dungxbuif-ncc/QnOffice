@@ -141,10 +141,14 @@ export class CleaningService {
     if (!recentEvent) {
       return null;
     }
-    const cycle = await this.cycleRepository.findOne({
-      where: { id: recentEvent.cycleId },
-      relations: ['events', 'events.eventParticipants'],
-    });
+    const cycle = await this.cycleRepository
+    .createQueryBuilder('cycle')
+    .leftJoinAndSelect('cycle.events', 'event')
+    .leftJoinAndSelect('event.eventParticipants', 'participant')
+    .where('cycle.id = :id', { id: recentEvent.cycleId })
+    .orderBy('event.eventDate', 'ASC')
+    .getOne();
+
     if (!cycle) {
       return null;
     }

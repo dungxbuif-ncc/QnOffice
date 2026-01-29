@@ -119,6 +119,24 @@ export class SwapRequestService {
     return swapRequest;
   }
 
+  async findByUserId(userId: number): Promise<SwapRequestEntity[]>{
+    return  await this.swapRequestRepository.find({
+      where: { requesterId: userId },
+      relations: [
+        'fromEvent',
+        'toEvent',
+        'requester',
+        'requester.user',
+        'fromEvent.eventParticipants',
+        'fromEvent.eventParticipants.staff',
+        'fromEvent.eventParticipants.staff.user',
+        'toEvent.eventParticipants',
+        'toEvent.eventParticipants.staff',
+        'toEvent.eventParticipants.staff.user',
+      ],
+    });;
+  }
+
   async review(id: number, dto: ReviewSwapRequestDto) {
     const swapRequest = await this.swapRequestRepository.findOne({
       where: { id },
