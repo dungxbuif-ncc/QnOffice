@@ -37,13 +37,20 @@ export class BillingService {
       `Creating billing for user ${userMezonId} on ${date}`,
       'BillingService',
     );
-
+    const userBilling = await this.billingRepository.findOne({
+      where: {
+        userMezonId,
+        date,
+      },
+    });
     const orders = await this.orderRepository.find({
       where: {
         channelId,
         date,
       },
-      relations: ['user'],
+      relations: {
+        user: true,
+      },
       order: {
         createdAt: SearchOrder.DESC,
       },
@@ -81,7 +88,18 @@ export class BillingService {
         orders: [],
       };
     }
-
+    if(userBilling){
+        const billingId = userBilling.id;
+          await this.orderRepository.update(
+      unbilledOrders.map((o) => o.id),
+      { billingId },
+    );
+      return {
+        isUpdateOwner: true,
+        orders,
+        billingId,
+      };
+    }
     const billing = this.billingRepository.create({
       userMezonId,
       channelId,

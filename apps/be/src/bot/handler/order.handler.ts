@@ -150,35 +150,28 @@ export class OrderHandler {
         );
         return;
       }
+      const orderList = result.orders
+        .map(
+          (order, index) =>
+            `${index + 1}. <${order.user?.name}>: ${order.content}`,
+        )
+        .join('\n');
 
+      let title = '';
       if (result.isUpdateOwner) {
-        const orderList = result.orders
-          .map((order, index) => `${index + 1}. ${order.content}`)
-          .join('\n');
+        title = 'ℹ️ Đã cập nhật chủ sở hữu cho đơn hàng!';
+      } else if (result.isCreateBilling) {
+        title = '✅ Đã tạo billing thành công!';
+      }
+
+      if (title) {
         await managedMessage.reply(
           SmartMessage.system(
-            `ℹ️ Đã cập nhật chủ sở hữu cho đơn hàng!\n\n` +
+            `${title}\n\n` +
               `Chi tiết:\n${orderList}\n` +
               `💡 Bạn có thể xem và quản lý billing tại:\n${myBillUrl}`,
           ),
         );
-        return;
-      }
-
-      // Case 4: Successfully created new billing
-      if (result.isCreateBilling) {
-        const orderList = result.orders
-          .map((order, index) => `${index + 1}. ${order.content}`)
-          .join('\n');
-
-        await managedMessage.reply(
-          SmartMessage.system(
-            `✅ Đã tạo billing thành công!\n\n` +
-              `Chi tiết:\n${orderList}\n\n` +
-              `💡 Bạn có thể xem và quản lý billing tại:\n${myBillUrl}`,
-          ),
-        );
-        return;
       }
     } catch (error) {
       this.appLogService.error('Error creating billing:', error);
