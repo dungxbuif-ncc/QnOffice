@@ -582,7 +582,7 @@ export class NezonCommandService {
         const messageId = await context.getMessage();
         if(!user) throw new Error();
         if(!messageId) throw new Error();
-        return await channel?.sendEphemeral(user.id, replyArgs, messageId.id);
+        return await channel.sendEphemeral(user.id, replyArgs, messageId.id);
       },
       getChannel: () => this.getChannel(context),
       getClan: () => this.getClan(context),

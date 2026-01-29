@@ -981,6 +981,22 @@ export class ManagedMessage {
     throw new Error('Cannot delete message: delete method not available');
   }
 
+  async deleteEphemeral() {
+    const channel = await this.context.getChannel();
+    
+    if(!channel) {
+      throw new Error('Cannot delete message: channel not found');
+    }
+
+    const user = await this.context.getUser();
+
+    if(!user) {
+      throw new Error('Cannot delete message: user not found');
+    }
+  
+    return channel.deleteEphemeral( user.id, this.context.message.message_id!);
+  }
+
   async react(emoji: string, emojiId?: string, actionDelete = false) {
     const entity = await this.context.getMessage();
     if (!entity) {
