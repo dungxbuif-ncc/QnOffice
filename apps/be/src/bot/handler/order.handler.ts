@@ -156,7 +156,7 @@ export class OrderHandler {
           SmartMessage.system(
             `ℹ️ Đã cập nhật chủ sở hữu cho đơn hàng!\n\n` +
               `Chi tiết:\n${orderList}\n` +
-              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/billings`,
+              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/my-bills`,
           ),
         );
         return;
@@ -172,7 +172,7 @@ export class OrderHandler {
           SmartMessage.system(
             `✅ Đã tạo billing thành công!\n\n` +
               `Chi tiết:\n${orderList}\n\n` +
-              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/billings`,
+              `💡 Bạn có thể xem và quản lý billing tại:\nhttps://office.nccquynhon.edu.vn/dashboard/my-bills`,
           ),
         );
         return;

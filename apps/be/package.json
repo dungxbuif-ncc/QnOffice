@@ -56,7 +56,7 @@
       "helmet": "^7.1.0",
       "jsonwebtoken": "^9.0.2",
       "lodash": "^4.17.21",
-      "mezon-sdk": "2.8.38",
+      "mezon-sdk": "2.8.39",
       "mime-types": "^2.1.35",
       "minimatch": "^10.0.3",
       "mmn-client-js": "^1.0.15",
